@@ -20,6 +20,38 @@ extern int livebox_service_trigger_update(const char *pkgname, const char *clust
  */
 extern int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *lbid, int is_prime, void *data), void *data);
 
+/*!
+ */
+extern char *livebox_service_pkgname(const char *appid);
+
+/*!
+ */
+extern char *livebox_service_libexec(const char *appid);
+
+/*!
+ */
+extern char *livebox_service_lb_script_path(const char *pkgid);
+
+/*!
+ */
+extern char *livebox_service_lb_script_group(const char *pkgid);
+
+/*!
+ */
+extern char *livebox_service_pd_script_path(const char *pkgid);
+
+/*!
+ */
+extern char *livebox_service_pd_script_group(const char *pkgid);
+
+/*!
+ */
+extern int livebox_service_init(void);
+
+/*!
+ */
+extern int livebox_service_fini(void);
+
 #ifdef __cplusplus
 }
 #endif

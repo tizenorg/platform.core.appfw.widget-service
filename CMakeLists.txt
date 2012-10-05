@@ -40,7 +40,6 @@ ADD_DEFINITIONS("-DSOCKET_FILE=\"/opt/share/live_magazine/.live.socket\"")
 ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/dlist.c
 	src/livebox-service.c
-	src/livebox-service_undoc.c
 	src/util.c
 )
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${VERSION_MAJOR})
