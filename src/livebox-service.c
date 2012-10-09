@@ -140,13 +140,13 @@ EAPI int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *pk
 	ret = 0;
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		appid = (char *)sqlite3_column_text(stmt, 0);
-		if (!appid) {
+		if (!appid || !strlen(appid)) {
 			ErrPrint("APPID is not valid\n");
 			continue;
 		}
 
 		pkgid = (char *)sqlite3_column_text(stmt, 1);
-		if (!pkgid) {
+		if (!pkgid || !strlen(pkgid)) {
 			ErrPrint("pkgid is not valid\n");
 			continue;
 		}
@@ -175,19 +175,29 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 	sqlite3 *handle;
 	int ret;
 	char *libexec;
+	char *appid;
+	char *path;
+	int len;
 
 	libexec = NULL;
 	handle = open_db();
 	if (!handle)
 		return NULL;
 
-	ret = sqlite3_prepare_v2(handle, "SELECT libexec FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgmap.appid, provider.libexec FROM pkgmap, provider WHERE pkgmap.pkgid = ? AND provider.pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
@@ -201,15 +211,32 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 		goto out;
 	}
 
-	libexec = (char *)sqlite3_column_text(stmt, 0);
-	if (libexec) {
-		char *tmp;
-		tmp = strdup(libexec);
-		if (!tmp)
-			ErrPrint("Heap: %s\n", strerror(errno));
-
-		libexec = tmp;
+	appid = (char *)sqlite3_column_text(stmt, 0);
+	if (!appid || !strlen(appid)) {
+		ErrPrint("Invalid appid: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
 	}
+
+	path = (char *)sqlite3_column_text(stmt, 1);
+	if (!path || !strlen(path)) {
+		ErrPrint("Invalid libexec: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	len = strlen(appid) + strlen(path) + strlen("/opt/apps//") + 1;
+	libexec = malloc(len);
+	if (!libexec) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+	snprintf(libexec, len, "/opt/apps/%s/%s", appid, path);
+	DbgPrint("libexec: %s\n", libexec);
 
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
@@ -231,7 +258,7 @@ EAPI char *livebox_service_pkgname(const char *pkgname)
 	if (!handle)
 		return NULL;
 
-	ret = sqlite3_prepare_v2(handle, "SELECT pkgid, libexec FROM pkgmap WHERE (appid = ? AND is_prime = 1) OR pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -260,35 +287,8 @@ EAPI char *livebox_service_pkgname(const char *pkgname)
 		goto out;
 	}
 
-	tmp = (char *)sqlite3_column_text(stmt, 1);
-	if (tmp) {
-		struct stat stat;
-
-		DbgPrint("libexec: %s\n", tmp);
-		if (lstat(tmp, &stat) < 0) {
-			ErrPrint("stat: %s\n", strerror(errno));
-			sqlite3_reset(stmt);
-			sqlite3_finalize(stmt);
-			goto out;
-		}
-
-		if (!S_ISREG(stat.st_mode)) {
-			ErrPrint("libexec is not valid\n");
-			sqlite3_reset(stmt);
-			sqlite3_finalize(stmt);
-			goto out;
-		}
-
-		if (!stat.st_size) {
-			ErrPrint("libexec is not valid\n");
-			sqlite3_reset(stmt);
-			sqlite3_finalize(stmt);
-			goto out;
-		}
-	}
-
 	tmp = (char *)sqlite3_column_text(stmt, 0);
-	if (tmp) {
+	if (tmp && strlen(tmp)) {
 		pkgid = strdup(tmp);
 		if (!pkgid)
 			ErrPrint("Heap: %s\n", strerror(errno));
@@ -301,26 +301,104 @@ out:
 	return pkgid;
 }
 
+EAPI char *livebox_service_appid(const char *pkgname)
+{
+	sqlite3_stmt *stmt;
+	char *appid;
+	char *tmp;
+	sqlite3 *handle;
+	int is_prime;
+	int ret;
+
+	appid = NULL;
+	handle = open_db();
+	if (!handle)
+		return NULL;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT appid, prime FROM pkgmap WHERE pkgid = ? OR (appid = ? AND prime = 1)", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgname, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, pkgname, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	tmp = (char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("APPID is NIL\n");
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	appid = strdup(tmp);
+	if (!appid) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	is_prime = sqlite3_column_int(stmt, 1);
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+out:
+	close_db(handle);
+	return appid;
+}
+
 EAPI char *livebox_service_lb_script_path(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
 	int ret;
 	char *path;
-	char *tmp;
+	char *appid;
+	char *lb_src;
+	int len;
 
 	path = NULL;
 	handle = open_db();
 	if (!handle)
 		return NULL;
 
-	ret = sqlite3_prepare_v2(handle, "SELECT box_src FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgmap.appid, provider.box_src FROM provider, pkgmap WHERE pkgmap.pkgid = ? AND provider.pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
@@ -335,12 +413,33 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 		goto out;
 	}
 
-	tmp = (char *)sqlite3_column_text(stmt, 0);
-	if (tmp) {
-		path = strdup(tmp);
-		if (!path)
-			ErrPrint("Heap: %s\n", strerror(errno));
+	appid = (char *)sqlite3_column_text(stmt, 0);
+	if (!appid || !strlen(appid)) {
+		ErrPrint("Invalid appid : %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
 	}
+
+	lb_src = (char *)sqlite3_column_text(stmt, 1);
+	if (!lb_src || !strlen(lb_src)) {
+		ErrPrint("No records for lb src : %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	len = strlen("/opt/apps//") + strlen(appid) + strlen(lb_src) + 1;
+	path = malloc(len);
+	if (!path) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	snprintf(path, len, "/opt/apps/%s/%s", appid, lb_src);
+	DbgPrint("LB Src: %s\n", path);
 
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
@@ -384,7 +483,7 @@ EAPI char *livebox_service_lb_script_group(const char *pkgid)
 	}
 
 	tmp = (char *)sqlite3_column_text(stmt, 0);
-	if (tmp) {
+	if (tmp && strlen(tmp)) {
 		group = strdup(tmp);
 		if (!group)
 			ErrPrint("Heap: %s\n", strerror(errno));
@@ -403,20 +502,29 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 	sqlite3 *handle;
 	int ret;
 	char *path;
-	char *tmp;
+	char *pd_src;
+	const char *appid;
+	int len;
 
 	path = NULL;
 	handle = open_db();
 	if (!handle)
 		return NULL;
 
-	ret = sqlite3_prepare_v2(handle, "SELECT pd_src FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgmap.appid, provider.pd_src FROM provider, pkgmap WHERE provider.pkgid = ? AND pkgmap.pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
@@ -431,12 +539,33 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 		goto out;
 	}
 
-	tmp = (char *)sqlite3_column_text(stmt, 0);
-	if (tmp) {
-		path = strdup(tmp);
-		if (!path)
-			ErrPrint("Heap: %s\n", strerror(errno));
+	appid = (char *)sqlite3_column_text(stmt, 0);
+	if (!appid || !strlen(appid)) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
 	}
+
+	pd_src = (char *)sqlite3_column_text(stmt, 1);
+	if (!pd_src || !strlen(pd_src)) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	len = strlen("/opt/apps//") + strlen(appid) + strlen(pd_src) + 1;
+	path = malloc(len);
+	if (!path) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	snprintf(path, len, "/opt/apps/%s/%s", appid, pd_src);
+	DbgPrint("PD Src: %s\n", path);
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
 out:
@@ -479,7 +608,7 @@ EAPI char *livebox_service_pd_script_group(const char *pkgid)
 	}
 
 	tmp = (char *)sqlite3_column_text(stmt, 0);
-	if (tmp) {
+	if (tmp && strlen(tmp)) {
 		group = strdup(tmp);
 		if (!group)
 			ErrPrint("Heap: %s\n", strerror(errno));
