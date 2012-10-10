@@ -19,6 +19,19 @@
 
 #define EAPI __attribute__((visibility("default")))
 #define DEFAULT_TIMEOUT 2.0
+#define NR_OF_SIZE_LIST 6
+
+static const struct supported_size_list {
+	int w;
+	int h;
+} SIZE_LIST[NR_OF_SIZE_LIST] = {
+	{ 172, 172 }, /*!< 1x1 */
+	{ 348, 172 }, /*!< 2x1 */
+	{ 348, 348 }, /*!< 2x2 */
+	{ 700, 348 }, /*!< 4x2 */
+	{ 700, 172 }, /*!< 4x1 */
+	{ 700, 700 }, /*!< 4x4 */
+};
 
 static struct info {
 	sqlite3 *handle;
@@ -144,6 +157,79 @@ EAPI int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *pk
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
 
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int size;
+	int ret;
+	int idx;
+
+	handle = open_db();
+	if (!handle)
+		return -EIO;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = -EIO;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = -EIO;
+		goto out;
+	}
+
+	if (*cnt > NR_OF_SIZE_LIST)
+		*cnt = NR_OF_SIZE_LIST;
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
+		size = sqlite3_column_int(stmt, 0);
+		switch (size) {
+		case 0x01:
+			idx = 0;
+			break;
+		case 0x02:
+			idx = 1;
+			break;
+		case 0x04:
+			idx = 2;
+			break;
+		case 0x08:
+			idx = 3;
+			break;
+		case 0x10:
+			idx = 4;
+			break;
+		case 0x20:
+			idx = 5;
+			break;
+		default:
+			ErrPrint("Invalid size type: %d\n", size);
+			continue;
+		}
+		if (w)
+			w[ret] = SIZE_LIST[idx].w;
+		if (h)
+			h[ret] = SIZE_LIST[idx].h;
+		ret++;
+	}
+
+	*cnt = ret;
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	ret = 0;
 out:
 	close_db(handle);
 	return ret;

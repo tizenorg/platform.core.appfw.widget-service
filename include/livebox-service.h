@@ -73,6 +73,12 @@ extern char *livebox_service_pd_script_group(const char *pkgid);
  * \brief
  * \return
  */
+extern int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h);
+
+/*!
+ * \brief
+ * \return
+ */
 extern int livebox_service_init(void);
 
 /*!
