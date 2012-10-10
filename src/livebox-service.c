@@ -31,7 +31,6 @@ static struct info {
 static inline sqlite3 *open_db(void)
 {
 	sqlite3 *handle;
-	struct stat stat;
 
 	if (!s_info.handle) {
 		int ret;
@@ -45,26 +44,7 @@ static inline sqlite3 *open_db(void)
 		handle = s_info.handle;
 	}
 
-	if (lstat(s_info.dbfile, &stat) < 0) {
-		ErrPrint("stat: %s\n", strerror(errno));
-		goto out;
-	}
-
-	if (!S_ISREG(stat.st_mode)) {
-		ErrPrint("DBFile is not valid\n");
-		goto out;
-	}
-
-	if (!stat.st_size)
-		goto out;
-
 	return handle;
-
-out:
-	if (!s_info.handle && handle)
-		db_util_close(handle);
-
-	return NULL;
 }
 
 static inline void close_db(sqlite3 *handle)
@@ -261,29 +241,24 @@ EAPI char *livebox_service_pkgname(const char *pkgname)
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
+		close_db(handle);
+		return NULL;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgname, -1, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, pkgname, -1, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
 		goto out;
 	}
 
 	if (sqlite3_step(stmt) != SQLITE_ROW) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
+		ErrPrint("Error: %s (has no record? - %s)\n", sqlite3_errmsg(handle), pkgname);
 		goto out;
 	}
 
@@ -294,9 +269,9 @@ EAPI char *livebox_service_pkgname(const char *pkgname)
 			ErrPrint("Heap: %s\n", strerror(errno));
 	}
 
+out:
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
-out:
 	close_db(handle);
 	return pkgid;
 }
@@ -315,7 +290,7 @@ EAPI char *livebox_service_appid(const char *pkgname)
 	if (!handle)
 		return NULL;
 
-	ret = sqlite3_prepare_v2(handle, "SELECT appid, prime FROM pkgmap WHERE pkgid = ? OR (appid = ? AND prime = 1)", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT appid, prime FROM pkgmap WHERE pkgid = ? OR appid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
