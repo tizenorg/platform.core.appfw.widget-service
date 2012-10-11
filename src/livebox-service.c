@@ -36,9 +36,11 @@ static const struct supported_size_list {
 static struct info {
 	sqlite3 *handle;
 	const char *dbfile;
+	int init_count;
 } s_info = {
 	.handle = NULL,
 	.dbfile = "/opt/dbspace/.livebox.db", 
+	.init_count = 0,
 };
 
 static inline sqlite3 *open_db(void)
@@ -681,22 +683,116 @@ out:
 	return group;
 }
 
+EAPI int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	const char *cluster;
+	int cnt;
+	int ret;
+
+	if (!cb)
+		return -EINVAL;
+
+	handle = open_db();
+	if (!handle)
+		return -EIO;
+
+	cnt = 0;
+	ret = sqlite3_prepare_v2(handle, "SELECT DISTINCT cluster FROM groupinfo", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		cnt = -EIO;
+		goto out;
+	}
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		cluster = (const char *)sqlite3_column_text(stmt, 0);
+		if (!cluster || !strlen(cluster))
+			continue;
+
+		if (cb(cluster, data) < 0)
+			break;
+
+		cnt++;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+out:
+	close_db(handle);
+	return cnt;
+}
+
+EAPI int livebox_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	const char *category;
+	int cnt;
+	int ret;
+
+	if (!cluster || !cb)
+		return -EINVAL;
+
+	handle = open_db();
+	if (!handle)
+		return -EIO;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT DISTINCT category FROM groupinfo WHERE cluster = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		cnt = -EIO;
+		goto out;
+	}
+
+	cnt = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		category = (const char *)sqlite3_column_text(stmt, 0);
+		if (!category || !strlen(category))
+			continue;
+
+		if (cb(cluster, category, data) < 0)
+			break;
+
+		cnt++;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+out:
+	close_db(handle);
+	return cnt;
+}
+
 EAPI int livebox_service_init(void)
 {
 	if (s_info.handle) {
 		DbgPrint("Already initialized\n");
+		s_info.init_count++;
 		return 0;
 	}
 
 	s_info.handle = open_db();
-	return s_info.handle ? 0 : -EIO;
+	if (s_info.handle) {
+		s_info.init_count++;
+		return 0;
+	}
+
+	return -EIO;
 }
 
 EAPI int livebox_service_fini(void)
 {
-	if (!s_info.handle) {
+	if (!s_info.handle || s_info.init_count <= 0) {
 		ErrPrint("Service is not initialized\n");
 		return -EIO;
+	}
+
+	s_info.init_count--;
+	if (s_info.init_count > 0) {
+		DbgPrint("Init count %d\n", s_info.init_count);
+		return 0;
 	}
 
 	db_util_close(s_info.handle);

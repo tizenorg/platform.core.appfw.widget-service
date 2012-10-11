@@ -76,6 +76,13 @@ extern char *livebox_service_pd_script_group(const char *pkgid);
 extern int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h);
 
 /*!
+ */
+extern int livebox_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data);
+
+/*!
+ */
+extern int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data);
+/*!
  * \brief
  * \return
  */
