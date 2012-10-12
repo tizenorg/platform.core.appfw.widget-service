@@ -1,6 +1,6 @@
 Name: liblivebox-service
 Summary: Library for the development of a livebox service
-Version: 0.0.4
+Version: 0.0.5
 Release: 1
 Group: main/app
 License: Samsung Proprietary License
@@ -34,6 +34,7 @@ make %{?jobs:-j%jobs}
 %install
 rm -rf %{buildroot}
 %make_install
+mkdir -p %{buildroot}/usr/share/license
 
 %post
 
@@ -47,3 +48,4 @@ rm -rf %{buildroot}
 /usr/include/livebox-service/livebox-service.h
 /usr/share/doc/livebox-service/livebox-service_PG.h
 /usr/lib/pkgconfig/*.pc
+/usr/share/license/*
