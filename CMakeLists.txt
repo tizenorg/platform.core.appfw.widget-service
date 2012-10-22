@@ -21,6 +21,7 @@ pkg_check_modules(pkgs REQUIRED
 	com-core
 	sqlite3
 	db-util
+	pkgmgr
 )
 
 FOREACH(flag ${pkgs_CFLAGS})
@@ -35,7 +36,7 @@ ADD_DEFINITIONS("-DPREFIX=\"${PREFIX}\"")
 ADD_DEFINITIONS("-DLOG_TAG=\"${PROJECT_NAME}\"")
 ADD_DEFINITIONS("-DNDEBUG")
 ADD_DEFINITIONS("-DMASTER_PKGNAME=\"com.samsung.data-provider-master\"")
-ADD_DEFINITIONS("-DSOCKET_FILE=\"/opt/share/live_magazine/.live.socket\"")
+ADD_DEFINITIONS("-DSOCKET_FILE=\"/opt/usr/share/live_magazine/.live.socket\"")
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/dlist.c

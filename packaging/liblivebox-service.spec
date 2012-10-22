@@ -1,6 +1,6 @@
 Name: liblivebox-service
 Summary: Library for the development of a livebox service
-Version: 0.0.5
+Version: 0.0.6
 Release: 1
 Group: main/app
 License: Samsung Proprietary License
@@ -12,6 +12,7 @@ BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(com-core)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
+BuildRequires: pkgconfig(pkgmgr)
 
 %description
 Livebox service library

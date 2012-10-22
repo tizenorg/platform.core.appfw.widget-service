@@ -11,6 +11,7 @@
 #include <packet.h>
 #include <dlog.h>
 #include <db-util.h>
+#include <package-manager.h>
 
 #include "dlist.h"
 #include "util.h"
@@ -245,7 +246,6 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 	char *libexec;
 	char *appid;
 	char *path;
-	int len;
 
 	libexec = NULL;
 	handle = open_db();
@@ -295,15 +295,14 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 		goto out;
 	}
 
-	len = strlen(appid) + strlen(path) + strlen("/opt/apps//") + 1;
-	libexec = malloc(len);
+	libexec = strdup(path);
 	if (!libexec) {
 		ErrPrint("Heap: %s\n", strerror(errno));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
-	snprintf(libexec, len, "/opt/apps/%s/%s", appid, path);
+
 	DbgPrint("libexec: %s\n", libexec);
 
 	sqlite3_reset(stmt);
@@ -313,7 +312,7 @@ out:
 	return libexec;
 }
 
-EAPI char *livebox_service_pkgname(const char *pkgname)
+static inline char *get_lb_pkgname_by_appid(const char *appid)
 {
 	sqlite3_stmt *stmt;
 	char *pkgid;
@@ -333,20 +332,20 @@ EAPI char *livebox_service_pkgname(const char *pkgname)
 		return NULL;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgname, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, appid, -1, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 2, pkgname, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 2, appid, -1, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	if (sqlite3_step(stmt) != SQLITE_ROW) {
-		ErrPrint("Error: %s (has no record? - %s)\n", sqlite3_errmsg(handle), pkgname);
+		ErrPrint("Error: %s (has no record? - %s)\n", sqlite3_errmsg(handle), appid);
 		goto out;
 	}
 
@@ -362,6 +361,40 @@ out:
 	sqlite3_finalize(stmt);
 	close_db(handle);
 	return pkgid;
+}
+
+EAPI char *livebox_service_pkgname(const char *appid)
+{
+	char *lb_pkgname;
+	pkgmgr_appinfo_h handle;
+	int ret;
+	char *new_appid;
+
+	lb_pkgname = get_lb_pkgname_by_appid(appid);
+	if (lb_pkgname)
+		return lb_pkgname;
+
+	/*!
+	 * \note
+	 * Try to get the package id using given appid
+	 */
+	ret = pkgmgr_appinfo_get_appinfo(appid, &handle);
+	if (ret != PKGMGR_R_OK) {
+		ErrPrint("Failed to get appinfo\n");
+		return NULL;
+	}
+
+	ret = pkgmgr_appinfo_get_pkgname(handle, &new_appid);
+	if (ret != PKGMGR_R_OK) {
+		pkgmgr_appinfo_destroy_appinfo(handle);
+		ErrPrint("Failed to get pkgname for (%s)\n", appid);
+		return NULL;
+	}
+
+	lb_pkgname = get_lb_pkgname_by_appid(new_appid);
+	pkgmgr_appinfo_destroy_appinfo(handle);
+
+	return lb_pkgname;
 }
 
 EAPI char *livebox_service_appid(const char *pkgname)
@@ -441,7 +474,6 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 	char *path;
 	char *appid;
 	char *lb_src;
-	int len;
 
 	path = NULL;
 	handle = open_db();
@@ -492,8 +524,7 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 		goto out;
 	}
 
-	len = strlen("/opt/apps//") + strlen(appid) + strlen(lb_src) + 1;
-	path = malloc(len);
+	path = strdup(lb_src);
 	if (!path) {
 		ErrPrint("Heap: %s\n", strerror(errno));
 		sqlite3_reset(stmt);
@@ -501,7 +532,6 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 		goto out;
 	}
 
-	snprintf(path, len, "/opt/apps/%s/%s", appid, lb_src);
 	DbgPrint("LB Src: %s\n", path);
 
 	sqlite3_reset(stmt);
@@ -567,7 +597,6 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 	char *path;
 	char *pd_src;
 	const char *appid;
-	int len;
 
 	path = NULL;
 	handle = open_db();
@@ -618,8 +647,7 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 		goto out;
 	}
 
-	len = strlen("/opt/apps//") + strlen(appid) + strlen(pd_src) + 1;
-	path = malloc(len);
+	path = strdup(pd_src);
 	if (!path) {
 		ErrPrint("Heap: %s\n", strerror(errno));
 		sqlite3_reset(stmt);
@@ -627,7 +655,6 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 		goto out;
 	}
 
-	snprintf(path, len, "/opt/apps/%s/%s", appid, pd_src);
 	DbgPrint("PD Src: %s\n", path);
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
