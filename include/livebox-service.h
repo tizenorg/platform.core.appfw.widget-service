@@ -5,6 +5,32 @@
 extern "C" {
 #endif
 
+#define NR_OF_SIZE_LIST 6
+
+enum livebox_size_type {
+	LB_SIZE_TYPE_1x1 = 0x01,
+	LB_SIZE_TYPE_2x1 = 0x02,
+	LB_SIZE_TYPE_2x2 = 0x04,
+	LB_SIZE_TYPE_4x1 = 0x08,
+	LB_SIZE_TYPE_4x2 = 0x10,
+	LB_SIZE_TYPE_4x4 = 0x20,
+	LB_SIZE_TYPE_UNKNOWN = 0xFF,
+};
+
+/*!
+ * \param[in] type
+ * \param[out] width
+ * \param[out] height
+ */
+extern int livebox_service_get_size(int type, int *width, int *height);
+
+/*!
+ * \param[in] width
+ * \param[in] height
+ * \return Type of a livebox
+ */
+extern int livebox_service_size_type(int width, int height);
+
 /*!
  */
 extern int livebox_service_trigger_update(const char *pkgname, const char *cluster, const char *category);

@@ -20,7 +20,6 @@
 
 #define EAPI __attribute__((visibility("default")))
 #define DEFAULT_TIMEOUT 2.0
-#define NR_OF_SIZE_LIST 6
 
 static const struct supported_size_list {
 	int w;
@@ -29,8 +28,8 @@ static const struct supported_size_list {
 	{ 172, 172 }, /*!< 1x1 */
 	{ 348, 172 }, /*!< 2x1 */
 	{ 348, 348 }, /*!< 2x2 */
-	{ 700, 348 }, /*!< 4x2 */
 	{ 700, 172 }, /*!< 4x1 */
+	{ 700, 348 }, /*!< 4x2 */
 	{ 700, 700 }, /*!< 4x4 */
 };
 
@@ -67,6 +66,39 @@ static inline void close_db(sqlite3 *handle)
 {
 	if (!s_info.handle)
 		db_util_close(handle);
+}
+
+static inline int convert_size_from_type(enum livebox_size_type type, int *width, int *height)
+{
+	int idx;
+
+	switch (type) {
+	case LB_SIZE_TYPE_1x1: /*!< 172x172 */
+		idx = 0;
+		break;
+	case LB_SIZE_TYPE_2x1: /*!< 348x172 */
+		idx = 1;
+		break;
+	case LB_SIZE_TYPE_2x2: /*!< 348x348 */
+		idx = 2;
+		break;
+	case LB_SIZE_TYPE_4x1: /*!< 700x172 */
+		idx = 3;
+		break;
+	case LB_SIZE_TYPE_4x2: /*!< 700x348 */
+		idx = 4;
+		break;
+	case LB_SIZE_TYPE_4x4: /*!< 700x700 */
+		idx = 5;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	*width = SIZE_LIST[idx].w;
+	*height = SIZE_LIST[idx].h;
+
+	return 0;
 }
 
 EAPI int livebox_service_trigger_update(const char *pkgname, const char *cluster, const char *category)
@@ -171,7 +203,9 @@ EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w
 	sqlite3 *handle;
 	int size;
 	int ret;
-	int idx;
+
+	if (!w || !h || !cnt || !pkgid)
+		return -EINVAL;
 
 	handle = open_db();
 	if (!handle)
@@ -199,34 +233,7 @@ EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w
 	ret = 0;
 	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
 		size = sqlite3_column_int(stmt, 0);
-		switch (size) {
-		case 0x01:
-			idx = 0;
-			break;
-		case 0x02:
-			idx = 1;
-			break;
-		case 0x04:
-			idx = 2;
-			break;
-		case 0x08:
-			idx = 3;
-			break;
-		case 0x10:
-			idx = 4;
-			break;
-		case 0x20:
-			idx = 5;
-			break;
-		default:
-			ErrPrint("Invalid size type: %d\n", size);
-			continue;
-		}
-		if (w)
-			w[ret] = SIZE_LIST[idx].w;
-		if (h)
-			h[ret] = SIZE_LIST[idx].h;
-		ret++;
+		ret += (convert_size_from_type(size, w + ret, h + ret) == 0);
 	}
 
 	*cnt = ret;
@@ -246,6 +253,9 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 	char *libexec;
 	char *appid;
 	char *path;
+
+	if (!pkgid)
+		return NULL;
 
 	libexec = NULL;
 	handle = open_db();
@@ -320,6 +330,9 @@ static inline char *get_lb_pkgname_by_appid(const char *appid)
 	sqlite3 *handle;
 	int ret;
 
+	if (!appid)
+		return NULL;
+
 	pkgid = NULL;
 	handle = open_db();
 	if (!handle)
@@ -370,6 +383,9 @@ EAPI char *livebox_service_pkgname(const char *appid)
 	int ret;
 	char *new_appid;
 
+	if (!appid)
+		return NULL;
+
 	lb_pkgname = get_lb_pkgname_by_appid(appid);
 	if (lb_pkgname)
 		return lb_pkgname;
@@ -405,6 +421,9 @@ EAPI char *livebox_service_appid(const char *pkgname)
 	sqlite3 *handle;
 	int is_prime;
 	int ret;
+
+	if (!pkgname)
+		return NULL;
 
 	appid = NULL;
 	handle = open_db();
@@ -474,6 +493,9 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 	char *path;
 	char *appid;
 	char *lb_src;
+
+	if (!pkgid)
+		return NULL;
 
 	path = NULL;
 	handle = open_db();
@@ -549,6 +571,9 @@ EAPI char *livebox_service_lb_script_group(const char *pkgid)
 	char *group;
 	char *tmp;
 
+	if (!pkgid)
+		return NULL;
+
 	group = NULL;
 	handle = open_db();
 	if (!handle)
@@ -597,6 +622,9 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 	char *path;
 	char *pd_src;
 	const char *appid;
+
+	if (!pkgid)
+		return NULL;
 
 	path = NULL;
 	handle = open_db();
@@ -670,6 +698,9 @@ EAPI char *livebox_service_pd_script_group(const char *pkgid)
 	int ret;
 	char *group;
 	char *tmp;
+
+	if (!pkgid)
+		return NULL;
 
 	group = NULL;
 	handle = open_db();
@@ -825,6 +856,49 @@ EAPI int livebox_service_fini(void)
 	db_util_close(s_info.handle);
 	s_info.handle = NULL;
 	return 0;
+}
+
+EAPI int livebox_service_get_size(int type, int *width, int *height)
+{
+	int _width;
+	int _height;
+
+	if (!width)
+		width = &_width;
+
+	if (!height)
+		height = &_height;
+
+	return convert_size_from_type(type, width, height);
+}
+
+EAPI int livebox_service_size_type(int width, int height)
+{
+	int idx;
+
+	for (idx = 0; idx < NR_OF_SIZE_LIST; idx++) {
+		if (SIZE_LIST[idx].w == width && SIZE_LIST[idx].h == height)
+			break;
+	}
+
+	switch (idx) {
+	case 0:
+		return LB_SIZE_TYPE_1x1;
+	case 1:
+		return LB_SIZE_TYPE_2x1;
+	case 2:
+		return LB_SIZE_TYPE_2x2;
+	case 3:
+		return LB_SIZE_TYPE_4x1;
+	case 4:
+		return LB_SIZE_TYPE_4x2;
+	case 5:
+		return LB_SIZE_TYPE_4x4;
+	default:
+		break;
+	}
+
+	return LB_SIZE_TYPE_UNKNOWN;
 }
 
 /* End of a file */

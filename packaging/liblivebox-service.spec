@@ -1,6 +1,6 @@
 Name: liblivebox-service
 Summary: Library for the development of a livebox service
-Version: 0.0.6
+Version: 0.1.0
 Release: 1
 Group: main/app
 License: Samsung Proprietary License
