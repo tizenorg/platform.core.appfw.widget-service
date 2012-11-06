@@ -22,6 +22,7 @@ pkg_check_modules(pkgs REQUIRED
 	sqlite3
 	db-util
 	pkgmgr
+	x11
 )
 
 FOREACH(flag ${pkgs_CFLAGS})

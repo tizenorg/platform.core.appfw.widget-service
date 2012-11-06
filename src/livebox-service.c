@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sqlite3.h>
+#include <X11/X.h>
+#include <X11/Xlib.h>
 
 #include <com-core_packet.h>
 #include <packet.h>
@@ -21,7 +23,7 @@
 #define EAPI __attribute__((visibility("default")))
 #define DEFAULT_TIMEOUT 2.0
 
-static const struct supported_size_list {
+static struct supported_size_list {
 	int w;
 	int h;
 } SIZE_LIST[NR_OF_SIZE_LIST] = {
@@ -36,12 +38,67 @@ static const struct supported_size_list {
 static struct info {
 	sqlite3 *handle;
 	const char *dbfile;
+	const char *conf_file;
 	int init_count;
+	int res_updated;
 } s_info = {
 	.handle = NULL,
 	.dbfile = "/opt/dbspace/.livebox.db", 
+	.conf_file = "/usr/share/data-provider-master/resolution.ini",
 	.init_count = 0,
+	.res_updated = 0,
 };
+
+static inline int update_resolution(void)
+{
+	Display *disp;
+	Window root;
+	Window dummy;
+	int x, y;
+	unsigned int width;
+	unsigned int height;
+	unsigned int border;
+	unsigned int depth;
+	register int i;
+
+	const struct size_list {
+		int w;
+		int h;
+	} list[NR_OF_SIZE_LIST] = {
+		{ 172, 172 }, /*!< 1x1 */
+		{ 348, 172 }, /*!< 2x1 */
+		{ 348, 348 }, /*!< 2x2 */
+		{ 700, 172 }, /*!< 4x1 */
+		{ 700, 348 }, /*!< 4x2 */
+		{ 700, 700 }, /*!< 4x4 */
+	};
+
+	if (s_info.res_updated)
+		return 0;
+
+	disp = XOpenDisplay(NULL);
+	if (!disp) {
+		ErrPrint("Failed to open a display\n");
+		return -EFAULT;
+	}
+
+	root = XDefaultRootWindow(disp);
+	if (!XGetGeometry(disp, root, &dummy, &x, &y, &width, &height, &border, &depth)) {
+		XCloseDisplay(disp);
+		return -EFAULT;
+	}
+
+	DbgPrint("Screen resolution: %dx%d\n", width, height);
+	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
+		SIZE_LIST[i].w = (unsigned int)((double)list[i].w * 720.0f / (double)width);
+		SIZE_LIST[i].h = (unsigned int)((double)list[i].h * 1280.0f / (double)height);
+		DbgPrint("Size is updated to %dx%d --> %dx%d\n", list[i].w, list[i].h, SIZE_LIST[i].w, SIZE_LIST[i].h);
+	}
+
+	XCloseDisplay(disp);
+	s_info.res_updated = 1;
+	return 0;
+}
 
 static inline sqlite3 *open_db(void)
 {
@@ -94,6 +151,8 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 	default:
 		return -EINVAL;
 	}
+
+	update_resolution();
 
 	*width = SIZE_LIST[idx].w;
 	*height = SIZE_LIST[idx].h;
