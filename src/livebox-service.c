@@ -8,6 +8,7 @@
 #include <sqlite3.h>
 #include <X11/X.h>
 #include <X11/Xlib.h>
+#include <ctype.h>
 
 #include <com-core_packet.h>
 #include <packet.h>
@@ -22,17 +23,19 @@
 
 #define EAPI __attribute__((visibility("default")))
 #define DEFAULT_TIMEOUT 2.0
+#define MAX_COLUMN 80
 
 static struct supported_size_list {
 	int w;
 	int h;
+	int updated;
 } SIZE_LIST[NR_OF_SIZE_LIST] = {
-	{ 172, 172 }, /*!< 1x1 */
-	{ 348, 172 }, /*!< 2x1 */
-	{ 348, 348 }, /*!< 2x2 */
-	{ 700, 172 }, /*!< 4x1 */
-	{ 700, 348 }, /*!< 4x2 */
-	{ 700, 700 }, /*!< 4x4 */
+	{ 172, 172, 0 }, /*!< 1x1 */
+	{ 348, 172, 0 }, /*!< 2x1 */
+	{ 348, 348, 0 }, /*!< 2x2 */
+	{ 700, 172, 0 }, /*!< 4x1 */
+	{ 700, 348, 0 }, /*!< 4x2 */
+	{ 700, 700, 0 }, /*!< 4x4 */
 };
 
 static struct info {
@@ -49,7 +52,171 @@ static struct info {
 	.res_updated = 0,
 };
 
-static inline int update_resolution(void)
+static inline int update_info(int width_type, int height_type, int width, int height)
+{
+	int idx;
+	int ret;
+
+	if (width_type == 1 && height_type == 1) {
+		DbgPrint("1x1 Updated to %dx%d\n", width, height);
+		idx = 0;
+	} else if (width_type == 2 && height_type == 1) {
+		DbgPrint("2x1 Updated to %dx%d\n", width, height);
+		idx = 1;
+	} else if (width_type == 2 && height_type == 2) {
+		DbgPrint("2x2 Updated to %dx%d\n", width, height);
+		idx = 2;
+	} else if (width_type == 4 && height_type == 1) {
+		DbgPrint("4x1 Updated to %dx%d\n", width, height);
+		idx = 3;
+	} else if (width_type == 4 && height_type == 2) {
+		DbgPrint("4x2 Updated to %dx%d\n", width, height);
+		idx = 4;
+	} else if (width_type == 4 && height_type == 4) {
+		DbgPrint("4x4 Updated to %dx%d\n", width, height);
+		idx = 5;
+	} else {
+		ErrPrint("Unknown size type: %dx%d (%dx%d)\n", width_type, height_type, width, height);
+		return 0;
+	}
+
+	ret = !SIZE_LIST[idx].updated;
+	if (SIZE_LIST[idx].updated)
+		DbgPrint("Already updated size type: %dx%d\n", width_type, height_type);
+
+	SIZE_LIST[idx].w = width;
+	SIZE_LIST[idx].h = height;
+	SIZE_LIST[idx].updated = 1;
+	return ret;
+}
+
+static inline int update_from_file(void)
+{
+	FILE *fp;
+	int updated;
+	int width_type;
+	int height_type;
+	int width;
+	int height;
+	char buffer[MAX_COLUMN];
+	int ch;
+	int idx;
+	enum status {
+		START = 0x0,
+		TYPE = 0x01,
+		SIZE = 0x02,
+		COMMENT = 0x03,
+		ERROR = 0x04,
+		EOL = 0x05,
+		TYPE_END = 0x06,
+		SIZE_START = 0x07,
+	} status;
+
+	fp = fopen(s_info.conf_file, "r");
+	if (!fp) {
+		ErrPrint("Open failed: %s\n", strerror(errno));
+		return -EIO;
+	}
+
+	updated = 0;
+	status = START;
+	idx = 0;
+	do {
+		ch = fgetc(fp);
+
+		if (idx == MAX_COLUMN) {
+			ErrPrint("Buffer overflow. Too long line. LINE MUST BE SHOT THAN %d\n", MAX_COLUMN);
+			status = ERROR;
+		}
+
+		switch (status) {
+		case START:
+			if (isspace(ch) || ch == EOF)
+				continue;
+
+			if (ch == '#') {
+				status = COMMENT;
+			} else {
+				status = TYPE;
+				idx = 0;
+				ungetc(ch, fp);
+			}
+			break;
+		case TYPE:
+			if (isblank(ch)) {
+				buffer[idx] = '\0';
+				status = TYPE_END;
+				if (sscanf(buffer, "%dx%d", &width_type, &height_type) != 2) {
+					ErrPrint("Invalid syntax: [%s]\n", buffer);
+					status = ERROR;
+				}
+				break;
+			} else if (ch == '=') {
+				buffer[idx] = '\0';
+				status = SIZE_START;
+				if (sscanf(buffer, "%dx%d", &width_type, &height_type) != 2) {
+					ErrPrint("Invalid syntax: [%s]\n", buffer);
+					status = ERROR;
+				}
+				break;
+			} else if (ch == EOF) {
+				ErrPrint("Invalid Syntax\n");
+				status = ERROR;
+				continue;
+			}
+			buffer[idx++] = ch;
+			break;
+		case TYPE_END:
+			if (ch == '=')
+				status = SIZE_START;
+			break;
+		case SIZE_START:
+			if (isspace(ch) || ch == EOF)
+				continue;
+
+			status = SIZE;
+			idx = 0;
+			ungetc(ch, fp);
+			break;
+		case SIZE:
+			if (isspace(ch) || ch == EOF) {
+				buffer[idx] = '\0';
+				status = EOL;
+
+				if (sscanf(buffer, "%dx%d", &width, &height) != 2) {
+					ErrPrint("Invalid syntax: [%s]\n", buffer);
+					status = ERROR;
+				} else if (ch == EOF) {
+					updated += update_info(width_type, height_type, width, height);
+				}
+				break;
+			}
+			buffer[idx++] = ch;
+			break;
+		case EOL:
+			updated += update_info(width_type, height_type, width, height);
+			status = START;
+			ungetc(ch, fp);
+			break;
+		case ERROR:
+			if (ch == '\n' || ch == '\r' || ch == '\f')
+				status = START;
+			break;
+		case COMMENT:
+			if (ch == '\n' || ch == '\r' || ch == '\f')
+				status = START;
+			break;
+		default:
+			ErrPrint("Unknown status. couldn't be reach to here\n");
+			break;
+		}
+	} while (!feof(fp));
+	fclose(fp);
+
+	return NR_OF_SIZE_LIST - updated;
+}
+
+static int update_resolution(void)
 {
 	Display *disp;
 	Window root;
@@ -61,20 +228,13 @@ static inline int update_resolution(void)
 	unsigned int depth;
 	register int i;
 
-	const struct size_list {
-		int w;
-		int h;
-	} list[NR_OF_SIZE_LIST] = {
-		{ 172, 172 }, /*!< 1x1 */
-		{ 348, 172 }, /*!< 2x1 */
-		{ 348, 348 }, /*!< 2x2 */
-		{ 700, 172 }, /*!< 4x1 */
-		{ 700, 348 }, /*!< 4x2 */
-		{ 700, 700 }, /*!< 4x4 */
-	};
-
 	if (s_info.res_updated)
 		return 0;
+
+	if (update_from_file() == 0) {
+		DbgPrint("Resolution info is all updated by file\n");
+		return 0;
+	}
 
 	disp = XOpenDisplay(NULL);
 	if (!disp) {
@@ -90,9 +250,11 @@ static inline int update_resolution(void)
 
 	DbgPrint("Screen resolution: %dx%d\n", width, height);
 	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
-		SIZE_LIST[i].w = (unsigned int)((double)list[i].w * 720.0f / (double)width);
-		SIZE_LIST[i].h = (unsigned int)((double)list[i].h * 1280.0f / (double)height);
-		DbgPrint("Size is updated to %dx%d --> %dx%d\n", list[i].w, list[i].h, SIZE_LIST[i].w, SIZE_LIST[i].h);
+		if (!SIZE_LIST[i].updated) {
+			SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / 720.0f);
+			SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)height / 1280.0f);
+			DbgPrint("Size is updated [%d] %dx%d\n", i, SIZE_LIST[i].w, SIZE_LIST[i].h);
+		}
 	}
 
 	XCloseDisplay(disp);
@@ -152,11 +314,11 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 		return -EINVAL;
 	}
 
-	update_resolution();
+	if (update_resolution() < 0)
+		ErrPrint("Failed to update resolution\n");
 
 	*width = SIZE_LIST[idx].w;
 	*height = SIZE_LIST[idx].h;
-
 	return 0;
 }
 
