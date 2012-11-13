@@ -43,13 +43,13 @@ static struct info {
 	const char *dbfile;
 	const char *conf_file;
 	int init_count;
-	int res_updated;
+	int res_resolved;
 } s_info = {
 	.handle = NULL,
 	.dbfile = "/opt/dbspace/.livebox.db", 
 	.conf_file = "/usr/share/data-provider-master/resolution.ini",
 	.init_count = 0,
-	.res_updated = 0,
+	.res_resolved = 0,
 };
 
 static inline int update_info(int width_type, int height_type, int width, int height)
@@ -228,11 +228,12 @@ static int update_resolution(void)
 	unsigned int depth;
 	register int i;
 
-	if (s_info.res_updated)
+	if (s_info.res_resolved)
 		return 0;
 
 	if (update_from_file() == 0) {
 		DbgPrint("Resolution info is all updated by file\n");
+		s_info.res_resolved = 1;
 		return 0;
 	}
 
@@ -258,7 +259,7 @@ static int update_resolution(void)
 	}
 
 	XCloseDisplay(disp);
-	s_info.res_updated = 1;
+	s_info.res_resolved = 1;
 	return 0;
 }
 
