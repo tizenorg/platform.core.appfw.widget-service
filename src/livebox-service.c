@@ -346,7 +346,7 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *cluster
 		return -EFAULT;
 	}
 
-	result = com_core_packet_oneshot_send(SOCKET_FILE, packet, DEFAULT_TIMEOUT);
+	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
 	packet_unref(packet);
 
 	if (result) {
