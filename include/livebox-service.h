@@ -61,6 +61,32 @@ extern char *livebox_service_pkgname(const char *appid);
 extern char *livebox_service_appid(const char *pkgname);
 
 /*!
+ * \brief Internationalized name of given livebox package.
+ *        USER must has to do "free" after using the returned string.
+ * \param[in] pkgid App ID of a livebox. (It must has to be a livebox package ID. not the UI-APP and the PACKAGE.
+ * \param[in] lang locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
+ * \return name if it fails to get name, returns NULL, or allocated heap address.
+ */
+extern char *livebox_service_i18n_name(const char *pkgid, const char *lang);
+
+/*!
+ * \brief
+ * \param[in] pkgid livebox ID. NOT the UI-APP ID and PACKAGE ID
+ * \param[in] size_type
+ * \return path preview image path
+ */
+extern char *livebox_service_preview(const char *pkgid, int size_type);
+
+/*!
+ * \brief Internationalized icon path of given livebox package.
+ *        USER must has to do "free" after using the returned string.
+ * \param[in] pkgid App ID of a livebox. (It must has to be a livebox package ID. not the UI-APP and the PACKAGE.
+ * \param[in] lang locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
+ * \return name if it fails to get path of an icon, returns NULL, or allocated heap address.
+ */
+extern char *livebox_service_i18n_icon(const char *pkgid, const char *lang);
+
+/*!
  * \brief Get the path of the plug-in module
  * \param[in] appid Package name of a livebox
  * \return path String which is allocated on the heap
@@ -100,6 +126,12 @@ extern char *livebox_service_pd_script_group(const char *pkgid);
  * \return
  */
 extern int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h);
+
+/*!
+ * \brief
+ * \return
+ */
+extern int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, int *types);
 
 /*!
  */

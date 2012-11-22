@@ -15,6 +15,8 @@
 #include <dlog.h>
 #include <db-util.h>
 #include <package-manager.h>
+#include <vconf.h>
+#include <vconf-keys.h>
 
 #include "dlist.h"
 #include "util.h"
@@ -417,6 +419,350 @@ EAPI int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *pk
 out:
 	close_db(handle);
 	return ret;
+}
+
+EAPI int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, int *types)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int size;
+	int ret;
+
+	if (!types || !cnt || !pkgid)
+		return -EINVAL;
+
+	handle = open_db();
+	if (!handle)
+		return -EIO;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = -EIO;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = -EIO;
+		goto out;
+	}
+
+	if (*cnt > NR_OF_SIZE_LIST)
+		*cnt = NR_OF_SIZE_LIST;
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
+		size = sqlite3_column_int(stmt, 0);
+		types[ret] = size;
+		ret++;
+	}
+
+	*cnt = ret;
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	ret = 0;
+out:
+	close_db(handle);
+	return ret;
+}
+
+static inline char *cur_locale(void)
+{
+	char *language;
+	language = vconf_get_str(VCONFKEY_LANGSET);
+	if (language) {
+		char *ptr;
+
+		ptr = language;
+		while (*ptr) {
+			if (*ptr == '.') {
+				*ptr = '\0';
+				break;
+			}
+
+			if (*ptr == '_')
+				*ptr = '-';
+
+			ptr++;
+		}
+	} else {
+		language = strdup("en_us");
+		if (!language)
+			ErrPrint("Heap: %s\n", strerror(errno));
+	}
+
+	return language;
+}
+
+static inline char *get_default_name(const char *pkgid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	char *name = NULL;
+	int ret;
+
+	handle = open_db();
+	if (!handle)
+		return NULL;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT name FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return NULL;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret ==  SQLITE_ROW) {
+		const char *tmp;
+
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (tmp && strlen(tmp)) {
+			name = strdup(tmp);
+			if (!name)
+				ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return name;
+}
+
+static inline char *get_default_icon(const char *pkgid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	char *icon = NULL;
+	int ret;
+
+	handle = open_db();
+	if (!handle)
+		return NULL;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT icon FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return NULL;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		const char *tmp;
+
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (tmp && strlen(tmp)) {
+			icon = strdup(tmp);
+			if (!icon)
+				ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return icon;
+}
+
+EAPI char *livebox_service_preview(const char *pkgid, int size_type)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+	char *preview = NULL;
+
+	handle = open_db();
+	if (!handle)
+		return NULL;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT preview FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return NULL;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_int(stmt, 2, size_type);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		const char *tmp;
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (tmp && strlen(tmp)) {
+			preview = strdup(tmp);
+			if (!preview)
+				ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return preview;
+}
+
+EAPI char *livebox_service_i18n_icon(const char *pkgid, const char *lang)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	char *language;
+	char *icon = NULL;
+	int ret;
+
+	if (lang) {
+		language = strdup(lang);
+		if (!language) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return NULL;
+		}
+	} else {
+		language = cur_locale();
+		if (!language)
+			return NULL;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		free(language);
+		return NULL;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT icon FROM i18n WHERE pkgid = ? AND lang = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		free(language);
+		return NULL;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, language, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		const char *tmp;
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (!tmp || !strlen(tmp)) {
+			icon = get_default_icon(pkgid);
+		} else {
+			icon = strdup(tmp);
+			if (!icon)
+				ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	}
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	free(language);
+	return icon;
+}
+
+EAPI char *livebox_service_i18n_name(const char *pkgid, const char *lang)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	char *language;
+	char *name = NULL;
+	int ret;
+
+	if (lang) {
+		language = strdup(lang);
+		if (!language) {
+			ErrPrint("Error: %s\n", strerror(errno));
+			return NULL;
+		}
+	} else {
+		language = cur_locale();
+		if (!language)
+			return NULL;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		free(language);
+		return NULL;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT name FROM i18n WHERE pkgid = ? AND lang = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		free(language);
+		return NULL;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, language, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		const char *tmp;
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (!tmp || !strlen(tmp)) {
+			name = get_default_name(pkgid);
+		} else {
+			name = strdup(tmp);
+			if (!name)
+				ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	free(language);
+	return name;
 }
 
 EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h)

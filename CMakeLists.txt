@@ -23,6 +23,7 @@ pkg_check_modules(pkgs REQUIRED
 	db-util
 	pkgmgr
 	x11
+	vconf
 )
 
 FOREACH(flag ${pkgs_CFLAGS})
