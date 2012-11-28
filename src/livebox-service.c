@@ -1444,6 +1444,9 @@ EAPI int livebox_service_size_type(int width, int height)
 {
 	int idx;
 
+	if (update_resolution() < 0)
+		ErrPrint("Failed to update the size list\n");
+
 	for (idx = 0; idx < NR_OF_SIZE_LIST; idx++) {
 		if (SIZE_LIST[idx].w == width && SIZE_LIST[idx].h == height)
 			break;
