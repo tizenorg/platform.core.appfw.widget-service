@@ -490,7 +490,7 @@ static inline char *cur_locale(void)
 			ptr++;
 		}
 	} else {
-		language = strdup("en_us");
+		language = strdup("en-us");
 		if (!language)
 			ErrPrint("Heap: %s\n", strerror(errno));
 	}
@@ -689,7 +689,10 @@ EAPI char *livebox_service_i18n_icon(const char *pkgid, const char *lang)
 			if (!icon)
 				ErrPrint("Heap: %s\n", strerror(errno));
 		}
+	} else {
+		icon = get_default_icon(pkgid);
 	}
+
 out:
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
@@ -755,6 +758,8 @@ EAPI char *livebox_service_i18n_name(const char *pkgid, const char *lang)
 			if (!name)
 				ErrPrint("Heap: %s\n", strerror(errno));
 		}
+	} else {
+		name = get_default_name(pkgid);
 	}
 
 out:
