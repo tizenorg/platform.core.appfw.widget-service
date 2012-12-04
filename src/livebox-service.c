@@ -30,14 +30,14 @@
 static struct supported_size_list {
 	int w;
 	int h;
-	int updated;
 } SIZE_LIST[NR_OF_SIZE_LIST] = {
-	{ 172, 172, 0 }, /*!< 1x1 */
-	{ 348, 172, 0 }, /*!< 2x1 */
-	{ 348, 348, 0 }, /*!< 2x2 */
-	{ 700, 172, 0 }, /*!< 4x1 */
-	{ 700, 348, 0 }, /*!< 4x2 */
-	{ 700, 700, 0 }, /*!< 4x4 */
+	{ 172, 172 }, /*!< 1x1 */
+	{ 348, 172 }, /*!< 2x1 */
+	{ 348, 348 }, /*!< 2x2 */
+	{ 700, 172 }, /*!< 4x1 */
+	{ 700, 348 }, /*!< 4x2 */
+	{ 700, 520 }, /*!< 4x3 */
+	{ 700, 700 }, /*!< 4x4 */
 };
 
 static struct info {
@@ -57,7 +57,6 @@ static struct info {
 static inline int update_info(int width_type, int height_type, int width, int height)
 {
 	int idx;
-	int ret;
 
 	if (width_type == 1 && height_type == 1) {
 		DbgPrint("1x1 Updated to %dx%d\n", width, height);
@@ -74,22 +73,20 @@ static inline int update_info(int width_type, int height_type, int width, int he
 	} else if (width_type == 4 && height_type == 2) {
 		DbgPrint("4x2 Updated to %dx%d\n", width, height);
 		idx = 4;
+	} else if (width_type == 4 && height_type == 3) {
+		DbgPrint("4x3 Updated to %dx%d\n", width, height);
+		idx = 5;
 	} else if (width_type == 4 && height_type == 4) {
 		DbgPrint("4x4 Updated to %dx%d\n", width, height);
-		idx = 5;
+		idx = 6;
 	} else {
 		ErrPrint("Unknown size type: %dx%d (%dx%d)\n", width_type, height_type, width, height);
 		return 0;
 	}
 
-	ret = !SIZE_LIST[idx].updated;
-	if (SIZE_LIST[idx].updated)
-		DbgPrint("Already updated size type: %dx%d\n", width_type, height_type);
-
 	SIZE_LIST[idx].w = width;
 	SIZE_LIST[idx].h = height;
-	SIZE_LIST[idx].updated = 1;
-	return ret;
+	return 1;
 }
 
 static inline int update_from_file(void)
@@ -233,12 +230,6 @@ static int update_resolution(void)
 	if (s_info.res_resolved)
 		return 0;
 
-	if (update_from_file() == 0) {
-		DbgPrint("Resolution info is all updated by file\n");
-		s_info.res_resolved = 1;
-		return 0;
-	}
-
 	disp = XOpenDisplay(NULL);
 	if (!disp) {
 		ErrPrint("Failed to open a display\n");
@@ -251,13 +242,14 @@ static int update_resolution(void)
 		return -EFAULT;
 	}
 
+	if (update_from_file() == 0)
+		DbgPrint("Resolution info is all updated by file\n");
+
 	DbgPrint("Screen resolution: %dx%d\n", width, height);
 	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
-		if (!SIZE_LIST[i].updated) {
-			SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / 720.0f);
-			SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)height / 1280.0f);
-			DbgPrint("Size is updated [%d] %dx%d\n", i, SIZE_LIST[i].w, SIZE_LIST[i].h);
-		}
+		SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / 720.0f);
+		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)height / 1280.0f);
+		DbgPrint("(Ratio)Size is updated [%d] %dx%d\n", i, SIZE_LIST[i].w, SIZE_LIST[i].h);
 	}
 
 	XCloseDisplay(disp);
@@ -310,8 +302,11 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 	case LB_SIZE_TYPE_4x2: /*!< 700x348 */
 		idx = 4;
 		break;
-	case LB_SIZE_TYPE_4x4: /*!< 700x700 */
+	case LB_SIZE_TYPE_4x3: /*!< 700x520 */
 		idx = 5;
+		break;
+	case LB_SIZE_TYPE_4x4: /*!< 700x700 */
+		idx = 6;
 		break;
 	default:
 		return -EINVAL;
@@ -1469,6 +1464,8 @@ EAPI int livebox_service_size_type(int width, int height)
 	case 4:
 		return LB_SIZE_TYPE_4x2;
 	case 5:
+		return LB_SIZE_TYPE_4x3;
+	case 6:
 		return LB_SIZE_TYPE_4x4;
 	default:
 		break;

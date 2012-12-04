@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define NR_OF_SIZE_LIST 6
+#define NR_OF_SIZE_LIST 7
 
 enum livebox_size_type {
 	LB_SIZE_TYPE_1x1 = 0x01,
@@ -13,7 +13,8 @@ enum livebox_size_type {
 	LB_SIZE_TYPE_2x2 = 0x04,
 	LB_SIZE_TYPE_4x1 = 0x08,
 	LB_SIZE_TYPE_4x2 = 0x10,
-	LB_SIZE_TYPE_4x4 = 0x20,
+	LB_SIZE_TYPE_4x3 = 0x20,
+	LB_SIZE_TYPE_4x4 = 0x40,
 	LB_SIZE_TYPE_UNKNOWN = 0xFF,
 };
 
