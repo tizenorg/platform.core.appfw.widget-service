@@ -579,6 +579,49 @@ out:
 	return icon;
 }
 
+EAPI char *livebox_service_content(const char *pkgid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	char *content = NULL;
+	int ret;
+
+	handle = open_db();
+	if (!handle)
+		return NULL;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT content FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return NULL;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		const char *tmp;
+
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (tmp && strlen(tmp)) {
+			content = strdup(tmp);
+			if (!content)
+				ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return content;
+}
+
 EAPI char *livebox_service_preview(const char *pkgid, int size_type)
 {
 	sqlite3_stmt *stmt;

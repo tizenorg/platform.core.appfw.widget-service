@@ -79,6 +79,13 @@ extern char *livebox_service_i18n_name(const char *pkgid, const char *lang);
 extern char *livebox_service_preview(const char *pkgid, int size_type);
 
 /*!
+ * \brief Get the default content string of the given livebox
+ * \param[in] pkgid Livebox ID. Not the UI-APP ID and PACKAGE ID
+ * \return content content string
+ */
+extern char *livebox_service_content(const char *pkgid);
+
+/*!
  * \brief Internationalized icon path of given livebox package.
  *        USER must has to do "free" after using the returned string.
  * \param[in] pkgid App ID of a livebox. (It must has to be a livebox package ID. not the UI-APP and the PACKAGE.
