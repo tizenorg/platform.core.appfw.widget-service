@@ -1021,6 +1021,9 @@ EAPI char *livebox_service_pkgname(const char *appid)
 	lb_pkgname = get_lb_pkgname_by_appid(new_appid);
 	pkgmgr_appinfo_destroy_appinfo(handle);
 
+	if (!lb_pkgname && util_validate_livebox_package(appid) == 0)
+		return strdup(appid);
+
 	return lb_pkgname;
 }
 
@@ -1065,9 +1068,31 @@ EAPI char *livebox_service_appid(const char *pkgname)
 
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		pkgmgr_appinfo_h handle;
+		char *new_appid;
+
+		ErrPrint("Has no record?: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
+
+		ret = pkgmgr_appinfo_get_appinfo(pkgname, &handle);
+		if (ret != PKGMGR_R_OK) {
+			ErrPrint("Failed to get appinfo: %s\n", pkgname);
+			goto out;
+		}
+
+		ret = pkgmgr_appinfo_get_pkgname(handle, &new_appid);
+		if (ret != PKGMGR_R_OK) {
+			ErrPrint("Failed to get pkgname for (%s)\n", appid);
+			pkgmgr_appinfo_destroy_appinfo(handle);
+			goto out;
+		}
+
+		appid = strdup(new_appid);
+		if (!appid)
+			ErrPrint("Heap: %s\n", strerror(errno));
+
+		pkgmgr_appinfo_destroy_appinfo(handle);
 		goto out;
 	}
 
