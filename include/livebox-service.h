@@ -102,6 +102,13 @@ extern char *livebox_service_i18n_icon(const char *pkgid, const char *lang);
 extern char *livebox_service_libexec(const char *appid);
 
 /*!
+ * \brief Get the "nodisplay" value
+ * \param[in] pkgid Livebox package id.
+ * \return true/false
+ */
+extern int livebox_service_nodisplay(const char *pkgid);
+
+/*!
  * \brief
  * \param[in]
  * \return

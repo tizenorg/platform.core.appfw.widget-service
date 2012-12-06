@@ -13,7 +13,7 @@
 
 int errno;
 
-static inline int check_native_livebox(const char *pkgname)
+static inline char *check_native_livebox(const char *pkgname)
 {
 	int len;
 	char *path;
@@ -24,21 +24,20 @@ static inline int check_native_livebox(const char *pkgname)
 	path = malloc(len + 1);
 	if (!path) {
 		ErrPrint("Heap: %s\n", strerror(errno));
-		return -ENOMEM;
+		return NULL;
 	}
 
 	snprintf(path, len, "/opt/usr/live/%s/libexec/liblive-%s.so", pkgname, pkgname);
 	if (access(path, F_OK | R_OK) != 0) {
 		ErrPrint("%s is not a valid package\n", pkgname);
 		free(path);
-		return -EINVAL;
+		return NULL;
 	}
 
-	free(path);
-	return 0;
+	return path;
 }
 
-static inline int check_web_livebox(const char *pkgname)
+static inline char *check_web_livebox(const char *pkgname)
 {
 	int len;
 	char *path;
@@ -49,29 +48,39 @@ static inline int check_web_livebox(const char *pkgname)
 	path = malloc(len + 1);
 	if (!path) {
 		ErrPrint("Heap: %s\n", strerror(errno));
-		return -ENOMEM;
+		return NULL;
 	}
 
 	snprintf(path, len, "/opt/usr/apps/%s/res/wgt/livebox/index.html", pkgname);
 	if (access(path, F_OK | R_OK) != 0) {
 		ErrPrint("%s is not a valid package\n", pkgname);
 		free(path);
-		return -EINVAL;
+		return NULL;
 	}
 
-	free(path);
-	return 0;
+	return path;
 }
 
 int util_validate_livebox_package(const char *pkgname)
 {
+	char *path;
+
 	if (!pkgname) {
 		ErrPrint("Invalid argument\n");
 		return -EINVAL;
 	}
 
-	if (!check_native_livebox(pkgname) || !check_web_livebox(pkgname))
+	path = check_native_livebox(pkgname);
+	if (path) {
+		free(path);
 		return 0;
+	}
+
+	path = check_web_livebox(pkgname);
+	if (path) {
+		free(path);
+		return 0;
+	}
 
 	return -EINVAL;
 }
@@ -256,4 +265,19 @@ const char *util_uri_to_path(const char *uri)
 	return uri + len;
 }
 
+char *util_conf_get_libexec(const char *pkgname)
+{
+	char *path;
+
+	if (!pkgname) {
+		ErrPrint("Invalid argument\n");
+		return NULL;
+	}
+
+	path = check_native_livebox(pkgname);
+	if (!path)
+		path = check_web_livebox(pkgname);
+
+	return path;
+}
 /* End of a file */
