@@ -331,6 +331,11 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *cluster
 		return -EINVAL;
 	}
 
+	if (access("/tmp/.live.paused", R_OK) == 0) {
+		DbgPrint("Provider is paused\n");
+		return -ECANCELED;
+	}
+
 	if (!cluster)
 		cluster = "user,created";
 
