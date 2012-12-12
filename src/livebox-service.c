@@ -1113,23 +1113,23 @@ EAPI char *livebox_service_appid(const char *pkgname)
 
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
-		pkgmgr_appinfo_h handle;
+		pkgmgr_appinfo_h pkg_handle;
 		char *new_appid;
 
 		ErrPrint("Has no record?: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 
-		ret = pkgmgr_appinfo_get_appinfo(pkgname, &handle);
+		ret = pkgmgr_appinfo_get_appinfo(pkgname, &pkg_handle);
 		if (ret != PKGMGR_R_OK) {
 			ErrPrint("Failed to get appinfo: %s\n", pkgname);
 			goto out;
 		}
 
-		ret = pkgmgr_appinfo_get_pkgname(handle, &new_appid);
+		ret = pkgmgr_appinfo_get_pkgname(pkg_handle, &new_appid);
 		if (ret != PKGMGR_R_OK) {
 			ErrPrint("Failed to get pkgname for (%s)\n", appid);
-			pkgmgr_appinfo_destroy_appinfo(handle);
+			pkgmgr_appinfo_destroy_appinfo(pkg_handle);
 			goto out;
 		}
 
@@ -1137,7 +1137,7 @@ EAPI char *livebox_service_appid(const char *pkgname)
 		if (!appid)
 			ErrPrint("Heap: %s\n", strerror(errno));
 
-		pkgmgr_appinfo_destroy_appinfo(handle);
+		pkgmgr_appinfo_destroy_appinfo(pkg_handle);
 		goto out;
 	}
 
