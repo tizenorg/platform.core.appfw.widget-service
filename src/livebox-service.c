@@ -627,6 +627,51 @@ out:
 	return content;
 }
 
+EAPI char *livebox_service_setup_appid(const char *lbid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+	char *appid;
+
+	handle = open_db();
+	if (!handle)
+		return NULL;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT setup FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return NULL;
+	}
+
+	appid = NULL;
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		const char *tmp;
+
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (!tmp || !strlen(tmp))
+			goto out;
+
+		appid = strdup(tmp);
+		if (!appid)
+			ErrPrint("Error: %s\n", strerror(errno));
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return appid;
+}
+
 EAPI int livebox_service_nodisplay(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
@@ -1070,6 +1115,22 @@ EAPI char *livebox_service_pkgname(const char *appid)
 		return strdup(appid);
 
 	return lb_pkgname;
+}
+
+EAPI char *livebox_service_provider_name(const char *lbid)
+{
+	char *ret;
+
+	if (!lbid)
+		return NULL;
+
+	ret = strdup(lbid);
+	if (!ret) {
+		ErrPrint("Error: %s\n", strerror(errno));
+		return NULL;
+	}
+
+	return ret;
 }
 
 EAPI char *livebox_service_appid(const char *pkgname)

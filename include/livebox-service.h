@@ -54,8 +54,23 @@ extern int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *
  */
 extern char *livebox_service_pkgname(const char *appid);
 
+
 /*!
- *\brief Get the application pkgname(appid) of given livebox package name
+ * \brief Get the name of a livebox (provider name == livebox appid), you have to release the return value after use it
+ * \param[in] Livebox AppID
+ * \return Livebox AppId (Same with input)
+ */
+extern char *livebox_service_provider_name(const char *lbid);
+
+/*!
+ * \brief Get the setup app ID
+ * \param[in] Livebox AppId
+ * \return Setup AppId if exists or NULL
+ */
+extern char *livebox_service_setup_appid(const char *lbid);
+
+/*!
+ *\brief Get the application pkgname(appid) of given livebox package name, <manifest package="AAA">
  * \param[in] pkgname
  * \return appid String which is allocated on the heap
  */
@@ -155,6 +170,7 @@ extern int livebox_service_enumerate_category_list(const char *cluster, int (*cb
 /*!
  */
 extern int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data);
+
 /*!
  * \brief
  * \return
