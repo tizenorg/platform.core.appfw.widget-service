@@ -1,9 +1,9 @@
 Name: liblivebox-service
 Summary: Library for the development of a livebox service
-Version: 0.2.7
+Version: 0.2.8
 Release: 1
 Group: main/app
-License: Samsung Proprietary License
+License: Flora License
 Source0: %{name}-%{version}.tar.gz
 BuildRequires: cmake, gettext-tools
 BuildRequires: pkgconfig(dlog)
@@ -45,10 +45,10 @@ mkdir -p %{buildroot}/usr/share/license
 %manifest liblivebox-service.manifest
 %defattr(-,root,root,-)
 /usr/lib/*.so*
+/usr/share/license/*
 
 %files devel
 %defattr(-,root,root,-)
 /usr/include/livebox-service/livebox-service.h
 /usr/share/doc/livebox-service/livebox-service_PG.h
 /usr/lib/pkgconfig/*.pc
-/usr/share/license/*
