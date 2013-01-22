@@ -38,6 +38,7 @@ enum livebox_size_type {
  * \param[in] type
  * \param[out] width
  * \param[out] height
+ * \return 0 for success
  */
 extern int livebox_service_get_size(int type, int *width, int *height);
 
@@ -47,6 +48,12 @@ extern int livebox_service_get_size(int type, int *width, int *height);
  * \return Type of a livebox
  */
 extern int livebox_service_size_type(int width, int height);
+
+/*!
+ * \param[in] pkgid Livebox's appid
+ * \return true(1) / false(0)
+ */
+extern int livebox_service_mouse_event(const char *pkgid);
 
 /*!
  */

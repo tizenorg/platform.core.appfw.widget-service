@@ -1,6 +1,6 @@
 Name: liblivebox-service
 Summary: Library for the development of a livebox service
-Version: 0.2.10
+Version: 0.2.11
 Release: 1
 Group: main/app
 License: Flora License
