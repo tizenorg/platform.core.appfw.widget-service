@@ -160,7 +160,7 @@ char *util_replace_string(const char *src, const char *pattern, const char *repl
 
 	rlen = strlen(replace);
 	len = strlen(src);
-	result = malloc(len);
+	result = malloc(len + 1);
 	if (!result) {
 		ErrPrint("Heap:%s\n", strerror(errno));
 		return NULL;
@@ -174,7 +174,7 @@ char *util_replace_string(const char *src, const char *pattern, const char *repl
 			char *tmp;
 
 			len += (rlen > len ? rlen : len);
-			tmp = realloc(result, len);
+			tmp = realloc(result, len + 1);
 			if (!tmp) {
 				ErrPrint("Heap: %s\n", strerror(errno));
 				free(result);
@@ -191,7 +191,7 @@ char *util_replace_string(const char *src, const char *pattern, const char *repl
 			if (r_idx == len) {
 				char *tmp;
 				len += (rlen > len ? rlen : len);
-				tmp = realloc(result, len);
+				tmp = realloc(result, len + 1);
 				if (!tmp) {
 					ErrPrint("Heap: %s\n", strerror(errno));
 					free(result);
@@ -210,7 +210,7 @@ char *util_replace_string(const char *src, const char *pattern, const char *repl
 							if (r_idx == len) {
 								char *tmp;
 								len += (rlen > len ? rlen : len);
-								tmp = realloc(result, len);
+								tmp = realloc(result, len + 1);
 								if (!tmp) {
 									ErrPrint("Heap: %s\n", strerror(errno));
 									free(result);
@@ -239,7 +239,7 @@ char *util_replace_string(const char *src, const char *pattern, const char *repl
 				if (idx + rlen >= len) {
 					char *tmp;
 					len += (rlen > len ? rlen : len);
-					tmp = realloc(result, len);
+					tmp = realloc(result, len + 1);
 					if (!tmp) {
 						ErrPrint("Heap: %s\n", strerror(errno));
 						free(result);
