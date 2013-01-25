@@ -1192,7 +1192,7 @@ EAPI char *livebox_service_appid(const char *pkgname)
 	char *appid;
 	char *tmp;
 	sqlite3 *handle;
-	int is_prime;
+	int is_prime __attribute__((__unused__));
 	int ret;
 
 	if (!pkgname)
