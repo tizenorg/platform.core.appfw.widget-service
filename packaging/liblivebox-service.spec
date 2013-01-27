@@ -1,8 +1,8 @@
 Name: liblivebox-service
-Summary: Library for the development of a livebox service
+Summary: Service API for gathering installed livebox information.
 Version: 0.2.13
 Release: 1
-Group: main/app
+Group: framework/livebox
 License: Flora License
 Source0: %{name}-%{version}.tar.gz
 BuildRequires: cmake, gettext-tools, coreutils
@@ -17,7 +17,7 @@ BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(vconf)
 
 %description
-Livebox service library
+Service API for gathering installed livebox information
 
 %package devel
 Summary: Files for livebox service.
@@ -25,7 +25,7 @@ Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
 %description devel
-Livebox service library (dev)
+Gathering the installed livebox information.
 
 %prep
 %setup -q
