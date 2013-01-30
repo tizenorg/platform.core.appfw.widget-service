@@ -1194,11 +1194,43 @@ EAPI char *livebox_service_pkgname(const char *appid)
 EAPI char *livebox_service_provider_name(const char *lbid)
 {
 	char *ret;
+	int stage = 0;
+	int seq = 0;
+	int idx = 0;
+	char *str = "com.samsung.";
 
 	if (!lbid)
 		return NULL;
 
-	ret = strdup(lbid);
+	while (str[idx] && lbid[idx] && lbid[idx] == str[idx]) {
+		idx++;
+		if (seq < 2 && lbid[idx] == '.') {
+			stage = idx;
+			seq++;
+		}
+	}
+
+	if (!str[idx] && lbid[idx]) {
+		/* Inhouse */
+		return strdup(lbid);
+	} else if (seq < 2) {
+		while (seq < 2) {
+			if (lbid[idx] == '.') {
+				seq++;
+			} else if (!lbid[idx]) {
+				ErrPrint("Invalid lbid: %s\n", lbid);
+				return NULL;
+			}
+
+			idx++;
+		}
+
+		stage = idx;
+	} else {
+		stage++;
+	}
+
+	ret = strdup(lbid + stage);
 	if (!ret) {
 		ErrPrint("Error: %s\n", strerror(errno));
 		return NULL;
