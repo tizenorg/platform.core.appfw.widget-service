@@ -59,6 +59,12 @@ extern int livebox_service_size_type(int width, int height);
 extern int livebox_service_mouse_event(const char *pkgid);
 
 /*!
+ * \param[in] pkgid Livebox's appid
+ * \return true(1) / false(0)
+ */
+extern int livebox_service_touch_effect(const char *pkgid);
+
+/*!
  */
 extern int livebox_service_trigger_update(const char *pkgname, const char *cluster, const char *category);
 

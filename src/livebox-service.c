@@ -746,6 +746,43 @@ out:
 	return ret;
 }
 
+EAPI int livebox_service_touch_effect(const char *pkgid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+
+	handle = open_db();
+	if (!handle)
+		return 0;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return 0;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW)
+		ret = !!sqlite3_column_int(stmt, 0);
+	else
+		ret = 1;
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return ret;
+}
+
 EAPI int livebox_service_mouse_event(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
