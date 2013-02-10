@@ -33,6 +33,7 @@
 #include <package-manager.h>
 #include <vconf.h>
 #include <vconf-keys.h>
+#include <ail.h>
 
 #include "dlist.h"
 #include "util.h"
@@ -1276,6 +1277,35 @@ EAPI char *livebox_service_provider_name(const char *lbid)
 	return ret;
 }
 
+EAPI int livebox_service_is_enabled(const char *lbid)
+{
+	ail_appinfo_h ai;
+	char *pkgname;
+	bool enabled;
+	int ret;
+
+	pkgname = livebox_service_appid(lbid);
+	if (!pkgname)
+		return 0;
+
+	ret = ail_get_appinfo(pkgname, &ai);
+	if (ret != AIL_ERROR_OK) {
+		free(pkgname);
+		return 0;
+	}
+
+	if (ail_appinfo_get_bool(ai, AIL_PROP_X_SLP_ENABLED_BOOL, &enabled) != AIL_ERROR_OK)
+		enabled = false;
+
+	ail_destroy_appinfo(ai);
+	free(pkgname);
+	return enabled == true;
+}
+
+/*!
+ * appid == Package ID
+ * pkgid == Livebox ID
+ */
 EAPI char *livebox_service_appid(const char *pkgname)
 {
 	sqlite3_stmt *stmt;

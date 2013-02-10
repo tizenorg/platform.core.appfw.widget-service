@@ -156,6 +156,13 @@ extern char *livebox_service_libexec(const char *appid);
 extern int livebox_service_nodisplay(const char *pkgid);
 
 /*!
+ * \brief Check the status of the livebox
+ * \param[in] lbid Livebox Id
+ * \return int 1 enabled, 0 disabled
+ */
+extern int livebox_service_is_enabled(const char *lbid);
+
+/*!
  * \brief
  * \param[in]
  * \return

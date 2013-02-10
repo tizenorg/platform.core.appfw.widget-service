@@ -24,6 +24,7 @@ pkg_check_modules(pkgs REQUIRED
 	pkgmgr
 	x11
 	vconf
+	ail
 )
 
 FOREACH(flag ${pkgs_CFLAGS})
