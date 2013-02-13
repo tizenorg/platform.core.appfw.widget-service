@@ -18,7 +18,7 @@ BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(ail)
 
 %description
-Service API for gathering installed livebox information
+Service API for gathering information of installed liveboxes
 
 %package devel
 Summary: Files for livebox service.
