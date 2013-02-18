@@ -1279,6 +1279,8 @@ EAPI char *livebox_service_provider_name(const char *lbid)
 
 EAPI int livebox_service_is_enabled(const char *lbid)
 {
+	return 1;
+	/*
 	ail_appinfo_h ai;
 	char *pkgname;
 	bool enabled;
@@ -1300,6 +1302,7 @@ EAPI int livebox_service_is_enabled(const char *lbid)
 	ail_destroy_appinfo(ai);
 	free(pkgname);
 	return enabled == true;
+	*/
 }
 
 /*!
