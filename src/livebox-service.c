@@ -277,7 +277,7 @@ static int update_resolution(void)
 	DbgPrint("Screen resolution: %dx%d\n", width, height);
 	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
 		SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / 720.0f);
-		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)height / 1280.0f);
+		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / 720.0f);
 		DbgPrint("(Ratio)Size is updated [%d] %dx%d\n", i, SIZE_LIST[i].w, SIZE_LIST[i].h);
 	}
 
