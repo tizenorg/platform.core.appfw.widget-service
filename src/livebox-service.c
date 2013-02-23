@@ -358,7 +358,44 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 	return 0;
 }
 
-EAPI int livebox_service_trigger_update(const char *pkgname, const char *cluster, const char *category)
+EAPI int livebox_service_change_period(const char *pkgname, const char *id, double period)
+{
+	struct packet *packet;
+	struct packet *result;
+	int ret;
+
+	if (!pkgname || !id || period < 0.0f) {
+		ErrPrint("Invalid argument\n");
+		return -EINVAL;
+	}
+
+	if (!id)
+		id = "";
+
+	packet = packet_create("service_change_period", "ssd", pkgname, id, period);
+	if (!packet) {
+		ErrPrint("Failed to create a packet for period changing\n");
+		return -EFAULT;
+	}
+
+	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
+	packet_unref(packet);
+
+	if (result) {
+		if (packet_get(result, "i", &ret) != 1) {
+			ErrPrint("Failed to parse a result packet\n");
+			ret = -EINVAL;
+		}
+		packet_unref(result);
+	} else {
+		ErrPrint("Failed to get result packet\n");
+		ret = -EFAULT;
+	}
+
+	return ret;
+}
+
+EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, int force)
 {
 	struct packet *packet;
 	struct packet *result;
@@ -369,10 +406,13 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *cluster
 		return -EINVAL;
 	}
 
-	if (access("/tmp/.live.paused", R_OK) == 0) {
+	if (!force && access("/tmp/.live.paused", R_OK) == 0) {
 		DbgPrint("Provider is paused\n");
 		return -ECANCELED;
 	}
+
+	if (!id)
+		id = "";
 
 	if (!cluster)
 		cluster = "user,created";
@@ -380,7 +420,7 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *cluster
 	if (!category)
 		category = "default";
 
-	packet = packet_create("service_update", "sss", pkgname, cluster, category);
+	packet = packet_create("service_update", "ssss", pkgname, id, cluster, category);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for service_update\n");
 		return -EFAULT;
@@ -735,7 +775,7 @@ EAPI int livebox_service_nodisplay(const char *pkgid)
 	}
 
 	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) 
+	if (ret == SQLITE_ROW)
 		ret = !!sqlite3_column_int(stmt, 0);
 	else
 		ret = 0;
@@ -747,15 +787,72 @@ out:
 	return ret;
 }
 
+static inline char *get_lb_pkgname_by_appid(const char *appid)
+{
+	sqlite3_stmt *stmt;
+	char *pkgid;
+	char *tmp;
+	sqlite3 *handle;
+	int ret;
+
+	if (!appid)
+		return NULL;
+
+	pkgid = NULL;
+	handle = open_db();
+	if (!handle)
+		return NULL;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return NULL;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, appid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, appid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	if (sqlite3_step(stmt) != SQLITE_ROW) {
+		ErrPrint("Error: %s (has no record? - %s)\n", sqlite3_errmsg(handle), appid);
+		goto out;
+	}
+
+	tmp = (char *)sqlite3_column_text(stmt, 0);
+	if (tmp && strlen(tmp)) {
+		pkgid = strdup(tmp);
+		if (!pkgid)
+			ErrPrint("Heap: %s\n", strerror(errno));
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return pkgid;
+}
+
 EAPI int livebox_service_touch_effect(const char *pkgid)
 {
+	char *lbid;
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
 	int ret;
 
 	handle = open_db();
-	if (!handle)
+	if (!handle) {
+		ErrPrint("Unable to open a DB\n");
 		return 0;
+	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM client WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
@@ -764,7 +861,21 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 		return 0;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	/*!
+	 * \note
+	 * This function will validate the "pkgid"
+	 * call the exported API in the exported API is not recomended
+	 * but... I used.
+	 */
+	lbid = livebox_service_pkgname(pkgid);
+	if (!lbid) {
+		ErrPrint("Invalid appid (%s)\n", pkgid);
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, NULL);
+	free(lbid);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		ret = 0;
@@ -788,6 +899,7 @@ EAPI int livebox_service_mouse_event(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
+	char *lbid;
 	int ret;
 
 	handle = open_db();
@@ -801,7 +913,15 @@ EAPI int livebox_service_mouse_event(const char *pkgid)
 		return 0;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	lbid = livebox_service_pkgname(pkgid);
+	if (!lbid) {
+		ErrPrint("Failed to get lbid: %s\n", pkgid);
+		ret = -EINVAL;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, NULL);
+	free(lbid);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		ret = 0;
@@ -1133,60 +1253,6 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 out:
 	close_db(handle);
 	return libexec;
-}
-
-static inline char *get_lb_pkgname_by_appid(const char *appid)
-{
-	sqlite3_stmt *stmt;
-	char *pkgid;
-	char *tmp;
-	sqlite3 *handle;
-	int ret;
-
-	if (!appid)
-		return NULL;
-
-	pkgid = NULL;
-	handle = open_db();
-	if (!handle)
-		return NULL;
-
-	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return NULL;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, appid, -1, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 2, appid, -1, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	if (sqlite3_step(stmt) != SQLITE_ROW) {
-		ErrPrint("Error: %s (has no record? - %s)\n", sqlite3_errmsg(handle), appid);
-		goto out;
-	}
-
-	tmp = (char *)sqlite3_column_text(stmt, 0);
-	if (tmp && strlen(tmp)) {
-		pkgid = strdup(tmp);
-		if (!pkgid)
-			ErrPrint("Heap: %s\n", strerror(errno));
-	}
-
-out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
-	return pkgid;
 }
 
 EAPI char *livebox_service_pkgname(const char *appid)

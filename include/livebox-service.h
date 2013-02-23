@@ -38,6 +38,7 @@ enum livebox_size_type {
 };
 
 /*!
+ * \brief
  * \param[in] type
  * \param[out] width
  * \param[out] height
@@ -46,6 +47,7 @@ enum livebox_size_type {
 extern int livebox_service_get_size(int type, int *width, int *height);
 
 /*!
+ * \brief
  * \param[in] width
  * \param[in] height
  * \return Type of a livebox
@@ -53,20 +55,36 @@ extern int livebox_service_get_size(int type, int *width, int *height);
 extern int livebox_service_size_type(int width, int height);
 
 /*!
+ * \brief
  * \param[in] pkgid Livebox's appid
  * \return true(1) / false(0)
  */
 extern int livebox_service_mouse_event(const char *pkgid);
 
 /*!
+ * \brief
  * \param[in] pkgid Livebox's appid
  * \return true(1) / false(0)
  */
 extern int livebox_service_touch_effect(const char *pkgid);
 
 /*!
+ * \brief
+ * \param[in] pkgname Livebox package name
+ * \param[in] id Set NULL if you don't know what the Id is.
+ * \param[in] cluster Cluster name. Default NULL
+ * \param[in] category Category name, Default NULL
+ * \param[in] force 1 if you want to update your livebox even if the provider is paused or 0. 0 is default
  */
-extern int livebox_service_trigger_update(const char *pkgname, const char *cluster, const char *category);
+extern int livebox_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, int force);
+
+/*!
+ * \brief Change the period of given livebox instance
+ * \param[in] pkgname Livebox package name
+ * \param[in] id Livebox instance id
+ * \param[in] period New update period in sec
+ */
+extern int livebox_service_change_period(const char *pkgname, const char *id, double period);
 
 /*!
  * \brief Synchronous package list getter
