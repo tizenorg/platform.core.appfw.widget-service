@@ -852,14 +852,14 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 	handle = open_db();
 	if (!handle) {
 		ErrPrint("Unable to open a DB\n");
-		return 0;
+		return 1;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM client WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
-		return 0;
+		return 1;
 	}
 
 	/*!
@@ -871,7 +871,7 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 	lbid = livebox_service_pkgname(pkgid);
 	if (!lbid) {
 		ErrPrint("Invalid appid (%s)\n", pkgid);
-		ret = 0;
+		ret = 1;
 		goto out;
 	}
 
@@ -879,7 +879,7 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 	free(lbid);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
+		ret = 1;
 		goto out;
 	}
 
