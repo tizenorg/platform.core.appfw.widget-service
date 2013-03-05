@@ -521,7 +521,7 @@ EAPI int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, i
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
@@ -595,7 +595,7 @@ static inline char *get_default_name(const char *pkgid)
 		return NULL;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -638,7 +638,7 @@ static inline char *get_default_icon(const char *pkgid)
 		return NULL;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -681,7 +681,7 @@ EAPI char *livebox_service_content(const char *pkgid)
 		return NULL;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -725,7 +725,7 @@ EAPI char *livebox_service_setup_appid(const char *lbid)
 	}
 
 	appid = NULL;
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -768,7 +768,7 @@ EAPI int livebox_service_nodisplay(const char *pkgid)
 		return 0;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		ret = 0;
@@ -811,13 +811,13 @@ static inline char *get_lb_pkgname_by_appid(const char *appid)
 		return NULL;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, appid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, appid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 2, appid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 2, appid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -875,7 +875,7 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
 	free(lbid);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
@@ -923,7 +923,7 @@ EAPI int livebox_service_mouse_event(const char *pkgid)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
 	free(lbid);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
@@ -964,7 +964,7 @@ EAPI char *livebox_service_preview(const char *pkgid, int size_type)
 		return NULL;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -1028,13 +1028,13 @@ EAPI char *livebox_service_i18n_icon(const char *pkgid, const char *lang)
 		return NULL;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 2, language, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 2, language, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -1097,13 +1097,13 @@ EAPI char *livebox_service_i18n_name(const char *pkgid, const char *lang)
 		return NULL;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 2, language, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 2, language, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -1153,7 +1153,7 @@ EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
@@ -1203,14 +1203,14 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
@@ -1396,7 +1396,7 @@ EAPI int livebox_service_is_primary(const char *lbid)
 		return 0;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
@@ -1444,7 +1444,7 @@ EAPI char *livebox_service_appid(const char *pkgname)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgname, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgname, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
@@ -1452,7 +1452,7 @@ EAPI char *livebox_service_appid(const char *pkgname)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 2, pkgname, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 2, pkgname, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
@@ -1538,14 +1538,14 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
@@ -1615,7 +1615,7 @@ EAPI char *livebox_service_lb_script_group(const char *pkgid)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
@@ -1667,14 +1667,14 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
@@ -1743,7 +1743,7 @@ EAPI char *livebox_service_pd_script_group(const char *pkgid)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, NULL);
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
