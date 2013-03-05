@@ -98,12 +98,18 @@ extern int livebox_service_change_period(const char *pkgname, const char *id, do
 extern int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *lbid, int is_prime, void *data), void *data);
 
 /*!
- * \brief Get the name(appid or pkgname) of a primary livebox.
- * \param[in] appid
+ * \brief Get the pkgname of a primary livebox using given lbid or pkgid.
+ * \param[in] id Livebox Id or Package Id
  * \return pkgname String which is allocated on the heap
  */
-extern char *livebox_service_pkgname(const char *appid);
+extern char *livebox_service_pkgname(const char *id);
 
+/*!
+ * \brief Check the pirmary flag of given livebox Id.
+ * \param[in] lbid Livebox Id
+ * \return int 0 if is not a primary or 1
+ */
+extern int livebox_service_is_primary(const char *lbid);
 
 /*!
  * \brief Get the name of a livebox (provider name == livebox appid), you have to release the return value after use it
@@ -113,7 +119,7 @@ extern char *livebox_service_pkgname(const char *appid);
 extern char *livebox_service_provider_name(const char *lbid);
 
 /*!
- * \brief Get the setup app ID
+ * \brief Get the appId of setup app which is specified by given livebox Id's manifest.
  * \param[in] Livebox AppId
  * \return Setup AppId if exists or NULL
  */

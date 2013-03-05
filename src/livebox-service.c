@@ -40,6 +40,7 @@
 #include "debug.h"
 #include "livebox-service.h"
 
+#define SAMSUNG_PREFIX	"com.samsung."
 #define EAPI __attribute__((visibility("default")))
 #define DEFAULT_TIMEOUT 2.0
 #define MAX_COLUMN 80
@@ -870,7 +871,7 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 	lbid = livebox_service_pkgname(pkgid);
 	if (!lbid) {
 		ErrPrint("Invalid appid (%s)\n", pkgid);
-		ret = -EINVAL;
+		ret = 0;
 		goto out;
 	}
 
@@ -883,10 +884,12 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 	}
 
 	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW)
+	if (ret == SQLITE_ROW) {
 		ret = !!sqlite3_column_int(stmt, 0);
-	else
-		ret = 1;
+	} else {
+		ret = 1; /*!< Default true: In this case the DB is corrupted. */
+		ErrPrint("There is no result\n");
+	}
 
 out:
 	sqlite3_reset(stmt);
@@ -916,7 +919,7 @@ EAPI int livebox_service_mouse_event(const char *pkgid)
 	lbid = livebox_service_pkgname(pkgid);
 	if (!lbid) {
 		ErrPrint("Failed to get lbid: %s\n", pkgid);
-		ret = -EINVAL;
+		ret = 0;
 		goto out;
 	}
 
@@ -929,10 +932,12 @@ EAPI int livebox_service_mouse_event(const char *pkgid)
 	}
 
 	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW)
+	if (ret == SQLITE_ROW) {
 		ret = !!sqlite3_column_int(stmt, 0);
-	else
-		ret = 0;
+	} else {
+		ret = 0; /*!< Default is false, In this case the DB is corrupted */
+		ErrPrint("There is no result.\n");
+	}
 
 out:
 	sqlite3_reset(stmt);
@@ -1301,7 +1306,7 @@ EAPI char *livebox_service_provider_name(const char *lbid)
 	int stage = 0;
 	int seq = 0;
 	int idx = 0;
-	char *str = "com.samsung.";
+	char *str = SAMSUNG_PREFIX;
 
 	if (!lbid)
 		return NULL;
@@ -1369,6 +1374,47 @@ EAPI int livebox_service_is_enabled(const char *lbid)
 	free(pkgname);
 	return enabled == true;
 	*/
+}
+
+EAPI int livebox_service_is_primary(const char *lbid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret = 0;
+
+	if (!lbid)
+		return 0;
+
+	handle = open_db();
+	if (!handle)
+		return 0;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT prime FROM pkgmap WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return 0;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_column_int(stmt, 1);
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return ret;
 }
 
 /*!
