@@ -21,6 +21,7 @@ extern char *util_replace_string(const char *src, const char *pattern, const cha
 extern const char *util_uri_to_path(const char *uri);
 extern int util_validate_livebox_package(const char *pkgname);
 extern char *util_conf_get_libexec(const char *pkgname);
+extern char *util_id_to_uri(const char *id);	/* For FILENAME id */
 
 #define SCHEMA_FILE	"file://"
 #define SCHEMA_PIXMAP	"pixmap://"

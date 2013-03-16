@@ -363,6 +363,7 @@ EAPI int livebox_service_change_period(const char *pkgname, const char *id, doub
 {
 	struct packet *packet;
 	struct packet *result;
+	char *uri;
 	int ret;
 
 	if (!pkgname || !id || period < 0.0f) {
@@ -370,10 +371,12 @@ EAPI int livebox_service_change_period(const char *pkgname, const char *id, doub
 		return -EINVAL;
 	}
 
-	if (!id)
-		id = "";
+	uri = util_id_to_uri(id);
+	if (!uri)
+		return -ENOMEM;
 
-	packet = packet_create("service_change_period", "ssd", pkgname, id, period);
+	packet = packet_create("service_change_period", "ssd", pkgname, uri, period);
+	free(uri);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for period changing\n");
 		return -EFAULT;
@@ -400,6 +403,7 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 {
 	struct packet *packet;
 	struct packet *result;
+	char *uri;
 	int ret;
 
 	if (!pkgname) {
@@ -412,8 +416,9 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 		return -ECANCELED;
 	}
 
-	if (!id)
-		id = "";
+	uri = util_id_to_uri(id);
+	if (!uri)
+		return -ENOMEM;
 
 	if (!cluster)
 		cluster = "user,created";
@@ -421,7 +426,8 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 	if (!category)
 		category = "default";
 
-	packet = packet_create("service_update", "ssss", pkgname, id, cluster, category);
+	packet = packet_create("service_update", "ssss", pkgname, uri, cluster, category);
+	free(uri);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for service_update\n");
 		return -EFAULT;

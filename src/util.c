@@ -296,4 +296,36 @@ char *util_conf_get_libexec(const char *pkgname)
 
 	return path;
 }
+
+char *util_id_to_uri(const char *id)
+{
+	char *uri;
+
+	if (!id) {
+		uri = strdup("");
+		if (!uri) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return NULL;
+		}
+	} else if (strncmp(id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
+		int len;
+		len = strlen(SCHEMA_FILE) + strlen(id) + 2;
+		uri = malloc(len);
+		if (!uri) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return NULL;
+		}
+
+		snprintf(uri, len, SCHEMA_FILE"%s", id);
+	} else {
+		uri = strdup(id);
+		if (!uri) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+			return NULL;
+		}
+	}
+
+	return uri;
+}
+
 /* End of a file */
