@@ -26,6 +26,7 @@
 
 #include "util.h"
 #include "debug.h"
+#include "livebox-errno.h"
 
 int errno;
 
@@ -45,7 +46,7 @@ static inline char *check_native_livebox(const char *pkgname)
 
 	snprintf(path, len, "/opt/usr/live/%s/libexec/liblive-%s.so", pkgname, pkgname);
 	if (access(path, F_OK | R_OK) != 0) {
-		ErrPrint("%s is not a valid package\n", pkgname);
+		ErrPrint("%s is not a valid package (%s)\n", pkgname, strerror(errno));
 		free(path);
 		return NULL;
 	}
@@ -69,7 +70,7 @@ static inline char *check_web_livebox(const char *pkgname)
 
 	snprintf(path, len, "/opt/usr/apps/%s/res/wgt/livebox/index.html", pkgname);
 	if (access(path, F_OK | R_OK) != 0) {
-		ErrPrint("%s is not a valid package\n", pkgname);
+		ErrPrint("%s is not a valid package (%s)\n", pkgname, strerror(errno));
 		free(path);
 		return NULL;
 	}
@@ -83,7 +84,7 @@ int util_validate_livebox_package(const char *pkgname)
 
 	if (!pkgname) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	path = check_native_livebox(pkgname);
@@ -98,7 +99,7 @@ int util_validate_livebox_package(const char *pkgname)
 		return 0;
 	}
 
-	return -EINVAL;
+	return LB_STATUS_ERROR_INVALID;
 }
 
 double util_timestamp(void)

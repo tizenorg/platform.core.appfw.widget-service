@@ -39,6 +39,7 @@
 #include "util.h"
 #include "debug.h"
 #include "livebox-service.h"
+#include "livebox-errno.h"
 
 #define SAMSUNG_PREFIX	"com.samsung."
 #define EAPI __attribute__((visibility("default")))
@@ -144,7 +145,7 @@ static inline int update_from_file(void)
 	fp = fopen(s_info.conf_file, "r");
 	if (!fp) {
 		ErrPrint("Open failed: %s\n", strerror(errno));
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 	}
 
 	updated = 0;
@@ -258,18 +259,18 @@ static int update_resolution(void)
 	register int i;
 
 	if (s_info.res_resolved)
-		return 0;
+		return LB_STATUS_SUCCESS;
 
 	disp = XOpenDisplay(NULL);
 	if (!disp) {
 		ErrPrint("Failed to open a display\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	root = XDefaultRootWindow(disp);
 	if (!XGetGeometry(disp, root, &dummy, &x, &y, &width, &height, &border, &depth)) {
 		XCloseDisplay(disp);
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	if (update_from_file() == 0)
@@ -284,7 +285,7 @@ static int update_resolution(void)
 
 	XCloseDisplay(disp);
 	s_info.res_resolved = 1;
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 static inline sqlite3 *open_db(void)
@@ -348,7 +349,7 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 		idx = 9;
 		break;
 	default:
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (update_resolution() < 0)
@@ -356,7 +357,7 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 
 	*width = SIZE_LIST[idx].w;
 	*height = SIZE_LIST[idx].h;
-	return 0;
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI int livebox_service_change_period(const char *pkgname, const char *id, double period)
@@ -368,18 +369,18 @@ EAPI int livebox_service_change_period(const char *pkgname, const char *id, doub
 
 	if (!pkgname || !id || period < 0.0f) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	uri = util_id_to_uri(id);
 	if (!uri)
-		return -ENOMEM;
+		return LB_STATUS_ERROR_MEMORY;
 
 	packet = packet_create("service_change_period", "ssd", pkgname, uri, period);
 	free(uri);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for period changing\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
@@ -388,12 +389,12 @@ EAPI int livebox_service_change_period(const char *pkgname, const char *id, doub
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Failed to parse a result packet\n");
-			ret = -EINVAL;
+			ret = LB_STATUS_ERROR_INVALID;
 		}
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to get result packet\n");
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	}
 
 	return ret;
@@ -408,17 +409,17 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 
 	if (!pkgname) {
 		ErrPrint("Invalid argument\n");
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 	}
 
 	if (!force && access("/tmp/.live.paused", R_OK) == 0) {
 		DbgPrint("Provider is paused\n");
-		return -ECANCELED;
+		return LB_STATUS_ERROR_CANCEL;
 	}
 
 	uri = util_id_to_uri(id);
 	if (!uri)
-		return -ENOMEM;
+		return LB_STATUS_ERROR_MEMORY;
 
 	if (!cluster)
 		cluster = "user,created";
@@ -430,7 +431,7 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 	free(uri);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for service_update\n");
-		return -EFAULT;
+		return LB_STATUS_ERROR_FAULT;
 	}
 
 	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
@@ -439,13 +440,13 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Failed to parse a result packet\n");
-			ret = -EINVAL;
+			ret = LB_STATUS_ERROR_INVALID;
 		}
 
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to get result packet\n");
-		ret = -EFAULT;
+		ret = LB_STATUS_ERROR_FAULT;
 	}
 
 	return ret;
@@ -461,16 +462,16 @@ EAPI int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *pk
 	sqlite3 *handle;
 
 	if (!cb)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	handle = open_db();
 	if (!handle)
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 
 	ret = sqlite3_prepare_v2(handle, "SELECT appid, pkgid, prime FROM pkgmap", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = -EIO;
+		ret = LB_STATUS_ERROR_IO;
 		goto out;
 	}
 
@@ -514,16 +515,16 @@ EAPI int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, i
 	int ret;
 
 	if (!types || !cnt || !pkgid)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	handle = open_db();
 	if (!handle)
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 
 	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = -EIO;
+		ret = LB_STATUS_ERROR_IO;
 		goto out;
 	}
 
@@ -532,7 +533,7 @@ EAPI int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, i
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-		ret = -EIO;
+		ret = LB_STATUS_ERROR_IO;
 		goto out;
 	}
 
@@ -1146,16 +1147,16 @@ EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w
 	int ret;
 
 	if (!w || !h || !cnt || !pkgid)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	handle = open_db();
 	if (!handle)
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 
 	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = -EIO;
+		ret = LB_STATUS_ERROR_IO;
 		goto out;
 	}
 
@@ -1164,7 +1165,7 @@ EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-		ret = -EIO;
+		ret = LB_STATUS_ERROR_IO;
 		goto out;
 	}
 
@@ -1786,17 +1787,17 @@ EAPI int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, v
 	int ret;
 
 	if (!cb)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	handle = open_db();
 	if (!handle)
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 
 	cnt = 0;
 	ret = sqlite3_prepare_v2(handle, "SELECT DISTINCT cluster FROM groupinfo", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		cnt = -EIO;
+		cnt = LB_STATUS_ERROR_IO;
 		goto out;
 	}
 
@@ -1827,16 +1828,16 @@ EAPI int livebox_service_enumerate_category_list(const char *cluster, int (*cb)(
 	int ret;
 
 	if (!cluster || !cb)
-		return -EINVAL;
+		return LB_STATUS_ERROR_INVALID;
 
 	handle = open_db();
 	if (!handle)
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 
 	ret = sqlite3_prepare_v2(handle, "SELECT DISTINCT category FROM groupinfo WHERE cluster = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		cnt = -EIO;
+		cnt = LB_STATUS_ERROR_IO;
 		goto out;
 	}
 
@@ -1873,14 +1874,14 @@ EAPI int livebox_service_init(void)
 		return 0;
 	}
 
-	return -EIO;
+	return LB_STATUS_ERROR_IO;
 }
 
 EAPI int livebox_service_fini(void)
 {
 	if (!s_info.handle || s_info.init_count <= 0) {
 		ErrPrint("Service is not initialized\n");
-		return -EIO;
+		return LB_STATUS_ERROR_IO;
 	}
 
 	s_info.init_count--;
