@@ -60,6 +60,7 @@ static struct supported_size_list {
 	{ 207, 207 }, /*!< 21x21 */
 	{ 645, 207 }, /*!< 23x21 */
 	{ 645, 645 }, /*!< 23x23 */
+	{ 720, 1280 }, /*!< 0x0 */
 };
 
 static struct info {
@@ -110,6 +111,9 @@ static inline int update_info(int width_type, int height_type, int width, int he
 	} else if (width_type == 23 && height_type == 23) {
 		DbgPrint("Easy 3x3 Updated to %dx%d\n", width, height);
 		idx = 9;
+	} else if (width_type == 0 && height_type == 0) {
+		DbgPrint("Special 0x0 Updated to %dx%d\n", width, height);
+		idx = 10;
 	} else {
 		ErrPrint("Unknown size type: %dx%d (%dx%d)\n", width_type, height_type, width, height);
 		return 0;
@@ -347,6 +351,9 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 		break;
 	case LB_SIZE_TYPE_EASY_3x3: /*!< 645x645 */
 		idx = 9;
+		break;
+	case LB_SIZE_TYPE_0x0: /*!< 720x1280 */
+		idx = 10;
 		break;
 	default:
 		return LB_STATUS_ERROR_INVALID;
@@ -1942,6 +1949,8 @@ EAPI int livebox_service_size_type(int width, int height)
 		return LB_SIZE_TYPE_EASY_3x1;
 	case 9:
 		return LB_SIZE_TYPE_EASY_3x3;
+	case 10:
+		return LB_SIZE_TYPE_0x0;
 	default:
 		break;
 	}
