@@ -856,7 +856,7 @@ out:
 	return pkgid;
 }
 
-EAPI int livebox_service_need_frame(const char *pkgid)
+EAPI int livebox_service_need_frame(const char *pkgid, int size_type)
 {
 	char *lbid;
 	sqlite3_stmt *stmt;
@@ -869,7 +869,7 @@ EAPI int livebox_service_need_frame(const char *pkgid)
 		return 0;
 	}
 
-	ret = sqlite3_prepare_v2(handle, "SELECT need_frame FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT need_frame FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
@@ -893,6 +893,13 @@ EAPI int livebox_service_need_frame(const char *pkgid)
 		goto out;
 	}
 
+	ret = sqlite3_bind_int(stmt, 2, size_type);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
 	ret = sqlite3_step(stmt);
 	if (ret == SQLITE_ROW) {
 		ret = !!sqlite3_column_int(stmt, 0);
@@ -907,7 +914,7 @@ out:
 	return ret;
 }
 
-EAPI int livebox_service_touch_effect(const char *pkgid)
+EAPI int livebox_service_touch_effect(const char *pkgid, int size_type)
 {
 	char *lbid;
 	sqlite3_stmt *stmt;
@@ -920,7 +927,7 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 		return 1;
 	}
 
-	ret = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
@@ -942,6 +949,13 @@ EAPI int livebox_service_touch_effect(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
 	free(lbid);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 1;
+		goto out;
+	}
+
+	ret = sqlite3_bind_int(stmt, 2, size_type);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		ret = 1;

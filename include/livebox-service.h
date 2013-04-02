@@ -65,16 +65,18 @@ extern int livebox_service_mouse_event(const char *pkgid);
 /*!
  * \brief
  * \param[in] pkgid Livebox's appid
+ * \param[in] size_type
  * \return true(1) / false(0)
  */
-extern int livebox_service_touch_effect(const char *pkgid);
+extern int livebox_service_touch_effect(const char *pkgid, int size_type);
 
 /*!
  * \brief
  * \param[in] pkgid Livebox's appid
+ * \param[in] size_type
  * \return true(1) / false(0)
  */
-extern int livebox_service_need_frame(const char *pkgid);
+extern int livebox_service_need_frame(const char *pkgid, int size_type);
 
 /*!
  * \brief
