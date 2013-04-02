@@ -856,6 +856,57 @@ out:
 	return pkgid;
 }
 
+EAPI int livebox_service_need_frame(const char *pkgid)
+{
+	char *lbid;
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+
+	handle = open_db();
+	if (!handle) {
+		ErrPrint("Unable to open a DB\n");
+		return 0;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT need_frame FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return 0;
+	}
+
+	/*!
+	 */
+	lbid = livebox_service_pkgname(pkgid);
+	if (!lbid) {
+		ErrPrint("Invalid appid (%s)\n", pkgid);
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
+	free(lbid);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		ret = !!sqlite3_column_int(stmt, 0);
+	} else {
+		ret = 0;
+		ErrPrint("There is no such result\n");
+	}
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return ret;
+}
+
 EAPI int livebox_service_touch_effect(const char *pkgid)
 {
 	char *lbid;

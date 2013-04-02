@@ -71,6 +71,13 @@ extern int livebox_service_touch_effect(const char *pkgid);
 
 /*!
  * \brief
+ * \param[in] pkgid Livebox's appid
+ * \return true(1) / false(0)
+ */
+extern int livebox_service_need_frame(const char *pkgid);
+
+/*!
+ * \brief
  * \param[in] pkgname Livebox package name
  * \param[in] id Set NULL if you don't know what the Id is.
  * \param[in] cluster Cluster name. Default NULL
