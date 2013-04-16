@@ -50,13 +50,15 @@ static struct supported_size_list {
 	int w;
 	int h;
 } SIZE_LIST[NR_OF_SIZE_LIST] = {
-	{ 172, 172 }, /*!< 1x1 */
-	{ 348, 172 }, /*!< 2x1 */
-	{ 348, 348 }, /*!< 2x2 */
-	{ 700, 172 }, /*!< 4x1 */
-	{ 700, 348 }, /*!< 4x2 */
-	{ 700, 520 }, /*!< 4x3 */
-	{ 700, 700 }, /*!< 4x4 */
+	{ 175, 175 }, /*!< 1x1 */
+	{ 354, 175 }, /*!< 2x1 */
+	{ 354, 354 }, /*!< 2x2 */
+	{ 712, 175 }, /*!< 4x1 */
+	{ 712, 354 }, /*!< 4x2 */
+	{ 712, 533 }, /*!< 4x3 */
+	{ 712, 712 }, /*!< 4x4 */
+	{ 712, 891 }, /*!< 4x5 */
+	{ 712, 1070 }, /*!< 4x6 */
 	{ 207, 207 }, /*!< 21x21 */
 	{ 645, 207 }, /*!< 23x21 */
 	{ 645, 645 }, /*!< 23x23 */
@@ -102,18 +104,24 @@ static inline int update_info(int width_type, int height_type, int width, int he
 	} else if (width_type == 4 && height_type == 4) {
 		DbgPrint("4x4 Updated to %dx%d\n", width, height);
 		idx = 6;
+	} else if (width_type == 4 && height_type == 5) {
+		DbgPrint("4x5 Updated to %dx%d\n", width, height);
+		idx = 7;
+	} else if (width_type == 4 && height_type == 6) {
+		DbgPrint("4x6 Updated to %dx%d\n", width, height);
+		idx = 8;
 	} else if (width_type == 21 && height_type == 21) {
 		DbgPrint("Easy 1x1 Updated to %dx%d\n", width, height);
-		idx = 7;
+		idx = 9;
 	} else if (width_type == 23 && height_type == 21) {
 		DbgPrint("Easy 3x1 Updated to %dx%d\n", width, height);
-		idx = 8;
+		idx = 10;
 	} else if (width_type == 23 && height_type == 23) {
 		DbgPrint("Easy 3x3 Updated to %dx%d\n", width, height);
-		idx = 9;
+		idx = 11;
 	} else if (width_type == 0 && height_type == 0) {
 		DbgPrint("Special 0x0 Updated to %dx%d\n", width, height);
-		idx = 10;
+		idx = 12;
 	} else {
 		ErrPrint("Unknown size type: %dx%d (%dx%d)\n", width_type, height_type, width, height);
 		return 0;
@@ -322,38 +330,44 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 	int idx;
 
 	switch (type) {
-	case LB_SIZE_TYPE_1x1: /*!< 172x172 */
+	case LB_SIZE_TYPE_1x1: /*!< 175x175 */
 		idx = 0;
 		break;
-	case LB_SIZE_TYPE_2x1: /*!< 348x172 */
+	case LB_SIZE_TYPE_2x1: /*!< 354x175 */
 		idx = 1;
 		break;
-	case LB_SIZE_TYPE_2x2: /*!< 348x348 */
+	case LB_SIZE_TYPE_2x2: /*!< 354x354 */
 		idx = 2;
 		break;
-	case LB_SIZE_TYPE_4x1: /*!< 700x172 */
+	case LB_SIZE_TYPE_4x1: /*!< 712x175 */
 		idx = 3;
 		break;
-	case LB_SIZE_TYPE_4x2: /*!< 700x348 */
+	case LB_SIZE_TYPE_4x2: /*!< 712x354 */
 		idx = 4;
 		break;
-	case LB_SIZE_TYPE_4x3: /*!< 700x520 */
+	case LB_SIZE_TYPE_4x3: /*!< 712x533 */
 		idx = 5;
 		break;
-	case LB_SIZE_TYPE_4x4: /*!< 700x700 */
+	case LB_SIZE_TYPE_4x4: /*!< 712x712 */
 		idx = 6;
 		break;
-	case LB_SIZE_TYPE_EASY_1x1: /*< 207x207 */
+	case LB_SIZE_TYPE_4x5: /*!< 712x891 */
 		idx = 7;
 		break;
-	case LB_SIZE_TYPE_EASY_3x1: /*!< 645x207 */
+	case LB_SIZE_TYPE_4x6: /*!< 712x1070 */
 		idx = 8;
 		break;
-	case LB_SIZE_TYPE_EASY_3x3: /*!< 645x645 */
+	case LB_SIZE_TYPE_EASY_1x1: /*< 207x207 */
 		idx = 9;
 		break;
-	case LB_SIZE_TYPE_0x0: /*!< 720x1280 */
+	case LB_SIZE_TYPE_EASY_3x1: /*!< 645x207 */
 		idx = 10;
+		break;
+	case LB_SIZE_TYPE_EASY_3x3: /*!< 645x645 */
+		idx = 11;
+		break;
+	case LB_SIZE_TYPE_0x0: /*!< 720x1280 */
+		idx = 12;
 		break;
 	default:
 		return LB_STATUS_ERROR_INVALID;
@@ -2009,12 +2023,16 @@ EAPI int livebox_service_size_type(int width, int height)
 	case 6:
 		return LB_SIZE_TYPE_4x4;
 	case 7:
-		return LB_SIZE_TYPE_EASY_1x1;
+		return LB_SIZE_TYPE_4x5;
 	case 8:
-		return LB_SIZE_TYPE_EASY_3x1;
+		return LB_SIZE_TYPE_4x6;
 	case 9:
-		return LB_SIZE_TYPE_EASY_3x3;
+		return LB_SIZE_TYPE_EASY_1x1;
 	case 10:
+		return LB_SIZE_TYPE_EASY_3x1;
+	case 11:
+		return LB_SIZE_TYPE_EASY_3x3;
+	case 12:
 		return LB_SIZE_TYPE_0x0;
 	default:
 		break;
