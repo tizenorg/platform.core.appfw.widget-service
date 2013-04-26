@@ -64,11 +64,11 @@ enum livebox_script_event {
 };
 
 enum livebox_access_status {
-	LB_ACCESS_STATUS_DONE,
+	LB_ACCESS_STATUS_ERROR = 0x80000000,
+	LB_ACCESS_STATUS_DONE = 0x00000000,
 	LB_ACCESS_STATUS_FIRST, /*!< Reach to the first item */
 	LB_ACCESS_STATUS_LAST, /*!< Reach to the last item */
 	LB_ACCESS_STATUS_READ, /* TTS done */
-	LB_ACCESS_STATUS_ERROR,
 };
 
 /*!
