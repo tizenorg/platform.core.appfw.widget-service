@@ -1501,7 +1501,7 @@ EAPI int livebox_service_is_primary(const char *lbid)
 		goto out;
 	}
 
-	ret = sqlite3_column_int(stmt, 1);
+	ret = sqlite3_column_int(stmt, 0);
 
 out:
 	sqlite3_reset(stmt);
