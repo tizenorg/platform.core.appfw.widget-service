@@ -1,7 +1,7 @@
 /*
  * Copyright 2013  Samsung Electronics Co., Ltd
  *
- * Licensed under the Flora License, Version 1.0 (the "License");
+ * Licensed under the Flora License, Version 1.1 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -1501,7 +1501,7 @@ EAPI int livebox_service_is_primary(const char *lbid)
 		goto out;
 	}
 
-	ret = sqlite3_column_int(stmt, 1);
+	ret = sqlite3_column_int(stmt, 0);
 
 out:
 	sqlite3_reset(stmt);
