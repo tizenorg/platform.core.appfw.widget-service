@@ -22,6 +22,7 @@ pkg_check_modules(pkgs REQUIRED
 	sqlite3
 	db-util
 	pkgmgr
+	pkgmgr-info
 	x11
 	vconf
 	ail

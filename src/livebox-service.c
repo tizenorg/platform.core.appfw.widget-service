@@ -31,6 +31,7 @@
 #include <dlog.h>
 #include <db-util.h>
 #include <package-manager.h>
+#include <pkgmgr-info.h>
 #include <vconf.h>
 #include <vconf-keys.h>
 #include <ail.h>
@@ -522,6 +523,180 @@ EAPI int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *pk
 
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *lbid, int is_prime, void *data), void *data)
+{
+	int ret;
+	sqlite3_stmt *stmt;
+	const char *lbid;
+	int is_prime;
+	sqlite3 *handle;
+
+	if (!cb)
+		return LB_STATUS_ERROR_INVALID;
+
+	handle = open_db();
+	if (!handle)
+		return LB_STATUS_ERROR_IO;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid, prime FROM pkgmap WHERE appid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = LB_STATUS_ERROR_IO;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = LB_STATUS_ERROR_IO;
+		goto out;
+	}
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		lbid = (const char *)sqlite3_column_text(stmt, 0);
+		if (!lbid || !strlen(lbid)) {
+			ErrPrint("LBID is not valid\n");
+			continue;
+		}
+
+		is_prime = sqlite3_column_int(stmt, 1);
+
+		ret++;
+
+		if (cb(lbid, is_prime, data) < 0) {
+			DbgPrint("Callback stopped package crawling\n");
+			break;
+		}
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
+struct pkgmgr_cbdata {
+	const char *lbid;
+	void (*cb)(const char *lbid, const char *appid, void *data);
+	void *cbdata;
+};
+
+static int pkgmgr_cb(const pkgmgrinfo_appinfo_h handle, void *user_data)
+{
+	struct pkgmgr_cbdata *cbdata = (struct pkgmgr_cbdata *)user_data;
+	char *appid;
+	int ret;
+
+	ret = pkgmgrinfo_appinfo_get_appid(handle, &appid);
+	if (ret < 0)
+		ErrPrint("Unable to get appid\n");
+	else
+		cbdata->cb(cbdata->lbid, appid, cbdata->cbdata);
+
+	return 0;
+}
+
+static inline int pkgmgr_get_applist(const char *pkgid, const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data)
+{
+	struct pkgmgr_cbdata cbdata;
+	pkgmgrinfo_pkginfo_h handle;
+	int ret;
+
+	ret = pkgmgrinfo_pkginfo_get_pkginfo(pkgid, &handle);
+	if (ret < 0) {
+		ErrPrint("Unable to get pkginfo: %s\n", pkgid);
+		return ret;
+	}
+
+	cbdata.lbid = lbid;
+	cbdata.cb = cb;
+	cbdata.cbdata = data;
+
+	ret = pkgmgrinfo_appinfo_get_list(handle, PM_UI_APP, pkgmgr_cb, &cbdata);
+	if (ret < 0)
+		ErrPrint("Failed to get applist\n");
+
+	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
+	return ret;
+}
+
+EAPI int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data)
+{
+	sqlite3_stmt *stmt;
+	const char *tmp;
+	char *pkgid;
+	sqlite3 *handle;
+	int ret;
+
+	if (!lbid || !cb)
+		return LB_STATUS_ERROR_INVALID;
+
+	handle = open_db();
+	if (!handle)
+		return LB_STATUS_ERROR_IO;
+
+	ret = sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE (pkgid = ?) or (appid = ?)", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = LB_STATUS_ERROR_IO;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = LB_STATUS_ERROR_IO;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, lbid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = LB_STATUS_ERROR_IO;
+		goto out;
+	}
+
+	if (sqlite3_step(stmt) != SQLITE_ROW) {
+		ret = LB_STATUS_ERROR_INVALID;
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	tmp = (const char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("Invalid package name (%s)\n", lbid);
+		ret = LB_STATUS_ERROR_INVALID;
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	pkgid = strdup(tmp);
+	if (!pkgid) {
+		ErrPrint("Error: %s\n", strerror(errno));
+		ret = LB_STATUS_ERROR_MEMORY;
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+	ret = pkgmgr_get_applist(pkgid, lbid, cb, data);
+	free(pkgid);
 
 out:
 	close_db(handle);

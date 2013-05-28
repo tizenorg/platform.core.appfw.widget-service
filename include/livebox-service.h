@@ -135,10 +135,29 @@ extern int livebox_service_change_period(const char *pkgname, const char *id, do
  *        appid == Application Package ID (pkgname)
  *        lbid = Livebox Package ID
  *        is_prime = 1 if the livebox is default one for associated application package
+ *        If the callback returns negative value, the list crawling will be stopped
  * \param[in] cb Callback function
- * \return Count of livebox packages or errno (-EIO, -EINVAL)
+ * \return Count of livebox packages or LB_STATUS_ERROR
  */
-extern int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *lbid, int is_prime, void *data), void *data);
+extern int livebox_service_get_pkglist(int (*cb)(const char *pkgid, const char *lbid, int is_prime, void *data), void *data);
+
+/*!
+ * \brief Synchronous uiapp list getter.
+ *        callback (appid, data)
+ */
+extern int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data);
+
+/*!
+ * \brief Synchronous package list getter
+ *	  callback (lbid, is_prime)
+ *	  lbid == Livebox Package Id
+ *	  is_prime = 1 if the livebox is default one for selected package
+ *        If the callback returns negative value, the list crawling will be stopped
+ * \param[in] pkgid Package Id (Not the UI App Id)
+ * \param[in] cb Callback function
+ * \return Count of livebox packages or LB_STATUS_ERROR
+ */
+extern int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *lbid, int is_prime, void *data), void *data);
 
 /*!
  * \brief Get the pkgname of a primary livebox using given lbid or pkgid.
