@@ -148,6 +148,11 @@ extern int livebox_service_get_pkglist(int (*cb)(const char *pkgid, const char *
 extern int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data);
 
 /*!
+ * \brief
+ */
+extern char *livebox_service_mainappid(const char *lbid);
+
+/*!
  * \brief Synchronous package list getter
  *	  callback (lbid, is_prime)
  *	  lbid == Livebox Package Id

@@ -607,6 +607,28 @@ static int pkgmgr_cb(const pkgmgrinfo_appinfo_h handle, void *user_data)
 	return 0;
 }
 
+static inline char *pkgmgr_get_mainapp(const char *pkgid)
+{
+	pkgmgrinfo_pkginfo_h handle;
+	char *ret = NULL;
+
+	if (pkgmgrinfo_pkginfo_get_pkginfo(pkgid, &handle) != PMINFO_R_OK) {
+		ErrPrint("Unable to get mainapp: %s\n", pkgid);
+		return NULL;
+	}
+
+	if (pkgmgrinfo_pkginfo_get_mainappid(handle, &ret) == PMINFO_R_OK) {
+		ret = strdup(ret);
+	} else {
+		ErrPrint("Failed to get mainappid\n");
+		ret = NULL; /* I cannot believe the pkgmgrinfo_pkginfo_get_mainappid. it maybe able to touch my "ret" even though it fails */
+	
+	}
+
+	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
+	return ret;
+}
+
 static inline int pkgmgr_get_applist(const char *pkgid, const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data)
 {
 	struct pkgmgr_cbdata cbdata;
@@ -696,6 +718,69 @@ EAPI int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lb
 	sqlite3_finalize(stmt);
 
 	ret = pkgmgr_get_applist(pkgid, lbid, cb, data);
+	free(pkgid);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI char *livebox_service_mainappid(const char *lbid)
+{
+	sqlite3_stmt *stmt;
+	const char *tmp;
+	char *pkgid;
+	sqlite3 *handle;
+	char *ret = NULL;
+
+	if (!lbid)
+		return NULL;
+
+	handle = open_db();
+	if (!handle)
+		return NULL;
+
+	if (sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE (pkgid = ?) or (appid = ?)", -1, &stmt, NULL) != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	if (sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	if (sqlite3_bind_text(stmt, 2, lbid, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	if (sqlite3_step(stmt) != SQLITE_ROW) {
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	tmp = (const char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("Invalid package name (%s)\n", lbid);
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	pkgid = strdup(tmp);
+	if (!pkgid) {
+		ErrPrint("Error: %s\n", strerror(errno));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+	ret = pkgmgr_get_mainapp(pkgid);
 	free(pkgid);
 
 out:
