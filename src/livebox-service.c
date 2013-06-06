@@ -729,7 +729,7 @@ EAPI char *livebox_service_mainappid(const char *lbid)
 {
 	sqlite3_stmt *stmt;
 	const char *tmp;
-	char *pkgid;
+	const char *pkgid;
 	sqlite3 *handle;
 	char *ret = NULL;
 
@@ -740,7 +740,7 @@ EAPI char *livebox_service_mainappid(const char *lbid)
 	if (!handle)
 		return NULL;
 
-	if (sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE (pkgid = ?) or (appid = ?)", -1, &stmt, NULL) != SQLITE_OK) {
+	if (sqlite3_prepare_v2(handle, "SELECT appid, uiapp FROM pkgmap WHERE (pkgid = ?) or (appid = ? and prime = 1)", -1, &stmt, NULL) != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -769,19 +769,21 @@ EAPI char *livebox_service_mainappid(const char *lbid)
 		goto out;
 	}
 
-	pkgid = strdup(tmp);
-	if (!pkgid) {
-		ErrPrint("Error: %s\n", strerror(errno));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
+	pkgid = (const char *)sqlite3_column_text(stmt, 1);
+	if (!pkgid || !strlen(pkgid)) {
+		/*
+		 * This record has no uiapp.
+		 * Try to find the main ui-app id.
+		 */
+		ret = pkgmgr_get_mainapp(tmp);
+	} else {
+		ret = strdup(pkgid);
+		if (!ret)
+			ErrPrint("Error: %s\n", strerror(errno));
 	}
 
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
-
-	ret = pkgmgr_get_mainapp(pkgid);
-	free(pkgid);
 
 out:
 	close_db(handle);
