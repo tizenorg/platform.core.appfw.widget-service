@@ -85,43 +85,30 @@ static inline int update_info(int width_type, int height_type, int width, int he
 	int idx;
 
 	if (width_type == 1 && height_type == 1) {
-		DbgPrint("1x1 Updated to %dx%d\n", width, height);
 		idx = 0;
 	} else if (width_type == 2 && height_type == 1) {
-		DbgPrint("2x1 Updated to %dx%d\n", width, height);
 		idx = 1;
 	} else if (width_type == 2 && height_type == 2) {
-		DbgPrint("2x2 Updated to %dx%d\n", width, height);
 		idx = 2;
 	} else if (width_type == 4 && height_type == 1) {
-		DbgPrint("4x1 Updated to %dx%d\n", width, height);
 		idx = 3;
 	} else if (width_type == 4 && height_type == 2) {
-		DbgPrint("4x2 Updated to %dx%d\n", width, height);
 		idx = 4;
 	} else if (width_type == 4 && height_type == 3) {
-		DbgPrint("4x3 Updated to %dx%d\n", width, height);
 		idx = 5;
 	} else if (width_type == 4 && height_type == 4) {
-		DbgPrint("4x4 Updated to %dx%d\n", width, height);
 		idx = 6;
 	} else if (width_type == 4 && height_type == 5) {
-		DbgPrint("4x5 Updated to %dx%d\n", width, height);
 		idx = 7;
 	} else if (width_type == 4 && height_type == 6) {
-		DbgPrint("4x6 Updated to %dx%d\n", width, height);
 		idx = 8;
 	} else if (width_type == 21 && height_type == 21) {
-		DbgPrint("Easy 1x1 Updated to %dx%d\n", width, height);
 		idx = 9;
 	} else if (width_type == 23 && height_type == 21) {
-		DbgPrint("Easy 3x1 Updated to %dx%d\n", width, height);
 		idx = 10;
 	} else if (width_type == 23 && height_type == 23) {
-		DbgPrint("Easy 3x3 Updated to %dx%d\n", width, height);
 		idx = 11;
 	} else if (width_type == 0 && height_type == 0) {
-		DbgPrint("Special 0x0 Updated to %dx%d\n", width, height);
 		idx = 12;
 	} else {
 		ErrPrint("Unknown size type: %dx%d (%dx%d)\n", width_type, height_type, width, height);
@@ -289,11 +276,9 @@ static int update_resolution(void)
 	if (update_from_file() == 0)
 		DbgPrint("Resolution info is all updated by file\n");
 
-	DbgPrint("Screen resolution: %dx%d\n", width, height);
 	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
 		SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / 720.0f);
 		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / 720.0f);
-		DbgPrint("(Ratio)Size is updated [%d] %dx%d\n", i, SIZE_LIST[i].w, SIZE_LIST[i].h);
 	}
 
 	XCloseDisplay(disp);
@@ -1940,7 +1925,6 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 	}
 
 	DbgPrint("LB Src: %s\n", path);
-
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
 out:
