@@ -71,6 +71,8 @@ enum livebox_access_status {
 	LB_ACCESS_STATUS_READ, /* TTS done */
 };
 
+struct pkglist_handle;
+
 /*!
  * \brief
  * \param[in] type
@@ -312,6 +314,13 @@ extern int livebox_service_init(void);
  * \return
  */
 extern int livebox_service_fini(void);
+
+
+extern struct pkglist_handle *livebox_service_pkglist_create(const char *pkgid, struct pkglist_handle *handle);
+
+extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char **appid, char **pkgname, int *is_prime);
+
+extern int livebox_service_pkglist_destroy(struct pkglist_handle *handle);
 
 #ifdef __cplusplus
 }

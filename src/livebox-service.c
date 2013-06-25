@@ -66,6 +66,15 @@ static struct supported_size_list {
 	{ 720, 1280 }, /*!< 0x0 */
 };
 
+struct pkglist_handle {
+	enum pkglist_type {
+		PKGLIST_TYPE_LB_LIST = 0x00beef00,
+		PKGLIST_TYPE_UNKNOWN = 0x00dead00,
+	} type;
+	sqlite3 *handle;
+	sqlite3_stmt *stmt;
+};
+
 static struct info {
 	sqlite3 *handle;
 	const char *dbfile;
@@ -305,7 +314,7 @@ static inline sqlite3 *open_db(void)
 	return handle;
 }
 
-static inline void close_db(sqlite3 *handle)
+static inline __attribute__((always_inline)) void close_db(sqlite3 *handle)
 {
 	if (!s_info.handle)
 		db_util_close(handle);
@@ -457,6 +466,132 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 	}
 
 	return ret;
+}
+
+/*!
+ * pkgid == Package Id (not the livebox id)
+ */
+EAPI struct pkglist_handle *livebox_service_pkglist_create(const char *pkgid, struct pkglist_handle *handle)
+{
+	int ret;
+
+	if (handle) {
+		if (handle->type != PKGLIST_TYPE_LB_LIST) {
+			ErrPrint("Invalid handle\n");
+			return NULL;
+		}
+
+		if (pkgid) {
+			ErrPrint("pkgid should be NULL\n");
+			return NULL;
+		}
+
+		sqlite3_reset(handle->stmt);
+		return handle;
+	}
+
+	handle = calloc(1, sizeof(*handle));
+	if (!handle) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		return NULL;
+	}
+
+	handle->type = PKGLIST_TYPE_LB_LIST;
+
+	handle->handle = open_db();
+	if (!handle->handle) {
+		free(handle);
+		return NULL;
+	}
+
+	if (!pkgid) {
+		ret = sqlite3_prepare_v2(handle->handle, "SELECT appid, pkgid, prime FROM pkgmap", -1, &handle->stmt, NULL);
+		if (ret != SQLITE_OK) {
+			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
+			close_db(handle->handle);
+			free(handle);
+			return NULL;
+		}
+	} else {
+		ret = sqlite3_prepare_v2(handle->handle, "SELECT appid, pkgid, prime FROM pkgmap WHERE appid = ?", -1, &handle->stmt, NULL);
+		if (ret != SQLITE_OK) {
+			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
+			close_db(handle->handle);
+			free(handle);
+			return NULL;
+		}
+
+		ret = sqlite3_bind_text(handle->stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+		if (ret != SQLITE_OK) {
+			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
+			sqlite3_finalize(handle->stmt);
+			close_db(handle->handle);
+			free(handle);
+			return NULL;
+		}
+	}
+
+	return handle;
+}
+
+EAPI int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char **appid, char **pkgname, int *is_prime)
+{
+	const char *tmp;
+	char *_appid = NULL;
+	char *_pkgname = NULL;
+
+	if (!handle || handle->type != PKGLIST_TYPE_LB_LIST)
+		return LB_STATUS_ERROR_INVALID;
+
+	if (sqlite3_step(handle->stmt) != SQLITE_ROW)
+		return LB_STATUS_ERROR_NOT_EXIST;
+
+	if (appid) {
+		tmp = (const char *)sqlite3_column_text(handle->stmt, 0);
+		if (tmp && strlen(tmp)) {
+			_appid = strdup(tmp);
+			if (!_appid) {
+				ErrPrint("Heap: %s\n", strerror(errno));
+				return LB_STATUS_ERROR_MEMORY;
+			}
+		}
+	}
+
+	if (pkgname) {
+		tmp = (const char *)sqlite3_column_text(handle->stmt, 1);
+		if (tmp && strlen(tmp)) {
+			_pkgname = strdup(tmp);
+			if (!_pkgname) {
+				ErrPrint("Heap: %s\n", strerror(errno));
+				free(_appid);
+				return LB_STATUS_ERROR_MEMORY;
+			}
+		}
+	}
+
+	if (is_prime)
+		*is_prime = sqlite3_column_int(handle->stmt, 2);
+
+	if (appid)
+		*appid = _appid;
+
+	if (pkgname)
+		*pkgname = _pkgname;
+
+	return LB_STATUS_SUCCESS;
+}
+
+EAPI int livebox_service_pkglist_destroy(struct pkglist_handle *handle)
+{
+	if (!handle || handle->type != PKGLIST_TYPE_LB_LIST)
+		return LB_STATUS_ERROR_INVALID;
+
+	handle->type = PKGLIST_TYPE_UNKNOWN;
+	sqlite3_reset(handle->stmt);
+	sqlite3_finalize(handle->stmt);
+	close_db(handle->handle);
+	free(handle);
+	return LB_STATUS_SUCCESS;
 }
 
 EAPI int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *pkgname, int is_prime, void *data), void *data)

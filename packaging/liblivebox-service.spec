@@ -1,6 +1,6 @@
 Name: liblivebox-service
 Summary: Service API for gathering installed livebox information.
-Version: 0.4.8
+Version: 0.4.9
 Release: 1
 Group: HomeTF/Livebox
 License: Flora License
