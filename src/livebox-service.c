@@ -60,9 +60,9 @@ static struct supported_size_list {
 	{ 712, 712 }, /*!< 4x4 */
 	{ 712, 891 }, /*!< 4x5 */
 	{ 712, 1070 }, /*!< 4x6 */
-	{ 216, 207 }, /*!< 21x21 */
-	{ 672, 207 }, /*!< 23x21 */
-	{ 672, 672 }, /*!< 23x23 */
+	{ 224, 215 }, /*!< 21x21 */
+	{ 680, 215 }, /*!< 23x21 */
+	{ 680, 653 }, /*!< 23x23 */
 	{ 720, 1280 }, /*!< 0x0 */
 };
 
@@ -352,13 +352,13 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 	case LB_SIZE_TYPE_4x6: /*!< 712x1070 */
 		idx = 8;
 		break;
-	case LB_SIZE_TYPE_EASY_1x1: /*< 216x207 */
+	case LB_SIZE_TYPE_EASY_1x1: /*< 224x215 */
 		idx = 9;
 		break;
-	case LB_SIZE_TYPE_EASY_3x1: /*!< 672x207 */
+	case LB_SIZE_TYPE_EASY_3x1: /*!< 680x215 */
 		idx = 10;
 		break;
-	case LB_SIZE_TYPE_EASY_3x3: /*!< 672x672 */
+	case LB_SIZE_TYPE_EASY_3x3: /*!< 680x653 */
 		idx = 11;
 		break;
 	case LB_SIZE_TYPE_0x0: /*!< 720x1280 */
