@@ -295,7 +295,7 @@ static int update_resolution(void)
 	return LB_STATUS_SUCCESS;
 }
 
-static inline sqlite3 *open_db(void)
+static sqlite3 *open_db(void)
 {
 	sqlite3 *handle;
 
