@@ -69,7 +69,7 @@ static struct supported_size_list {
 struct pkglist_handle {
 	enum pkglist_type {
 		PKGLIST_TYPE_LB_LIST = 0x00beef00,
-		PKGLIST_TYPE_UNKNOWN = 0x00dead00,
+		PKGLIST_TYPE_UNKNOWN = 0x00dead00
 	} type;
 	sqlite3 *handle;
 	sqlite3_stmt *stmt;
@@ -148,7 +148,7 @@ static inline int update_from_file(void)
 		ERROR = 0x04,
 		EOL = 0x05,
 		TYPE_END = 0x06,
-		SIZE_START = 0x07,
+		SIZE_START = 0x07
 	} status;
 
 	fp = fopen(s_info.conf_file, "r");
