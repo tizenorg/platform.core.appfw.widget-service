@@ -26,6 +26,7 @@ pkg_check_modules(pkgs REQUIRED
 	x11
 	vconf
 	ail
+	icu-uc
 )
 
 FOREACH(flag ${pkgs_CFLAGS})

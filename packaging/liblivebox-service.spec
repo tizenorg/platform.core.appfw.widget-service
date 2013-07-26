@@ -1,6 +1,6 @@
 Name: liblivebox-service
 Summary: Service API for gathering installed livebox information.
-Version: 0.4.9
+Version: 0.5.0
 Release: 1
 Group: HomeTF/Livebox
 License: Flora License
@@ -17,6 +17,7 @@ BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(ail)
+BuildRequires: pkgconfig(icu-uc)
 
 %description
 Service API for gathering information of installed liveboxes

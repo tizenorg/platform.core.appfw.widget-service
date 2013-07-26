@@ -35,6 +35,7 @@
 #include <vconf.h>
 #include <vconf-keys.h>
 #include <ail.h>
+#include <unicode/uloc.h>
 
 #include "dlist.h"
 #include "util.h"
@@ -1427,6 +1428,15 @@ EAPI char *livebox_service_preview(const char *pkgid, int size_type)
 	sqlite3 *handle;
 	int ret;
 	char *preview = NULL;
+	const char *tmp;
+	int tmp_len;
+	const char *iso3lang;
+	char country[ULOC_COUNTRY_CAPACITY] = { 0, };
+	int country_len;
+	UErrorCode err;
+	int buf_len;
+	register int i;
+	int printed;
 
 	handle = open_db();
 	if (!handle)
@@ -1452,13 +1462,53 @@ EAPI char *livebox_service_preview(const char *pkgid, int size_type)
 	}
 
 	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		const char *tmp;
-		tmp = (const char *)sqlite3_column_text(stmt, 0);
-		if (tmp && strlen(tmp)) {
-			preview = strdup(tmp);
-			if (!preview)
-				ErrPrint("Heap: %s\n", strerror(errno));
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	tmp = (const char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !(tmp_len = strlen(tmp))) {
+		ErrPrint("Failed to get data\n");
+		goto out;
+	}
+
+	iso3lang = uloc_getISO3Language(NULL);
+	country_len = uloc_getCountry(NULL, country, ULOC_COUNTRY_CAPACITY, &err);
+
+	if (!iso3lang || !U_SUCCESS(err) || country_len <= 0) {
+		ErrPrint("Failed to get locale: %s, %s, %d (%s) - %s\n", u_errorName(err), iso3lang, country_len, country, tmp);
+		preview = strdup(tmp);
+		if (!preview) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+		}
+
+		goto out;
+	}
+
+	buf_len = tmp_len + strlen(iso3lang) + country_len + 3; /* '/' '-' '/' */
+	preview = malloc(buf_len + 1);
+	if (!preview) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		goto out;
+	}
+
+	for (i = tmp_len; i >= 0 && tmp[i] != '/'; i--);
+	i++; /* Skip '/' */
+
+	strncpy(preview, tmp, i);
+	printed = snprintf(preview + i, buf_len - i, "%s-%s/%s", iso3lang, country, tmp + i);
+	if (preview[i + printed] != '\0') {
+		ErrPrint("Path is truncated\n");
+		preview[i + printed] = '\0';
+	}
+
+	if (access(preview, R_OK) != 0) {
+		free(preview);
+
+		preview = strdup(tmp);
+		if (!preview) {
+			ErrPrint("Heap: %s\n", strerror(errno));
 		}
 	}
 
