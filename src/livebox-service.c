@@ -35,6 +35,7 @@
 #include <vconf.h>
 #include <vconf-keys.h>
 #include <ail.h>
+#include <unicode/uloc.h>
 
 #include "dlist.h"
 #include "util.h"
@@ -81,12 +82,22 @@ static struct info {
 	const char *conf_file;
 	int init_count;
 	int res_resolved;
+
+	const char *iso3lang;
+	char country[ULOC_COUNTRY_CAPACITY];
+	char *syslang;
+	int country_len;
 } s_info = {
 	.handle = NULL,
 	.dbfile = "/opt/dbspace/.livebox.db", 
 	.conf_file = "/usr/share/data-provider-master/resolution.ini",
 	.init_count = 0,
 	.res_resolved = 0,
+
+	.iso3lang = NULL,
+	.country = { 0, },
+	.syslang = NULL,
+	.country_len = 0,
 };
 
 static inline int update_info(int width_type, int height_type, int width, int height)
@@ -1421,12 +1432,66 @@ out:
 	return ret;
 }
 
+static inline int update_lang_info(void)
+{
+	char *syslang;
+	UErrorCode err;
+
+	syslang = vconf_get_str(VCONFKEY_LANGSET);
+	if (!syslang) {
+		ErrPrint("Failed to get vconf-lang\n");
+		return -EFAULT;
+	}
+
+	if (s_info.syslang && !strcmp(s_info.syslang, syslang)) {
+		DbgPrint("Syslang is not changed: %s\n", syslang);
+		free(syslang);
+		return 0;
+	}
+
+	free(s_info.syslang);
+	s_info.syslang = syslang;
+
+	err = U_ZERO_ERROR;
+	uloc_setDefault((const char *)s_info.syslang, &err);
+	if (!U_SUCCESS(err)) {
+		ErrPrint("Failed to set default lang: %s\n", u_errorName(err));
+		free(s_info.syslang);
+		s_info.syslang = NULL;
+		return -EFAULT;
+	}
+
+	s_info.iso3lang = uloc_getISO3Language(uloc_getDefault());
+	if (!s_info.iso3lang || !strlen(s_info.iso3lang)) {
+		ErrPrint("Failed to get iso3lang\n");
+		free(s_info.syslang);
+		s_info.syslang = NULL;
+		return -EFAULT;
+	}
+
+	err = U_ZERO_ERROR;
+	s_info.country_len = uloc_getCountry(uloc_getDefault(), s_info.country, ULOC_COUNTRY_CAPACITY, &err);
+	if (!U_SUCCESS(err) || s_info.country_len <= 0) {
+		ErrPrint("Failed to get locale: %s, %s, %d (%s)\n", u_errorName(err), s_info.iso3lang, s_info.country_len, s_info.country);
+		free(s_info.syslang);
+		s_info.syslang = NULL;
+		return -EFAULT;
+	}
+
+	return 0;
+}
+
 EAPI char *livebox_service_preview(const char *pkgid, int size_type)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
 	int ret;
 	char *preview = NULL;
+	const char *tmp;
+	int tmp_len;
+	int buf_len;
+	register int i;
+	int printed;
 
 	handle = open_db();
 	if (!handle)
@@ -1434,31 +1499,67 @@ EAPI char *livebox_service_preview(const char *pkgid, int size_type)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT preview FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
 		close_db(handle);
 		return NULL;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
 		goto out;
 	}
 
 	ret = sqlite3_bind_int(stmt, 2, size_type);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
 		goto out;
 	}
 
 	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		const char *tmp;
-		tmp = (const char *)sqlite3_column_text(stmt, 0);
-		if (tmp && strlen(tmp)) {
-			preview = strdup(tmp);
-			if (!preview)
-				ErrPrint("Heap: %s\n", strerror(errno));
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
+		goto out;
+	}
+
+	tmp = (const char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !(tmp_len = strlen(tmp))) {
+		ErrPrint("Failed to get data (%s)\n", pkgid);
+		goto out;
+	}
+
+	if (update_lang_info() != 0) {
+		preview = strdup(tmp);
+		if (!preview) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+		}
+		goto out;
+	}
+
+	buf_len = tmp_len + strlen(s_info.iso3lang) + s_info.country_len + 3; /* '/' '-' '/' */
+	preview = malloc(buf_len + 1);
+	if (!preview) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		goto out;
+	}
+
+	for (i = tmp_len; i >= 0 && tmp[i] != '/'; i--);
+	i++; /* Skip '/' */
+
+	strncpy(preview, tmp, i);
+	printed = snprintf(preview + i, buf_len - i, "%s-%s/%s", s_info.iso3lang, s_info.country, tmp + i);
+	if (preview[i + printed] != '\0') {
+		ErrPrint("Path is truncated\n");
+		preview[i + printed] = '\0';
+	}
+
+	if (access(preview, R_OK) != 0) {
+		DbgPrint("Access failed: %s, %s\n", preview, strerror(errno));
+		free(preview);
+
+		preview = strdup(tmp);
+		if (!preview) {
+			ErrPrint("Heap: %s\n", strerror(errno));
 		}
 	}
 
