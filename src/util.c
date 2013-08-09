@@ -115,8 +115,9 @@ const char *util_basename(const char *name)
 {
 	int length;
 	length = name ? strlen(name) : 0;
-	if (!length)
+	if (!length) {
 		return ".";
+	}
 
 	while (--length > 0 && name[length] != '/');
 
@@ -228,10 +229,11 @@ char *util_replace_string(const char *src, const char *pattern, const char *repl
 					continue;
 				}
 
-				if (n_idx < 0)
+				if (n_idx < 0) {
 					s_idx = t_idx;
-				else
+				} else {
 					s_idx = n_idx;
+				}
 
 				break;
 			}
@@ -276,8 +278,9 @@ const char *util_uri_to_path(const char *uri)
 	int len;
 
 	len = strlen(SCHEMA_FILE);
-	if (strncasecmp(uri, SCHEMA_FILE, len))
+	if (strncasecmp(uri, SCHEMA_FILE, len)) {
 		return NULL;
+	}
 
 	return uri + len;
 }
@@ -292,8 +295,9 @@ char *util_conf_get_libexec(const char *pkgname)
 	}
 
 	path = check_native_livebox(pkgname);
-	if (!path)
+	if (!path) {
 		path = check_web_livebox(pkgname);
+	}
 
 	return path;
 }
