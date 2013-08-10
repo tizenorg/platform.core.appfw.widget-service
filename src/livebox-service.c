@@ -266,7 +266,10 @@ static inline int update_from_file(void)
 			break;
 		}
 	} while (!feof(fp));
-	fclose(fp);
+
+	if (fclose(fp) != 0) {
+		ErrPrint("fclose: %s\n", strerror(errno));
+	}
 
 	return NR_OF_SIZE_LIST - updated;
 }
