@@ -881,6 +881,19 @@ EAPI int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lb
 	ret = pkgmgr_get_applist(pkgid, lbid, cb, data);
 	free(pkgid);
 
+	switch (ret) {
+	case PMINFO_R_EINVAL:
+		ret = LB_STATUS_ERROR_INVALID;
+		break;
+	case PMINFO_R_OK:
+		ret = LB_STATUS_SUCCESS;
+		break;
+	case PMINFO_R_ERROR:
+	default:
+		ret = LB_STATUS_ERROR_FAULT;
+		break;
+	}
+
 out:
 	close_db(handle);
 	return ret;
