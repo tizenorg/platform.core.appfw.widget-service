@@ -1013,7 +1013,7 @@ EAPI int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, i
 	*cnt = ret;
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
-	ret = 0;
+	ret = LB_STATUS_SUCCESS;
 out:
 	close_db(handle);
 	return ret;
@@ -2075,10 +2075,6 @@ out:
 	return ret;
 }
 
-/*!
- * appid == Package ID
- * pkgid == Livebox ID
- */
 EAPI char *livebox_service_appid(const char *pkgname)
 {
 	sqlite3_stmt *stmt;

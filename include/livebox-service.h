@@ -22,17 +22,8 @@ extern "C" {
 #endif
 
 /*!
- * \ingroup CAPI_LIVEBOX_FRAMEWORK Tizen livebox framework 
+ * \addtogroup CAPI_LIVEBOX_SERVICE_MODULE
  * \{
- * \defgroup LIVEBOX_SERVICE Livebox Service API
- * \{
- * \section Intro Introduction
- * Livebox Service API supporting various kinds of DB access operations.
- * \subsection SubSectionA Sub section A
- * \section SectionB Section B
- * \subsection SubSectionB Sub section B
- * \section SectionC Section C
- * \subsection SubSectionC Sub section C
  */
 
 /*!
@@ -111,31 +102,48 @@ struct pkglist_handle;
 
 /*!
  * \brief Get the pixel size of given size type.
+ * \details N/A
+ * \remarks N/A
  * \param[in] type Size type
  * \param[out] width Pixel size width
  * \param[out] height Pixel size height
- * \return LB_STATUS_SUCCESS for success
- * \sa livebox_size_type
- * \sa livebox_service_size_type
+ * \return int
+ * \retval LB_STATUS_SUCCESS for success
+ * \pre N/A
+ * \post N/A
+ * \see livebox_size_type
+ * \see livebox_service_size_type
  */
 extern int livebox_service_get_size(int type, int *width, int *height);
 
 /*!
  * \brief Get the size type for given pixel size.
+ * \details N/A
+ * \remarks N/A
  * \param[in] width Pixel size width
  * \param[in] height Pixel size height
- * \return int Size type of given pixel size., LB_SIZE_TYPE_UNKNOWN if the given pixel size is not valid.
- * \sa livebox_size_type
- * \sa livebox_service_get_size
+ * \return int
+ * \retval LB_SIZE_TYPE_WxH Size type of given pixel size.
+ * \retval LB_SIZE_TYPE_UNKNOWN if the given pixel size is not valid.
+ * \pre N/A
+ * \post N/A
+ * \see livebox_size_type
+ * \see livebox_service_get_size
  */
 extern int livebox_service_size_type(int width, int height);
 
 /*!
  * \brief Is this livebox support the mouse event of livebox content?
+ * \details N/A
+ * \remarks N/A
  * \param[in] pkgid Livebox's appid
- * \return true(1) / false(0)
- * \sa livebox_service_touch_effect
- * \sa livebox_service_need_frame
+ * \return int
+ * \retval 1 if the box requires mouse event
+ * \retval 0 if the box doesn't requires mouse event
+ * \pre N/A
+ * \post N/A
+ * \see livebox_service_touch_effect
+ * \see livebox_service_need_frame
  */
 extern int livebox_service_mouse_event(const char *pkgid);
 
@@ -144,301 +152,523 @@ extern int livebox_service_mouse_event(const char *pkgid);
  *        If this API returns true(1), the viewer should make touch effect when a user click the livebox.
  * \param[in] pkgid Livebox's appid
  * \param[in] size_type
- * \return true(1) / false(0)
- * \sa livebox_service_mouse_event
- * \sa livebox_service_need_frame
+ * \return int
+ * \retval 1 if the box requires touch effect
+ * \retval 0 if the box doesn't requires touch effect, the box will make touch effect itself
+ * \pre N/A
+ * \post N/A
+ * \see livebox_service_mouse_event
+ * \see livebox_service_need_frame
  */
 extern int livebox_service_touch_effect(const char *pkgid, int size_type);
 
 /*!
  * \brief Is this livebox requires decoration frame?
  *        If this API returns true(1), the viewer should make decoration border on the livebox content.
+ * \details N/A
+ * \remarks N/A
  * \param[in] pkgid Livebox's appid
  * \param[in] size_type
- * \return true(1) / false(0)
- * \sa livebox_service_mouse_event
- * \sa livebox_service_touch_effect
+ * \return int
+ * \retval 1 If the box requires frame for decorating its contents
+ * \retval 0 If the box doesn't requires frame
+ * \see livebox_service_mouse_event
+ * \see livebox_service_touch_effect
  */
 extern int livebox_service_need_frame(const char *pkgid, int size_type);
 
 /*!
  * \brief Trigger the update event for given livebox instance
+ * \details N/A
+ * \remarks N/A
  * \param[in] pkgname Livebox package name
  * \param[in] id Set NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event.
  * \param[in] cluster Cluster name. Default NULL
  * \param[in] category Category name, Default NULL
  * \param[in] force 1 if you want to update your livebox even if the provider is paused or 0. 0 is default
  * \return int
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
+ * \retval LB_STATUS_ERROR_MEMORY Memory is not enough to make request
+ * \retval LB_STATUS_ERROR_FAULT Failed to create a request packet
+ * \retval LB_STATUS_SUCCESS Successfully requested
+ * \see N/A
  */
 extern int livebox_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, int force);
 
 /*!
  * \brief Change the update period of given livebox instance
+ * \details N/A
+ * \remarks N/A
  * \param[in] pkgname Livebox package name
  * \param[in] id Livebox instance id
  * \param[in] period New update period in sec
- * \return int LB_STATUS_SUCCESS or LB_STATUS_ERROR_INVALID, LB_STATUS_ERROR_FAULT, LB_STATUS_ERROR_MEMORY, ...
+ * \return int
+ * \retval LB_STATUS_SUCCESS Successfully changed(requested)
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_FAULT Failed to create a request packet
+ * \retval LB_STATUS_ERROR_MEMORY Not enough memory
+ * \see N/A
  */
 extern int livebox_service_change_period(const char *pkgname, const char *id, double period);
 
 /*!
  * \brief Synchronous package list getter
+ * \details
  *        callback (appid, lbid, is_prime)
  *        appid == Application Package ID (pkgname)
  *        lbid = Livebox Package ID
  *        is_prime = 1 if the livebox is default one for associated application package
  *        If the callback returns negative value, the list crawling will be stopped
+ * \remarks N/A
  * \param[in] cb Callback function
  * \param[in] data Callback data
- * \return Count of livebox packages or LB_STATUS_ERROR_IO, LB_STATUS_ERROR_INVALID
+ * \return int
+ * \retval LB_STATUS_ERROR_IO Failed to access DB
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval count count of livebox packages
+ * \pre N/A
+ * \post N/A
+ * \see livebox_service_get_pkglist_by_pkgid
  */
 extern int livebox_service_get_pkglist(int (*cb)(const char *pkgid, const char *lbid, int is_prime, void *data), void *data);
 
 /*!
  * \brief Synchronous uiapp list getter.
+ * \details
  *        callback (appid, data)
  *        This function will retrieve all UI Apps in a package which has given livebox appid(lbid).
  *        If you need to get all ui-app list, using a livebox appid, this function is able to help you.
+ * \remarks N/A
  * \param[in] lbid Livebox App Id
  * \param[in] cb Callback function
  * \param[in] data Callback Data
- * \return int LB_STATUS_SUCCESS or LB_STATUS_ERROR_INVALID, LB_STATUS_ERROR_IO, LB_STATUS_ERROR_MEMORY, LB_STATUS_ERROR_FAULT
+ * \return int
+ * \retval LB_STATUS_SUCCESS
+ * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_ERROR_IO
+ * \retval LB_STATUS_ERROR_MEMORY
+ * \retval LB_STATUS_ERROR_FAULT
+ * \pre N/A
+ * \post N/A
+ * \see N/A
  */
 extern int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data);
 
 /*!
  * \brief Get the MAIN application Id of given livebox package Id.
+ * \details N/A
+ * \remarks N/A
  * \param[in] lbid Livebox Package Id
- * \return string Main App Id
+ * \return char *
+ * \retval NULL if it fails to get main application Id (UI-APPID)
+ * \retval appid Main application Id
+ * \pre N/A
+ * \post N/A
  */
 extern char *livebox_service_mainappid(const char *lbid);
 
 /*!
  * \brief Synchronous package list getter
+ * \details
  *	  callback (lbid, is_prime)
  *	  lbid == Livebox Package Id
  *	  is_prime = 1 if the livebox is default one for selected package
  *        If the callback returns negative value, the list crawling will be stopped
+ * \remarks N/A
  * \param[in] pkgid Package Id (Not the UI App Id)
  * \param[in] cb Callback function
  * \param[in] data Callback data
- * \return Count of livebox packages or LB_STATUS_ERROR
- * \sa livebox_service_get_pkglist
+ * \return int
+ * \retval Count of livebox packages
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_IO Failed to access DB
+ * \see livebox_service_get_pkglist
  */
 extern int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *lbid, int is_prime, void *data), void *data);
 
 /*!
- * \brief Get the appid of a primary livebox using given lbid or pkgid or UI appid.
+ * \brief Get the lbid of a primary livebox using given lbid or pkgid or UI appid.
+ * \details N/A
+ * \remarks N/A
  * \param[in] id Livebox Id or Package Id
- * \return pkgname String which is allocated on the heap
- * \sa livebox_service_appid
+ * \return char *
+ * \retval NULL Failed to get primary lbid
+ * \retval lbid Primary livebox Id. which is allocated in the heap
+ * \pre Must be released returned string by manually
+ * \post N/A
+ * \see livebox_service_appid
  */
 extern char *livebox_service_pkgname(const char *id);
 
 /*!
  * \brief Check the pirmary flag of given livebox Id.
+ * \details N/A
  * \param[in] lbid Livebox Id
- * \return int 0 if is not a primary or 1
+ * \return int
+ * \retval 0 if is not a primary
+ * \retval 1 if it is a primary livebox
+ * \pre N/A
+ * \post N/A
+ * \see N/A
  */
 extern int livebox_service_is_primary(const char *lbid);
 
 /*!
  * \brief Get the name of a livebox (provider name == livebox appid), you have to release the return value after use it
- * \param[in] Livebox AppID
- * \return Livebox AppId which is allocated on the heap
+ * \details
+ *    OSP livebox has provider process for each livebox instances.
+ *    To get the provider's package name, you can use this API.
+ *    If the given lbid is inhouse livebox, the return string will be the same with argument but it is allocated in the heap.
+ * \param[in] lbid AppID
+ * \return char *
+ * \retval NULL failed to get provider name
+ * \retval lbid Livebox AppId which is allocated on the heap
+ * \pre N/A
+ * \post Return'd string must be free'd manually
+ * \see N/A
  */
 extern char *livebox_service_provider_name(const char *lbid);
 
 /*!
  * \brief Get the appId of setup app which is specified by given livebox Id's manifest.
  *        This setup app should be launched before add the livebox to get the content_info
- * \param[in] Livebox AppId
- * \return Setup AppId if exists or NULL
+ * \details
+ *    This function should be called before add a livebox.
+ *    To determine the content information string.
+ * \param[in] lbid AppId
+ * \return char *
+ * \retval NULL there is no setup application
+ * \retval appid AppId if exists or NULL
+ * \pre N/A
+ * \post return'd string must be free'd manually
+ * \see N/A
  */
 extern char *livebox_service_setup_appid(const char *lbid);
 
 /*!
  * \brief Get the Package Id (Not the UI App Id) of given livebox, &lt;manifest package="AAA"&gt;
+ * \details N/A
  * \param[in] lbid Livebox AppId 
- * \return appid String which is allocated on the heap
- * \sa livebox_service_pkgname
+ * \return char *
+ * \retval appid String which is allocated on the heap
+ * \retval NULL invalid appid
+ * \pre N/A
+ * \post return'd string must be free'd manually
+ * \see livebox_service_pkgname
  */
 extern char *livebox_service_appid(const char *lbid);
 
 /*!
  * \brief Internationalized name of given livebox package.
- *        USER must has to do "free" after using the returned string.
+ * \details N/A
  * \param[in] pkgid App ID of a livebox. (It must has to be a livebox package ID. not the UI-APP and the PACKAGE.
  * \param[in] lang locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
- * \return name if it fails to get name, returns NULL, or allocated heap address.
+ * \return char *
+ * \retval name if it fails to get name
+ * \retval NULL, or allocated heap address.
+ * \pre N/A
+ * \post Return'd string must be free'd by manually
+ * \see livebox_service_i18n_icon
+ * \see livebox_service_preview
  */
 extern char *livebox_service_i18n_name(const char *pkgid, const char *lang);
 
 /*!
  * \brief Get the preview image path of given size type.
  *        This function will returns i18nized preview image path.
+ * \details N/A
  * \param[in] pkgid livebox ID. NOT the UI-APP ID and PACKAGE ID
  * \param[in] size_type Livebox size type.
- * \return path preview image path
+ * \return char *
+ * \retval path preview image path
+ * \retval NULL if there is no preview image file
+ * \pre N/A
+ * \post Return'd string must be free'd manually
+ * \see livebox_service_i18n_icon
+ * \see livebox_service_i18n_name
  */
 extern char *livebox_service_preview(const char *pkgid, int size_type);
 
 /*!
  * \brief Get the default content string of the given livebox
+ * \details
+ *    If a user defins default content string in the manifest file (.xml)
+ *    This API will returns it.
  * \param[in] pkgid Livebox ID. Not the UI-APP ID and PACKAGE ID
- * \return content content string
+ * \return char *
+ * \retval content content string
+ * \retval NULL there is no specified content string
+ * \pre manifest has the default content string. &lt;content&gt;Default content string&lt;content&gt;
+ * \post return'd string must be free'd manually
+ * \see N/A
  */
 extern char *livebox_service_content(const char *pkgid);
 
 /*!
  * \brief Internationalized icon path of given livebox package.
  *        USER must has to do "free" after using the returned string.
+ * \details N/A
  * \param[in] pkgid App ID of a livebox. (It must has to be a livebox package ID. not the UI-APP and the PACKAGE.
  * \param[in] lang locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
- * \return name if it fails to get path of an icon, returns NULL, or allocated heap address.
+ * \return char *
+ * \retval name allocated heap address.
+ * \retval NULL if it fails to get path of an icon
+ * \pre N/A
+ * \post return'd string must be free'd manually
+ * \see livebox_service_i18n_name
+ * \see livebox_service_preview
  */
 extern char *livebox_service_i18n_icon(const char *pkgid, const char *lang);
 
 /*!
  * \brief Get the path of the plug-in module
- * \param[in] appid Package name of a livebox
- * \return path String which is allocated on the heap
+ * \details N/A
+ * \param[in] lbid Package name of a livebox
+ * \return char *
+ * \retval path String which is allocated on the heap
+ * \retval NULL if there is no libexec attribute
+ * \pre N/A
+ * \post return'd string must be free'd manually
+ * \see N/A
  */
 extern char *livebox_service_libexec(const char *lbid);
 
 /*!
  * \brief Get the "nodisplay" value
+ * \details N/A
+ * \remarks N/A
  * \param[in] pkgid Livebox package id.
- * \return true/false
+ * \return int
+ * \retval 1 if the box should not be listed by the livebox list app
+ * \retval 0 box should be listed
+ * \pre livebox tag includes "nodisplay" attribute.
+ * \post N/A
+ * \see N/A
  */
 extern int livebox_service_nodisplay(const char *pkgid);
 
 /*!
  * \brief Check the status of the livebox
  *        Currently this API is not implemented. just returns 1 all the time.
+ * \details N/A
+ * \remarks This API is not implemented. it will always returns 1
  * \param[in] lbid Livebox Id
- * \return int 1 enabled, 0 disabled
+ * \return int
+ * \retval 1 enabled
+ * \retval 0 disabled
+ * \pre N/A
+ * \post N/A
+ * \see N/A
  */
 extern int livebox_service_is_enabled(const char *lbid);
 
 /*!
  * \brief Get the script file of livebox.
- * \param[in] pkgid Livebox Package Id
- * \return string script file path
- * \sa livebox_service_lb_script_group
+ * \details N/A
+ * \remarks N/A
+ * \param[in] lbid Livebox Package Id
+ * \return char *
+ * \retval string script file path
+ * \retval NULL if there is not specified script file
+ * \pre livebox should be developed as script type
+ * \post Return'd string must be free'd manually
+ * \see livebox_service_lb_script_group
  */
 extern char *livebox_service_lb_script_path(const char *lbid);
 
 /*!
  * \brief Get the script group of livebox
- * \param[in] pkgid Livebox Package Id
- * \return Group name of livebox
- * \sa livebox_service_lb_script_path
+ * \details N/A
+ * \remarks N/A
+ * \param[in] lbid Livebox Package Id
+ * \return char *
+ * \retval Group name of livebox
+ * \retval NULL if there is no group defined
+ * \pre livebox should be developed as script type
+ * \post return'd string must be free'd manually
+ * \see livebox_service_lb_script_path
  */
 extern char *livebox_service_lb_script_group(const char *lbid);
 
 /*!
  * \brief Get the script file path of given livebox package.
- * \param[in] pkgid Livebox Package Id
- * \return string script file path.
- * \sa livebox_service_pd_script_group
+ * \details N/A
+ * \remarks N/A
+ * \param[in] lbid Livebox Package Id
+ * \return char *
+ * \retval string script file path.
+ * \retval NULL if there is no specified script file for PD layout
+ * \pre N/A
+ * \post Return'd string must be free'd manually
+ * \see livebox_service_pd_script_group
  */
 extern char *livebox_service_pd_script_path(const char *lbid);
 
 /*!
  * \brief Get the group name for script file to load it.
- * \param[in] pkgid Livebox package Id
- * \return string script group name
- * \sa livebox_service_pd_script_path
+ * \details N/A
+ * \remarks N/A
+ * \param[in] lbid Livebox package Id
+ * \return char *
+ * \retval string script group name
+ * \retval NULL if there is no script path
+ * \pre N/A
+ * \post return'd string must be free'd manually
+ * \see livebox_service_pd_script_path
  */
 extern char *livebox_service_pd_script_group(const char *lbid);
 
 /*!
- * \brief
+ * \brief Get the supported size list.
+ * \details N/A
+ * \remarks N/A
  * \param[in] pkgid Livebox Package Id
- * \param[inout] cnt Count of array w and h
- * \param[inout] w Width array
- * \param[inout] h Height array
- * \return LB_STATUS_SUCCESS if succeed to get supported size list or LB_STATUS_ERROR_IO, LB_STATUS_ERROR_INVALID
- * \sa livebox_service_get_supported_size_types
+ * \param[in] cnt Count of array w and h
+ * \param[in] w Width array
+ * \param[in] h Height array
+ * \param[out] cnt Count of array w and h
+ * \param[out] w Width array
+ * \param[out] h Height array
+ * \return int
+ * \retval LB_STATUS_SUCCESS if succeed to get supported size list
+ * \retval LB_STATUS_ERROR_IO
+ * \retval LB_STATUS_ERROR_INVALID
+ * \pre N/A
+ * \post N/A
+ * \see livebox_service_get_supported_size_types
  */
 extern int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h);
 
 /*!
  * \brief Get the supported size list of given pkgid
  * \param[in] pkgid Package Name of livebox
- * \param[inout] cnt IN size of types array, OUT result count of types array
+ * \param[in] cnt size of types array
+ * \param[out] cnt result count of types array
  * \param[out] types array of types
  * \return int
- * \sa livebox_service_get_supported_sizes
+ * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_ERROR_IO
+ * \retval LB_STATUS_SUCCESS
+ * \pre N/A
+ * \post N/A
+ * \see livebox_service_get_supported_sizes
  */
 extern int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, int *types);
 
 /*!
  * \brief Get the category list of given cluster
+ * \details N/A
+ * \remarks N/A
  * \param[in] cluster Cluster name
  * \param[in] cb Callback function
  * \param[in] data Callback data
- * \return int LB_STATUS_SUCCESS or LB_STATUS_ERROR_IO, LB_STATUS_ERROR_INVALID
- * \sa livebox_service_enumerate_cluster_list
+ * \return int
+ * \retval LB_STATUS_SUCCESS
+ * \retval LB_STATUS_ERROR_IO
+ * \retval LB_STATUS_ERROR_INVALID
+ * \pre N/A
+ * \post N/A
+ * \see livebox_service_enumerate_cluster_list
  */
 extern int livebox_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data);
 
 /*!
  * \brief Get the cluster list
+ * \details N/A
+ * \remarks N/A
  * \param[in] cb Callback function for retrieving the cluster list
  * \param[in] data Callback data
- * \return int Count of cluster
- * \sa livebox_service_enumerate_category_list
+ * \return int
+ * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_ERROR_IO
+ * \retval count of category items
+ * \pre N/A
+ * \post N/A
+ * \see livebox_service_enumerate_category_list
  */
 extern int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data);
 
 /*!
  * \brief Initialize the Livebox service API
- * \return int LB_STATUS_SUCCESS if succeed to initialize or LB_STATUS_ERROR_IO
- * \sa livebox_service_fini
+ * \details Open the DB file.
+ *    You don't need to call this if you are using livebox service API shortly.
+ *    but if you are using livebox service API while whole life of your S/W,
+ *    using this, initate the livebox service is more benefical to you.
+ *    This API will prepare the DB operation, if you don't initiate the livebox service,
+ *    every API which are related with DB operation will open DB and close it before return from it.
+ * \remarks N/A
+ * \return int
+ * \retval LB_STATUS_SUCCESS if succeed to initialize
+ * \retval LB_STATUS_ERROR_IO failed to access a DB
+ * \pre N/A
+ * \post N/A
+ * \see livebox_service_fini
  */
 extern int livebox_service_init(void);
 
 /*!
  * \brief Finalize the livebox service API
- * \return int LB_STATUS_SUCCESS if succeed to finalize or LB_STATUS_ERROR_IO
- * \sa livebox_service_init
+ * \details N/A
+ * \return int
+ * \retval LB_STATUS_SUCCESS if succeed to finalize
+ * \retval LB_STATUS_ERROR_IO Failed to close the DB (access failed to DB)
+ * \pre livebox_service_init
+ * \post N/A
+ * \see livebox_service_init
  */
 extern int livebox_service_fini(void);
 
 /*!
  * \brief Create a handle for getting the package list.
+ * \details
+ *    If you want get the record one by one from DB, use this.
+ *    This function will create a iterator.
+ *    Then you can get the record one by one, but there is no backward iterator.
+ *    Only you can get forward iterator.
+ *    After call this function the iterator will be moved to next record automatically.
+ * \remarks
+ *    If you call this function again using created pkglist handle, it will be reset'd
+ *    so you can get record from first one again.
  * \param[in] pkgid Livebox Package Id
  * \param[in] handle NULL if you call this first. or it will be reseted.
  * \return handle
- * \sa livebox_service_pkglist_destroy
+ * \retval NULL if it fails
+ * \retval handle if it successfully create the package list iterator
+ * \see livebox_service_pkglist_destroy
  */
 extern struct pkglist_handle *livebox_service_pkglist_create(const char *pkgid, struct pkglist_handle *handle);
 
 /*!
- * \brief Get the appid & package name & is_prime flag.
- * \param[in] handle
- * \param[out] appid
- * \param[out] pkgname
- * \param[out] is_prime
+ * \brief Get the lbid & package name & is_prime flag.
+ * \param[in] handle Handle which is created by livebox_service_pkglist_create function
+ * \param[out] lbid  Livebox Id
+ * \param[out] pkgname Package Id that includes lbid
+ * \param[out] is_prime if the returned lbid is primary, this will be 1 or 0
  * \return int
- * \sa livebox_service_pkglist_create
- * \sa livebox_service_pkglist_destroy
+ * \retval LB_STATUS_SUCCESS Successfully get the record
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_NOT_EXIST reach to the end of result set. you can rewind the iterator call livebox_service_pkglist_create again with current handle.
+ * \retval LB_STATUS_ERROR_MEMORY Not enough memory
+ * \pre N/A
+ * \post you must release the lbid, pkgname manually
+ * \see livebox_service_pkglist_create
+ * \see livebox_service_pkglist_destroy
  */
-extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char **appid, char **pkgname, int *is_prime);
+extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char **lbid, char **pkgname, int *is_prime);
 
 /*!
- * \brief
+ * \brief Destroy the iterator of pkglist
+ * \details N/A
  * \param[in] handle
  * \return int
- * \sa livebox_service_pkglist_create
+ * \retval LB_STATUS_ERROR_INVALID Invalid handle
+ * \retval LB_STATUS_SUCCESS Successfully destroyed
+ * \pre handle must be created by livebox_service_pkglist_create
+ * \post you have not to use the handle again after destroy it.
+ * \see livebox_service_pkglist_create
  */
 extern int livebox_service_pkglist_destroy(struct pkglist_handle *handle);
-
-/*!
- * \}
- */
 
 /*!
  * \}

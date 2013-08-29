@@ -59,7 +59,6 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %defattr(-,root,root,-)
 %{_includedir}/livebox-service/livebox-service.h
 %{_includedir}/livebox-service/livebox-errno.h
-%{_datarootdir}/doc/livebox-service/livebox-service_PG.h
 %{_libdir}/pkgconfig/*.pc
 
 # End of a file

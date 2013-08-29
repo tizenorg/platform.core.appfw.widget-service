@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /*!
- * \defgroup LIVEBOX_SERVICE Livebox Service API
+ * \addtogroup LIVEBOX_SERVICE
  * \{
  */
 
