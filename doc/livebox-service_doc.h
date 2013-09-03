@@ -14,3 +14,13 @@
  * limitations under the License.
  */
 
+/*!
+ * \ingroup CAPI_LIVEBOX_FRAMEWORK Tizen livebox framework 
+ * \defgroup CAPI_LIVEBOX_SERVICE_MODULE Livebox Service API
+ * \brief Access the livebox manifest data.
+ * \section CAPI_LIVEBOX_SERVICE_MODULE_HEADER Required Header
+ * \#include <livebox-service.h>
+ * \section CAPI_LIVEBOX_SERVICE_MOUDLE_OVERVIEW Overview
+ * \brief
+ * Livebox Service API supporting various kinds of DB access operations.
+ */

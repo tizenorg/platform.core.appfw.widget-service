@@ -1,6 +1,6 @@
 Name: liblivebox-service
 Summary: Service API for gathering installed livebox information.
-Version: 0.5.2
+Version: 0.5.3
 Release: 1
 Group: HomeTF/Livebox
 License: Flora License
@@ -59,7 +59,6 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %defattr(-,root,root,-)
 %{_includedir}/livebox-service/livebox-service.h
 %{_includedir}/livebox-service/livebox-errno.h
-%{_datarootdir}/doc/livebox-service/livebox-service_PG.h
 %{_libdir}/pkgconfig/*.pc
 
 # End of a file

@@ -266,7 +266,10 @@ static inline int update_from_file(void)
 			break;
 		}
 	} while (!feof(fp));
-	fclose(fp);
+
+	if (fclose(fp) != 0) {
+		ErrPrint("fclose: %s\n", strerror(errno));
+	}
 
 	return NR_OF_SIZE_LIST - updated;
 }
@@ -878,6 +881,19 @@ EAPI int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lb
 	ret = pkgmgr_get_applist(pkgid, lbid, cb, data);
 	free(pkgid);
 
+	switch (ret) {
+	case PMINFO_R_EINVAL:
+		ret = LB_STATUS_ERROR_INVALID;
+		break;
+	case PMINFO_R_OK:
+		ret = LB_STATUS_SUCCESS;
+		break;
+	case PMINFO_R_ERROR:
+	default:
+		ret = LB_STATUS_ERROR_FAULT;
+		break;
+	}
+
 out:
 	close_db(handle);
 	return ret;
@@ -997,7 +1013,7 @@ EAPI int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, i
 	*cnt = ret;
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
-	ret = 0;
+	ret = LB_STATUS_SUCCESS;
 out:
 	close_db(handle);
 	return ret;
@@ -2059,10 +2075,6 @@ out:
 	return ret;
 }
 
-/*!
- * appid == Package ID
- * pkgid == Livebox ID
- */
 EAPI char *livebox_service_appid(const char *pkgname)
 {
 	sqlite3_stmt *stmt;
