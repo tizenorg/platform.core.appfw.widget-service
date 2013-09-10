@@ -457,9 +457,13 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 		return LB_STATUS_ERROR_CANCEL;
 	}
 
-	uri = util_id_to_uri(id);
-	if (!uri) {
-		return LB_STATUS_ERROR_MEMORY;
+	if (id) {
+		uri = util_id_to_uri(id);
+		if (!uri) {
+			return LB_STATUS_ERROR_MEMORY;
+		}
+	} else {
+		uri = NULL;
 	}
 
 	if (!cluster) {
@@ -471,6 +475,10 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 	}
 
 	packet = packet_create("service_update", "ssss", pkgname, uri, cluster, category);
+	/*!
+	 * \note
+	 * "free" function accepts NULL
+	 */
 	free(uri);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for service_update\n");
