@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/statvfs.h>
+#include <time.h>
 
 #include <dlog.h>
 
@@ -29,6 +30,13 @@
 #include "livebox-errno.h"
 
 int errno;
+#if defined(_USE_ECORE_TIME_GET)
+static struct {
+	clockid_t type;
+} s_info = {
+	.type = CLOCK_MONOTONIC,
+};
+#endif
 
 static inline char *check_native_livebox(const char *pkgname)
 {
@@ -104,11 +112,40 @@ int util_validate_livebox_package(const char *pkgname)
 
 double util_timestamp(void)
 {
+#if defined(_USE_ECORE_TIME_GET)
+	struct timespec ts;
+
+	do {
+		if (clock_gettime(s_info.type, &ts) == 0) {
+			return ts.tv_sec + ts.tv_nsec / 1000000000.0f;
+		}
+
+		ErrPrint("%d: %s\n", s_info.type, strerror(errno));
+		if (s_info.type == CLOCK_MONOTONIC) {
+			s_info.type = CLOCK_REALTIME;
+		} else if (s_info.type == CLOCK_REALTIME) {
+			struct timeval tv;
+			if (gettimeofday(&tv, NULL) < 0) {
+				ErrPrint("gettimeofday: %s\n", strerror(errno));
+				break;
+			}
+
+			return tv.tv_sec + tv.tv_usec / 1000000.0f;
+		}
+	} while (1);
+
+	return 0.0f;
+#else
 	struct timeval tv;
 
-	gettimeofday(&tv, NULL);
+	if (gettimeofday(&tv, NULL) < 0) {
+		ErrPrint("gettimeofday: %s\n", strerror(errno));
+		tv.tv_sec = 0;
+		tv.tv_usec = 0;
+	}
 
-	return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0f;
+	return tv.tv_sec + tv.tv_usec / 1000000.0f;
+#endif
 }
 
 const char *util_basename(const char *name)
