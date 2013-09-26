@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/statvfs.h>
+#include <time.h>
 
 #include <dlog.h>
 
@@ -29,6 +30,11 @@
 #include "livebox-errno.h"
 
 int errno;
+static struct {
+	clockid_t type;
+} s_info = {
+	.type = CLOCK_MONOTONIC,
+};
 
 static inline char *check_native_livebox(const char *pkgname)
 {
@@ -104,11 +110,22 @@ int util_validate_livebox_package(const char *pkgname)
 
 double util_timestamp(void)
 {
-	struct timeval tv;
+	struct timespec ts;
 
-	gettimeofday(&tv, NULL);
+	do {
+		if (clock_gettime(s_info.type, &ts) == 0) {
+			return ts.tv_sec + ts.tv_nsec / 1000000000.0f;
+		}
 
-	return (double)tv.tv_sec + (double)tv.tv_usec / 1000000.0f;
+		ErrPrint("%d: %s\n", s_info.type, strerror(errno));
+		if (s_info.type == CLOCK_MONOTONIC) {
+			s_info.type = CLOCK_REALTIME;
+		} else if (s_info.type == CLOCK_REALTIME) {
+			break;
+		}
+	} while (1);
+
+	return 0.0f;
 }
 
 const char *util_basename(const char *name)
