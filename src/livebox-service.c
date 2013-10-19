@@ -323,7 +323,7 @@ static sqlite3 *open_db(void)
 	if (!s_info.handle) {
 		int ret;
 
-		ret = db_util_open(s_info.dbfile, &handle, DB_UTIL_REGISTER_HOOK_METHOD);
+		ret = db_util_open_with_options(s_info.dbfile, &handle, SQLITE_OPEN_READONLY, NULL);
 		if (ret != SQLITE_OK) {
 			ErrPrint("Failed to open a DB\n");
 			return NULL;
