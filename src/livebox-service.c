@@ -323,7 +323,7 @@ static sqlite3 *open_db(void)
 	if (!s_info.handle) {
 		int ret;
 
-		ret = db_util_open(s_info.dbfile, &handle, DB_UTIL_REGISTER_HOOK_METHOD);
+		ret = db_util_open_with_options(s_info.dbfile, &handle, SQLITE_OPEN_READONLY, NULL);
 		if (ret != SQLITE_OK) {
 			ErrPrint("Failed to open a DB\n");
 			return NULL;
@@ -2201,27 +2201,27 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgmap.appid, provider.box_src FROM provider, pkgmap WHERE pkgmap.pkgid = ? AND provider.pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s, pkgid(%s), ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s, pkgid(%s), ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s, pkgid(%s), ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s, pkgid(%s), ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2229,7 +2229,7 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 
 	appid = (char *)sqlite3_column_text(stmt, 0);
 	if (!appid || !strlen(appid)) {
-		ErrPrint("Invalid appid : %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Invalid appid : %s, pkgid(%s)\n", sqlite3_errmsg(handle), pkgid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2237,7 +2237,7 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 
 	lb_src = (char *)sqlite3_column_text(stmt, 1);
 	if (!lb_src || !strlen(lb_src)) {
-		ErrPrint("No records for lb src : %s\n", sqlite3_errmsg(handle));
+		ErrPrint("No records for lb src : %s, pkgid(%s), appid(%s)\n", sqlite3_errmsg(handle), pkgid, appid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2334,27 +2334,27 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgmap.appid, provider.pd_src FROM provider, pkgmap WHERE provider.pkgid = ? AND pkgmap.pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s pkgid(%s) ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s pkgid(%s) ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s pkgid(%s) ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s pkgid(%s) ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2362,7 +2362,7 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 
 	appid = (char *)sqlite3_column_text(stmt, 0);
 	if (!appid || !strlen(appid)) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s pkgid(%s)\n", sqlite3_errmsg(handle), pkgid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2370,7 +2370,7 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 
 	pd_src = (char *)sqlite3_column_text(stmt, 1);
 	if (!pd_src || !strlen(pd_src)) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("Error: %s pkgid(%s) appid(%s)\n", sqlite3_errmsg(handle), pkgid, appid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
