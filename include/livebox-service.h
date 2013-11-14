@@ -32,6 +32,9 @@ extern "C" {
  */
 #define NR_OF_SIZE_LIST 13
 
+#define CH_IDX(a, idx) (((char *)(a))[(idx)])
+#define IS_INHOUSE_LIVEBOX(abi)	((CH_IDX(abi, 0) == 'c' || CH_IDX(abi, 0) == 'C') && (CH_IDX(abi, 1) == '\0' || ((CH_IDX(abi, 1) == 'p' || CH_IDX(abi, 1) == 'P') && (CH_IDX(abi, 2) == 'p' || CH_IDX(abi, 2) == 'P') && CH_IDX(abi, 3) == '\0')))
+
 /*!
  * \brief
  * List of supporting livebox size types
@@ -447,6 +450,20 @@ extern char *livebox_service_libexec(const char *lbid);
  * \see N/A
  */
 extern int livebox_service_nodisplay(const char *pkgid);
+
+/*!
+ * \brief Get the "ABI" of given package
+ * \details N/A
+ * \remarks N/A
+ * \param[in] lbid Livebox package id.
+ * \return char *
+ * \retval abi String which is allocated in the heap
+ * \retval NULL if failed to get ABI of given livebox.
+ * \pre N/A
+ * \post return'd string must be free'd manually
+ * \see N/A
+ */
+extern char *livebox_service_abi(const char *lbid);
 
 /*!
  * \brief Check the status of the livebox

@@ -1838,6 +1838,71 @@ out:
 	return ret;
 }
 
+EAPI char *livebox_service_abi(const char *lbid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+	char *abi;
+	char *tmp;
+
+	if (!lbid) {
+		ErrPrint("Invalid argument\n");
+		return NULL;
+	}
+
+	abi = NULL;
+	handle = open_db();
+	if (!handle) {
+		return NULL;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT abi FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Error: %s (%d)\n", sqlite3_errmsg(handle), ret);
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	tmp = (char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("Invalid abi: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	abi = strdup(tmp);
+	if (!abi) {
+		ErrPrint("strdup: %s\n", strerror(errno));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	DbgPrint("abi: %s\n", abi);
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+out:
+	close_db(handle);
+	return abi;
+}
+
 EAPI char *livebox_service_libexec(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
@@ -1848,6 +1913,7 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 	char *path;
 
 	if (!pkgid) {
+		ErrPrint("Invalid argument\n");
 		return NULL;
 	}
 
