@@ -440,7 +440,7 @@ EAPI int livebox_service_change_period(const char *pkgname, const char *id, doub
 	return ret;
 }
 
-EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, int force)
+EAPI int livebox_service_trigger_update_with_content(const char *pkgname, const char *id, const char *cluster, const char *category, const char *content, int force)
 {
 	struct packet *packet;
 	struct packet *result;
@@ -474,7 +474,7 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 		category = "default";
 	}
 
-	packet = packet_create("service_update", "ssss", pkgname, uri, cluster, category);
+	packet = packet_create("service_update", "sssss", pkgname, uri, cluster, category, content);
 	/*!
 	 * \note
 	 * "free" function accepts NULL
@@ -501,6 +501,11 @@ EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, con
 	}
 
 	return ret;
+}
+
+EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, int force)
+{
+	return livebox_service_trigger_update_with_content(pkgname, id, cluster, category, NULL, force);
 }
 
 /*!

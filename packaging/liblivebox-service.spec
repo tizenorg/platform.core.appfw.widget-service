@@ -1,10 +1,11 @@
 Name: liblivebox-service
 Summary: Service API for gathering installed livebox information.
-Version: 0.5.8
+Version: 0.5.9
 Release: 1
 Group: HomeTF/Livebox
 License: Flora License
 Source0: %{name}-%{version}.tar.gz
+Source1001: %{name}.manifest
 BuildRequires: cmake, gettext-tools, coreutils
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(glib-2.0)
@@ -32,6 +33,7 @@ Gathering the installed livebox information.
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 %build
 %if 0%{?tizen_build_binary_release_type_eng}
@@ -39,7 +41,7 @@ export CFLAGS="${CFLAGS} -DTIZEN_ENGINEER_MODE"
 export CXXFLAGS="${CXXFLAGS} -DTIZEN_ENGINEER_MODE"
 export FFLAGS="${FFLAGS} -DTIZEN_ENGINEER_MODE"
 %endif
-cmake . -DCMAKE_INSTALL_PREFIX=%{_prefix}
+%cmake .
 make %{?jobs:-j%jobs}
 
 %install
@@ -50,12 +52,13 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %post
 
 %files -n liblivebox-service
-%manifest liblivebox-service.manifest
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/*.so*
 %{_datarootdir}/license/*
 
 %files devel
+%manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/livebox-service/livebox-service.h
 %{_includedir}/livebox-service/livebox-errno.h
