@@ -200,6 +200,26 @@ extern int livebox_service_need_frame(const char *pkgid, int size_type);
 extern int livebox_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, int force);
 
 /*!
+ * \brief Trigger the update event for given livebox instance
+ * \details N/A
+ * \remarks N/A
+ * \param[in] pkgname Livebox package name
+ * \param[in] id Set NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event.
+ * \param[in] cluster Cluster name. Default NULL
+ * \param[in] category Category name, Default NULL
+ * \param[in] content New content information, Default NULL
+ * \param[in] force 1 if you want to update your livebox even if the provider is paused or 0. 0 is default
+ * \return int
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
+ * \retval LB_STATUS_ERROR_MEMORY Memory is not enough to make request
+ * \retval LB_STATUS_ERROR_FAULT Failed to create a request packet
+ * \retval LB_STATUS_SUCCESS Successfully requested
+ * \see N/A
+ */
+extern int livebox_service_trigger_update_with_content(const char *pkgname, const char *id, const char *cluster, const char *category, const char *content, int force);
+
+/*!
  * \brief Change the update period of given livebox instance
  * \details N/A
  * \remarks N/A
