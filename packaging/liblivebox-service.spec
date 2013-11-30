@@ -24,7 +24,7 @@ BuildRequires: pkgconfig(icu-uc)
 Service API for gathering information of installed liveboxes
 
 %package devel
-Summary: Files for livebox service.
+Summary: Files for livebox service
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
@@ -36,6 +36,12 @@ Gathering the installed livebox information.
 cp %{SOURCE1001} .
 
 %build
+%if 0%{?sec_build_binary_debug_enable}
+export CFLAGS="$CFLAGS -DTIZEN_DEBUG_ENABLE"
+export CXXFLAGS="$CXXFLAGS -DTIZEN_DEBUG_ENABLE"
+export FFLAGS="$FFLAGS -DTIZEN_DEBUG_ENABLE"
+%endif
+
 %if 0%{?tizen_build_binary_release_type_eng}
 export CFLAGS="${CFLAGS} -DTIZEN_ENGINEER_MODE"
 export CXXFLAGS="${CXXFLAGS} -DTIZEN_ENGINEER_MODE"
