@@ -474,7 +474,7 @@ EAPI int livebox_service_trigger_update_with_content(const char *pkgname, const 
 		category = "default";
 	}
 
-	packet = packet_create("service_update", "sssss", pkgname, uri, cluster, category, content);
+	packet = packet_create("service_update", "sssssi", pkgname, uri, cluster, category, content, force);
 	/*!
 	 * \note
 	 * "free" function accepts NULL
