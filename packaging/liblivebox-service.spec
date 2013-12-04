@@ -1,9 +1,9 @@
 Name: liblivebox-service
 Summary: Service API for gathering installed livebox information.
-Version: 0.5.9
+Version: 0.5.10
 Release: 1
 Group: HomeTF/Livebox
-License: Flora License
+License: Flora
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
 BuildRequires: cmake, gettext-tools, coreutils
