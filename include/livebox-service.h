@@ -82,7 +82,9 @@ enum livebox_script_event {
 	LB_SCRIPT_MOUSE_OUT	= LB_SCRIPT_MOUSE_EVENT | 0x00010000, /*!< Mouse out */
 
 	LB_SCRIPT_KEY_DOWN	= LB_SCRIPT_KEY_EVENT | 0x00020000, /*!< Key pressed */
-	LB_SCRIPT_KEY_UP	= LB_SCRIPT_KEY_EVENT | 0x00040000 /*!< Key released */
+	LB_SCRIPT_KEY_UP	= LB_SCRIPT_KEY_EVENT | 0x00040000, /*!< Key released */
+	LB_SCRIPT_KEY_FOCUS_IN	= LB_SCRIPT_KEY_EVENT | 0x00080000, /*!< Key focus in */
+	LB_SCRIPT_KEY_FOCUS_OUT = LB_SCRIPT_KEY_EVENT | 0x00100000, /*!< Key focus out */
 };
 
 /*!
@@ -95,6 +97,13 @@ enum livebox_access_status {
 	LB_ACCESS_STATUS_FIRST, /*!< Reach to the first item */
 	LB_ACCESS_STATUS_LAST, /*!< Reach to the last item */
 	LB_ACCESS_STATUS_READ /*!< TTS is done */
+};
+
+enum livebox_key_status {
+	LB_KEY_STATUS_ERROR = 0x80000000,
+	LB_KEY_STATUS_DONE = 0x00000000,
+	LB_KEY_STATUS_FIRST,
+	LB_KEY_STATUS_LAST,
 };
 
 /*!
