@@ -106,6 +106,12 @@ enum livebox_key_status {
 	LB_KEY_STATUS_LAST,
 };
 
+enum livebox_delete_type {
+	LB_DELETE_PERMANENTLY = 0x01,
+	LB_DELETE_TEMPORARY = 0x02,
+	LB_DELETE_INVALID = 0xff,
+};
+
 /*!
  * \brief
  * Handle of Package List
