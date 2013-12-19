@@ -89,8 +89,8 @@ static struct info {
 	int country_len;
 } s_info = {
 	.handle = NULL,
-	.dbfile = "/opt/dbspace/.livebox.db", 
-	.conf_file = "/usr/share/data-provider-master/resolution.ini",
+	.dbfile = DB_FILE, 
+	.conf_file = RESOLUTION_FILE,
 	.init_count = 0,
 	.res_resolved = 0,
 

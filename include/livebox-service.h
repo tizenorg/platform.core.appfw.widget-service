@@ -100,15 +100,15 @@ enum livebox_access_status {
 };
 
 enum livebox_key_status {
-	LB_KEY_STATUS_ERROR = 0x80000000,
-	LB_KEY_STATUS_DONE = 0x00000000,
-	LB_KEY_STATUS_FIRST,
-	LB_KEY_STATUS_LAST,
+	LB_KEY_STATUS_ERROR = 0x80000000, /*!< Key operation is failed */
+	LB_KEY_STATUS_DONE = 0x00000000, /*!< Key operation is successfully done */
+	LB_KEY_STATUS_FIRST, /*!< Focusable object item reaches to the first in it */
+	LB_KEY_STATUS_LAST, /*!< Focusable object item reaches to the last in it */
 };
 
 enum livebox_delete_type {
-	LB_DELETE_PERMANENTLY = 0x01,
-	LB_DELETE_TEMPORARY = 0x02,
+	LB_DELETE_PERMANENTLY = 0x01, /*!< The livebox is removed from the homescreen temporary */
+	LB_DELETE_TEMPORARY = 0x02, /*!< The livebox is removed from the homescreen by user permanently */
 	LB_DELETE_INVALID = 0xff,
 };
 
