@@ -389,7 +389,7 @@ extern char *livebox_service_setup_appid(const char *lbid);
  * \details N/A
  * \param[in] lbid Livebox AppId 
  * \return char *
- * \retval appid String which is allocated on the heap
+ * \retval appid String which is allocated in the heap
  * \retval NULL invalid appid
  * \pre N/A
  * \post return'd string must be free'd manually

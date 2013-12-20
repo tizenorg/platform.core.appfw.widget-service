@@ -1332,7 +1332,7 @@ static inline char *get_lb_pkgname_by_appid(const char *appid)
 		return NULL;
 	}
 
-	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR (uiapp = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
@@ -1346,6 +1346,12 @@ static inline char *get_lb_pkgname_by_appid(const char *appid)
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, appid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 3, appid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
