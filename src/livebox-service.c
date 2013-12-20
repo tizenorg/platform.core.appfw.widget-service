@@ -338,7 +338,7 @@ static int update_resolution(void)
 
 	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
 		SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)s_info.base_w);
-		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)s_info.base_h);
+		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)s_info.base_w);
 	}
 
 	XCloseDisplay(disp);
