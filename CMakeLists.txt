@@ -42,6 +42,8 @@ ADD_DEFINITIONS("-DLOG_TAG=\"LIVEBOX_SERVICE\"")
 ADD_DEFINITIONS("-DNDEBUG")
 ADD_DEFINITIONS("-D_USE_ECORE_TIME_GET")
 ADD_DEFINITIONS("-DSERVICE_SOCKET=\"/opt/usr/share/live_magazine/.service.socket\"")
+ADD_DEFINITIONS("-DRESOLUTION_FILE=\"/usr/share/data-provider-master/resolution.ini\"")
+ADD_DEFINITIONS("-DDB_FILE=\"/opt/dbspace/.livebox.db\"")
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/dlist.c

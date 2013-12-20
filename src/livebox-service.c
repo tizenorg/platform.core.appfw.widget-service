@@ -87,10 +87,15 @@ static struct info {
 	char country[ULOC_COUNTRY_CAPACITY];
 	char *syslang;
 	int country_len;
+
+	int base_w;
+	int base_h;
+
+	int base_parse;
 } s_info = {
 	.handle = NULL,
-	.dbfile = "/opt/dbspace/.livebox.db", 
-	.conf_file = "/usr/share/data-provider-master/resolution.ini",
+	.dbfile = DB_FILE, 
+	.conf_file = RESOLUTION_FILE,
 	.init_count = 0,
 	.res_resolved = 0,
 
@@ -98,6 +103,11 @@ static struct info {
 	.country = { 0, },
 	.syslang = NULL,
 	.country_len = 0,
+
+	.base_w = 720,
+	.base_h = 1280,
+
+	.base_parse = 0,
 };
 
 static inline int update_info(int width_type, int height_type, int width, int height)
@@ -185,6 +195,8 @@ static inline int update_from_file(void)
 				continue;
 			}
 
+			s_info.base_parse = 0;
+
 			if (ch == '#') {
 				status = COMMENT;
 			} else {
@@ -198,16 +210,24 @@ static inline int update_from_file(void)
 				buffer[idx] = '\0';
 				status = TYPE_END;
 				if (sscanf(buffer, "%dx%d", &width_type, &height_type) != 2) {
-					ErrPrint("Invalid syntax: [%s]\n", buffer);
-					status = ERROR;
+					if (!strcasecmp(buffer, "base")) {
+						s_info.base_parse = 1;
+					} else {
+						ErrPrint("Invalid syntax: [%s]\n", buffer);
+						status = ERROR;
+					}
 				}
 				break;
 			} else if (ch == '=') {
 				buffer[idx] = '\0';
 				status = SIZE_START;
 				if (sscanf(buffer, "%dx%d", &width_type, &height_type) != 2) {
-					ErrPrint("Invalid syntax: [%s]\n", buffer);
-					status = ERROR;
+					if (!strcasecmp(buffer, "base")) {
+						s_info.base_parse = 1;
+					} else {
+						ErrPrint("Invalid syntax: [%s]\n", buffer);
+						status = ERROR;
+					}
 				}
 				break;
 			} else if (ch == EOF) {
@@ -240,14 +260,24 @@ static inline int update_from_file(void)
 					ErrPrint("Invalid syntax: [%s]\n", buffer);
 					status = ERROR;
 				} else if (ch == EOF) {
-					updated += update_info(width_type, height_type, width, height);
+					if (s_info.base_parse) {
+						s_info.base_w = width;
+						s_info.base_h = height;
+					} else {
+						updated += update_info(width_type, height_type, width, height);
+					}
 				}
 				break;
 			}
 			buffer[idx++] = ch;
 			break;
 		case EOL:
-			updated += update_info(width_type, height_type, width, height);
+			if (s_info.base_parse) {
+				updated += update_info(width_type, height_type, width, height);
+			} else {
+				s_info.base_w = width;
+				s_info.base_h =  height;
+			}
 			status = START;
 			ungetc(ch, fp);
 			break;
@@ -307,8 +337,8 @@ static int update_resolution(void)
 	}
 
 	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
-		SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / 720.0f);
-		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / 720.0f);
+		SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)s_info.base_w);
+		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)s_info.base_w);
 	}
 
 	XCloseDisplay(disp);
@@ -1302,7 +1332,7 @@ static inline char *get_lb_pkgname_by_appid(const char *appid)
 		return NULL;
 	}
 
-	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR (uiapp = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
@@ -1316,6 +1346,12 @@ static inline char *get_lb_pkgname_by_appid(const char *appid)
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, appid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 3, appid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
