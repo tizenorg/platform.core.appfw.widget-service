@@ -120,13 +120,27 @@ struct pkglist_handle;
 
 /*!
  * \brief Get the pixel size of given size type.
- * \details N/A
+ * \details
+ *  Size types can be (defined in liblivebox-service pakcage, include livebox-service.h)
+ *  LB_SIZE_TYPE_1x1
+ *  LB_SIZE_TYPE_2x1
+ *  LB_SIZE_TYPE_2x2
+ *  LB_SIZE_TYPE_4x1
+ *  LB_SIZE_TYPE_4x2
+ *  LB_SIZE_TYPE_4x3
+ *  LB_SIZE_TYPE_4x4
+ *  LB_SIZE_TYPE_4x5
+ *  LB_SIZE_TYPE_4x6
+ *  LB_SIZE_TYPE_0x0
+ *  LB_SIZE_TYPE_EASY_1x1
+ *  LB_SIZE_TYPE_EASY_3x1
+ *  LB_SIZE_TYPE_EASY_3x3
  * \remarks N/A
  * \param[in] type Size type
  * \param[out] width Pixel size width
  * \param[out] height Pixel size height
  * \return int
- * \retval LB_STATUS_SUCCESS for success
+ * \retval LB_STATUS_SUCCESS Successfully done
  * \pre N/A
  * \post N/A
  * \see livebox_size_type
@@ -136,12 +150,28 @@ extern int livebox_service_get_size(int type, int *width, int *height);
 
 /*!
  * \brief Get the size type for given pixel size.
- * \details N/A
+ * \details
+ *  Returnable size types are (defined in liblivebox-service pakcage, include livebox-service.h)
+ *  LB_SIZE_TYPE_1x1
+ *  LB_SIZE_TYPE_2x1
+ *  LB_SIZE_TYPE_2x2
+ *  LB_SIZE_TYPE_4x1
+ *  LB_SIZE_TYPE_4x2
+ *  LB_SIZE_TYPE_4x3
+ *  LB_SIZE_TYPE_4x4
+ *  LB_SIZE_TYPE_4x5
+ *  LB_SIZE_TYPE_4x6
+ *  LB_SIZE_TYPE_0x0
+ *  LB_SIZE_TYPE_EASY_1x1
+ *  LB_SIZE_TYPE_EASY_3x1
+ *  LB_SIZE_TYPE_EASY_3x3
+ *  or
+ *  LB_SIZE_TYPE_UNKNOWN for error
  * \remarks N/A
  * \param[in] width Pixel size width
  * \param[in] height Pixel size height
  * \return int
- * \retval LB_SIZE_TYPE_WxH Size type of given pixel size.
+ * \retval LB_SIZE_TYPE_[EASY_]WxH Size type of given pixel size.
  * \retval LB_SIZE_TYPE_UNKNOWN if the given pixel size is not valid.
  * \pre N/A
  * \post N/A
@@ -230,7 +260,7 @@ extern int livebox_service_trigger_update(const char *pkgname, const char *id, c
  * \retval LB_STATUS_ERROR_MEMORY Memory is not enough to make request
  * \retval LB_STATUS_ERROR_FAULT Failed to create a request packet
  * \retval LB_STATUS_SUCCESS Successfully requested
- * \see N/A
+ * \see livebox_service_trigger_update
  */
 extern int livebox_service_trigger_update_with_content(const char *pkgname, const char *id, const char *cluster, const char *category, const char *content, int force);
 
@@ -283,8 +313,8 @@ extern int livebox_service_get_pkglist(int (*cb)(const char *pkgid, const char *
  * \param[in] data Callback Data
  * \return int
  * \retval LB_STATUS_SUCCESS
- * \retval LB_STATUS_ERROR_INVALID
- * \retval LB_STATUS_ERROR_IO
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_IO Failed to access DB
  * \retval LB_STATUS_ERROR_MEMORY
  * \retval LB_STATUS_ERROR_FAULT
  * \pre N/A
@@ -357,8 +387,9 @@ extern int livebox_service_is_primary(const char *lbid);
  * \details
  *    OSP livebox has provider process for each livebox instances.
  *    To get the provider's package name, you can use this API.
- *    If the given lbid is inhouse livebox, the return string will be the same with argument but it is allocated in the heap.
- * \param[in] lbid AppID
+ *    If the given lbid is inhouse livebox, the return string will be the same with given argument but it is allocated in the heap.
+ *    So you have to free it if you don't need it anymore.
+ * \param[in] lbid Livebox Id
  * \return char *
  * \retval NULL failed to get provider name
  * \retval lbid Livebox AppId which is allocated on the heap
@@ -374,7 +405,8 @@ extern char *livebox_service_provider_name(const char *lbid);
  * \details
  *    This function should be called before add a livebox.
  *    To determine the content information string.
- * \param[in] lbid AppId
+ * \remarks N/A
+ * \param[in] lbid Livebox Id
  * \return char *
  * \retval NULL there is no setup application
  * \retval appid AppId if exists or NULL
@@ -387,6 +419,7 @@ extern char *livebox_service_setup_appid(const char *lbid);
 /*!
  * \brief Get the Package Id (Not the UI App Id) of given livebox, &lt;manifest package="AAA"&gt;
  * \details N/A
+ * \remarks N/A
  * \param[in] lbid Livebox AppId 
  * \return char *
  * \retval appid String which is allocated in the heap
@@ -400,6 +433,7 @@ extern char *livebox_service_appid(const char *lbid);
 /*!
  * \brief Internationalized name of given livebox package.
  * \details N/A
+ * \remarks N/A
  * \param[in] pkgid App ID of a livebox. (It must has to be a livebox package ID. not the UI-APP and the PACKAGE.
  * \param[in] lang locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
  * \return char *
@@ -416,6 +450,7 @@ extern char *livebox_service_i18n_name(const char *pkgid, const char *lang);
  * \brief Get the preview image path of given size type.
  *        This function will returns i18nized preview image path.
  * \details N/A
+ * \remarks N/A
  * \param[in] pkgid livebox ID. NOT the UI-APP ID and PACKAGE ID
  * \param[in] size_type Livebox size type.
  * \return char *
@@ -433,6 +468,7 @@ extern char *livebox_service_preview(const char *pkgid, int size_type);
  * \details
  *    If a user defins default content string in the manifest file (.xml)
  *    This API will returns it.
+ * \remarks N/A
  * \param[in] pkgid Livebox ID. Not the UI-APP ID and PACKAGE ID
  * \return char *
  * \retval content content string
@@ -447,6 +483,7 @@ extern char *livebox_service_content(const char *pkgid);
  * \brief Internationalized icon path of given livebox package.
  *        USER must has to do "free" after using the returned string.
  * \details N/A
+ * \remarks N/A
  * \param[in] pkgid App ID of a livebox. (It must has to be a livebox package ID. not the UI-APP and the PACKAGE.
  * \param[in] lang locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
  * \return char *
@@ -462,6 +499,7 @@ extern char *livebox_service_i18n_icon(const char *pkgid, const char *lang);
 /*!
  * \brief Get the path of the plug-in module
  * \details N/A
+ * \remarks N/A
  * \param[in] lbid Package name of a livebox
  * \return char *
  * \retval path String which is allocated on the heap
@@ -584,8 +622,8 @@ extern char *livebox_service_pd_script_group(const char *lbid);
  * \param[out] h Height array
  * \return int
  * \retval LB_STATUS_SUCCESS if succeed to get supported size list
- * \retval LB_STATUS_ERROR_IO
- * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_ERROR_IO Failed to access DB
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
  * \pre N/A
  * \post N/A
  * \see livebox_service_get_supported_size_types
@@ -599,9 +637,9 @@ extern int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int 
  * \param[out] cnt result count of types array
  * \param[out] types array of types
  * \return int
- * \retval LB_STATUS_ERROR_INVALID
- * \retval LB_STATUS_ERROR_IO
- * \retval LB_STATUS_SUCCESS
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_IO Failed to access DB
+ * \retval LB_STATUS_SUCCESS Successfully done
  * \pre N/A
  * \post N/A
  * \see livebox_service_get_supported_sizes
@@ -616,9 +654,9 @@ extern int livebox_service_get_supported_size_types(const char *pkgid, int *cnt,
  * \param[in] cb Callback function
  * \param[in] data Callback data
  * \return int
- * \retval LB_STATUS_SUCCESS
- * \retval LB_STATUS_ERROR_IO
- * \retval LB_STATUS_ERROR_INVALID
+ * \retval LB_STATUS_SUCCESS Successfully done
+ * \retval LB_STATUS_ERROR_IO Failed to access DB
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
  * \pre N/A
  * \post N/A
  * \see livebox_service_enumerate_cluster_list
@@ -632,8 +670,8 @@ extern int livebox_service_enumerate_category_list(const char *cluster, int (*cb
  * \param[in] cb Callback function for retrieving the cluster list
  * \param[in] data Callback data
  * \return int
- * \retval LB_STATUS_ERROR_INVALID
- * \retval LB_STATUS_ERROR_IO
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_IO Failed to access DB
  * \retval count of category items
  * \pre N/A
  * \post N/A
@@ -652,7 +690,7 @@ extern int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster,
  * \remarks N/A
  * \return int
  * \retval LB_STATUS_SUCCESS if succeed to initialize
- * \retval LB_STATUS_ERROR_IO failed to access a DB
+ * \retval LB_STATUS_ERROR_IO Failed to access a DB
  * \pre N/A
  * \post N/A
  * \see livebox_service_fini
@@ -662,6 +700,7 @@ extern int livebox_service_init(void);
 /*!
  * \brief Finalize the livebox service API
  * \details N/A
+ * \remarks N/A
  * \return int
  * \retval LB_STATUS_SUCCESS if succeed to finalize
  * \retval LB_STATUS_ERROR_IO Failed to close the DB (access failed to DB)
@@ -712,7 +751,8 @@ extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char 
 /*!
  * \brief Destroy the iterator of pkglist
  * \details N/A
- * \param[in] handle
+ * \remarks N/A
+ * \param[in] handle Package list handle
  * \return int
  * \retval LB_STATUS_ERROR_INVALID Invalid handle
  * \retval LB_STATUS_SUCCESS Successfully destroyed

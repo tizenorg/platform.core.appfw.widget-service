@@ -735,7 +735,7 @@ EAPI int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const
 	int is_prime;
 	sqlite3 *handle;
 
-	if (!cb) {
+	if (!cb || !pkgid) {
 		return LB_STATUS_ERROR_INVALID;
 	}
 
@@ -1234,6 +1234,10 @@ EAPI char *livebox_service_setup_appid(const char *lbid)
 	int ret;
 	char *appid;
 
+	if (!lbid) {
+		return NULL;
+	}
+
 	handle = open_db();
 	if (!handle) {
 		return NULL;
@@ -1280,6 +1284,10 @@ EAPI int livebox_service_nodisplay(const char *pkgid)
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
 	int ret;
+
+	if (!pkgid) {
+		return 0;
+	}
 
 	handle = open_db();
 	if (!handle) {
@@ -1694,6 +1702,10 @@ EAPI char *livebox_service_i18n_icon(const char *pkgid, const char *lang)
 	char *icon = NULL;
 	int ret;
 
+	if (!pkgid) {
+		return NULL;
+	}
+
 	if (lang) {
 		language = strdup(lang);
 		if (!language) {
@@ -1764,6 +1776,10 @@ EAPI char *livebox_service_i18n_name(const char *pkgid, const char *lang)
 	char *language;
 	char *name = NULL;
 	int ret;
+
+	if (!pkgid) {
+		return NULL;
+	}
 
 	if (lang) {
 		language = strdup(lang);
