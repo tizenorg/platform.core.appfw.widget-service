@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 /*!
- * \addtogroup LIVEBOX_SERVICE
+ * \addtogroup CAPI_LIVEBOX_SERVICE_MODULE
  * \{
  */
 
