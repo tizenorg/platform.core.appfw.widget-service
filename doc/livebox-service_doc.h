@@ -15,8 +15,8 @@
  */
 
 /*!
- * \ingroup CAPI_LIVEBOX_FRAMEWORK Tizen livebox framework 
- * \defgroup CAPI_LIVEBOX_SERVICE_MODULE Livebox Service API
+ * \ingroup CAPI_LIVEBOX_FRAMEWORK
+ * \defgroup CAPI_LIVEBOX_SERVICE_MODULE Livebox Service
  * \brief Access the livebox manifest data.
  * \section CAPI_LIVEBOX_SERVICE_MODULE_HEADER Required Header
  * \#include <livebox-service.h>
