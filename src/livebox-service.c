@@ -272,7 +272,7 @@ static inline int update_from_file(void)
 			buffer[idx++] = ch;
 			break;
 		case EOL:
-			if (s_info.base_parse) {
+			if (!s_info.base_parse) {
 				updated += update_info(width_type, height_type, width, height);
 			} else {
 				s_info.base_w = width;
