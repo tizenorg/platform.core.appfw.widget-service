@@ -786,6 +786,62 @@ out:
 	return ret;
 }
 
+EAPI int livebox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *lbid, void *data), void *data)
+{
+	int ret;
+	sqlite3_stmt *stmt;
+	const char *lbid;
+	sqlite3 *handle;
+
+	if (!cb || !category) {
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return LB_STATUS_ERROR_IO;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE category = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = LB_STATUS_ERROR_IO;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, category, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = LB_STATUS_ERROR_IO;
+		goto out;
+	}
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		lbid = (const char *)sqlite3_column_text(stmt, 0);
+		if (!lbid || !strlen(lbid)) {
+			ErrPrint("LBID is not valid\n");
+			continue;
+		}
+
+		ret++;
+
+		if (cb(lbid, data) < 0) {
+			DbgPrint("Callback stopped package crawling\n");
+			break;
+		}
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
 struct pkgmgr_cbdata {
 	const char *lbid;
 	void (*cb)(const char *lbid, const char *appid, void *data);
@@ -2204,6 +2260,77 @@ out:
 	sqlite3_finalize(stmt);
 	close_db(handle);
 	return ret;
+}
+
+EAPI char *livebox_service_category(const char *lbid)
+{
+	sqlite3_stmt *stmt;
+	char *category = NULL;
+	char *tmp;
+	sqlite3 *handle;
+	int ret;
+
+	if (!lbid) {
+		return NULL;
+	}
+
+	category = NULL;
+	handle = open_db();
+	if (!handle) {
+		return NULL;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT category FROM pkgmap WHERE pkgid = ? OR appid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, lbid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Has no record?: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	tmp = (char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("APPID is NIL\n");
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	category = strdup(tmp);
+	if (!category) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+out:
+	close_db(handle);
+	return category;
 }
 
 EAPI char *livebox_service_appid(const char *pkgname)
