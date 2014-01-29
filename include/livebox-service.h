@@ -356,6 +356,24 @@ extern char *livebox_service_mainappid(const char *lbid);
 extern int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *lbid, int is_prime, void *data), void *data);
 
 /*!
+ * \brief Synchronous package list getter
+ * \details
+ *	  callback (lbid)
+ *	  lbid == Livebox Package Id
+ *        If the callback returns negative value, the list crawling will be stopped
+ * \remarks N/A
+ * \param[in] category Package Id (Not the UI App Id)
+ * \param[in] cb Callback function
+ * \param[in] data Callback data
+ * \return int
+ * \retval Count of livebox packages
+ * \retval LB_STATUS_ERROR_INVALID Invalid argument
+ * \retval LB_STATUS_ERROR_IO Failed to access DB
+ * \see livebox_service_get_pkglist_by_pkgid
+ */
+extern int livebox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *lbid, void *data), void *data);
+
+/*!
  * \brief Get the lbid of a primary livebox using given lbid or pkgid or UI appid.
  * \details N/A
  * \remarks N/A
@@ -381,6 +399,20 @@ extern char *livebox_service_pkgname(const char *id);
  * \see N/A
  */
 extern int livebox_service_is_primary(const char *lbid);
+
+/*!
+ * \brief Get the category using given lbid.
+ * \details N/A
+ * \remarks N/A
+ * \param[in] id Livebox Id
+ * \return char *
+ * \retval NULL Failed to get primary lbid
+ * \retval category Category string which is allocated in the heap.
+ * \pre Must be released returned string by manually
+ * \post N/A
+ * \see livebox_service_pkgname
+ */
+extern char *livebox_service_category(const char *lbid);
 
 /*!
  * \brief Get the name of a livebox (provider name == livebox appid), you have to release the return value after use it
