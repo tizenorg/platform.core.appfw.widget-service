@@ -2016,6 +2016,83 @@ out:
 	return abi;
 }
 
+EAPI char *livebox_service_pkgname_by_libexec(const char *libexec)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+	char *pkgid;
+	char *tmp;
+	char *_libexec;
+	int len;
+
+	if (!libexec) {
+		ErrPrint("Invalid argument\n");
+		return NULL;
+	}
+
+	pkgid = NULL;
+	handle = open_db();
+	if (!handle) {
+		return NULL;
+	}
+
+	len = strlen(libexec) + 3;
+
+	_libexec = malloc(len);
+	if (!_libexec) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		close_db(handle);
+		return NULL;
+	}
+
+	snprintf(_libexec, len - 1, "%%%s", libexec);
+
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM provider WHERE libexec like ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, _libexec, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	if (sqlite3_step(stmt) != SQLITE_ROW) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+
+		DbgPrint("Fallback to conf checker: %s\n", libexec);
+		goto out;
+	}
+
+	tmp = (char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("Invalid pkgid: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	pkgid = strdup(tmp);
+	if (!pkgid) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+	}
+
+	DbgPrint("pkgid: %s\n", pkgid);
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+out:
+	close_db(handle);
+	free(_libexec);
+	return pkgid;
+}
+
 EAPI char *livebox_service_libexec(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
