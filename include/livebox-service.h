@@ -795,6 +795,19 @@ extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char 
 extern int livebox_service_pkglist_destroy(struct pkglist_handle *handle);
 
 /*!
+ * \brief Find the pkgname by its libexec
+ * \details only if the livebox should use the "libexec" attribute in its "<livebox>" tag
+ * \remars Only usable for inhouse liveboxes
+ * \param[in] libexec so filename
+ * \return char *
+ * \retval NULL if it fails to get pkgname
+ * \retval address heap address of pkgname
+ * \pre N/A
+ * \post return'd string should be released via "free"
+ */
+extern char *livebox_service_pkgname_by_libexec(const char *libexec);
+
+/*!
  * \}
  */
 
