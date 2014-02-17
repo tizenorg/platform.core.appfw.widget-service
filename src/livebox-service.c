@@ -2062,11 +2062,9 @@ EAPI char *livebox_service_pkgname_by_libexec(const char *libexec)
 	}
 
 	if (sqlite3_step(stmt) != SQLITE_ROW) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ErrPrint("No records (%s) for (%s)\n", sqlite3_errmsg(handle), libexec);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-
-		DbgPrint("Fallback to conf checker: %s\n", libexec);
 		goto out;
 	}
 
