@@ -112,6 +112,13 @@ enum livebox_delete_type {
 	LB_DELETE_INVALID = 0xff,
 };
 
+enum livebox_pd_close_type {
+	LB_CLOSE_PD_NORMAL = 0x00,
+	LB_CLOSE_PD_TIMEOUT = 0x01,
+	LB_CLOSE_PD_FAULT = 0x02,
+	LB_CLOSE_PD_INVALID = 0xff,
+};
+
 /*!
  * \brief
  * Handle of Package List
