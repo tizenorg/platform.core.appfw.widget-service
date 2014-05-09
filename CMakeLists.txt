@@ -23,11 +23,20 @@ pkg_check_modules(pkgs REQUIRED
 	db-util
 	pkgmgr
 	pkgmgr-info
-	x11
 	vconf
 	ail
 	icu-uc
 )
+
+IF (X11_SUPPORT)
+pkg_check_modules(pkg_extra REQUIRED
+	x11
+)
+ENDIF (X11_SUPPORT)
+
+IF (WAYLAND_SUPPORT)
+# Nothing provided yet.
+ENDIF (WAYLAND_SUPPORT)
 
 FOREACH(flag ${pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
@@ -45,11 +54,30 @@ ADD_DEFINITIONS("-DSERVICE_SOCKET=\"/opt/usr/share/live_magazine/.service.socket
 ADD_DEFINITIONS("-DRESOLUTION_FILE=\"/usr/share/data-provider-master/resolution.ini\"")
 ADD_DEFINITIONS("-DDB_FILE=\"/opt/dbspace/.livebox.db\"")
 
-ADD_LIBRARY(${PROJECT_NAME} SHARED
+SET(BUILD_SOURCE
 	src/dlist.c
 	src/livebox-service.c
 	src/util.c
 )
+
+IF (X11_SUPPORT)
+	ADD_DEFINITIONS("-DHAVE_X11")
+	SET(BUILD_SOURCE 
+		${BUILD_SOURCE}
+		src/util_x11.c
+	)
+ENDIF (X11_SUPPORT)
+
+IF (WAYLAND_SUPPORT)
+	ADD_DEFINITIONS("-DHAVE_WAYLAND")
+	SET(BUILD_SOURCE 
+		${BUILD_SOURCE}
+		src/util_wayland.c
+	)
+ENDIF (WAYLAND_SUPPORT)
+
+ADD_LIBRARY(${PROJECT_NAME} SHARED ${BUILD_SOURCE})
+
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${VERSION_MAJOR})
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pkgs_LDFLAGS})

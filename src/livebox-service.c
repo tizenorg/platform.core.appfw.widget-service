@@ -22,8 +22,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sqlite3.h>
-#include <X11/X.h>
-#include <X11/Xlib.h>
 #include <ctype.h>
 
 #include <com-core_packet.h>
@@ -46,12 +44,8 @@
 #define SAMSUNG_PREFIX	"com.samsung."
 #define EAPI __attribute__((visibility("default")))
 #define DEFAULT_TIMEOUT 2.0
-#define MAX_COLUMN 80
 
-static struct supported_size_list {
-	int w;
-	int h;
-} SIZE_LIST[NR_OF_SIZE_LIST] = {
+static struct supported_size_list SIZE_LIST[NR_OF_SIZE_LIST] = {
 	{ 175, 175 }, /*!< 1x1 */
 	{ 354, 175 }, /*!< 2x1 */
 	{ 354, 354 }, /*!< 2x2 */
@@ -76,28 +70,11 @@ struct pkglist_handle {
 	sqlite3_stmt *stmt;
 };
 
-static struct info {
-	sqlite3 *handle;
-	const char *dbfile;
-	const char *conf_file;
-	int init_count;
-	int res_resolved;
-
-	const char *iso3lang;
-	char country[ULOC_COUNTRY_CAPACITY];
-	char *syslang;
-	int country_len;
-
-	int base_w;
-	int base_h;
-
-	int base_parse;
-} s_info = {
+static struct service_info s_info = {
 	.handle = NULL,
 	.dbfile = DB_FILE, 
 	.conf_file = RESOLUTION_FILE,
 	.init_count = 0,
-	.res_resolved = 0,
 
 	.iso3lang = NULL,
 	.country = { 0, },
@@ -109,242 +86,6 @@ static struct info {
 
 	.base_parse = 0,
 };
-
-static inline int update_info(int width_type, int height_type, int width, int height)
-{
-	int idx;
-
-	if (width_type == 1 && height_type == 1) {
-		idx = 0;
-	} else if (width_type == 2 && height_type == 1) {
-		idx = 1;
-	} else if (width_type == 2 && height_type == 2) {
-		idx = 2;
-	} else if (width_type == 4 && height_type == 1) {
-		idx = 3;
-	} else if (width_type == 4 && height_type == 2) {
-		idx = 4;
-	} else if (width_type == 4 && height_type == 3) {
-		idx = 5;
-	} else if (width_type == 4 && height_type == 4) {
-		idx = 6;
-	} else if (width_type == 4 && height_type == 5) {
-		idx = 7;
-	} else if (width_type == 4 && height_type == 6) {
-		idx = 8;
-	} else if (width_type == 21 && height_type == 21) {
-		idx = 9;
-	} else if (width_type == 23 && height_type == 21) {
-		idx = 10;
-	} else if (width_type == 23 && height_type == 23) {
-		idx = 11;
-	} else if (width_type == 0 && height_type == 0) {
-		idx = 12;
-	} else {
-		ErrPrint("Unknown size type: %dx%d (%dx%d)\n", width_type, height_type, width, height);
-		return 0;
-	}
-
-	SIZE_LIST[idx].w = width;
-	SIZE_LIST[idx].h = height;
-	return 1;
-}
-
-static inline int update_from_file(void)
-{
-	FILE *fp;
-	int updated;
-	int width_type;
-	int height_type;
-	int width;
-	int height;
-	char buffer[MAX_COLUMN];
-	int ch;
-	int idx;
-	enum status {
-		START = 0x0,
-		TYPE = 0x01,
-		SIZE = 0x02,
-		COMMENT = 0x03,
-		ERROR = 0x04,
-		EOL = 0x05,
-		TYPE_END = 0x06,
-		SIZE_START = 0x07
-	} status;
-
-	fp = fopen(s_info.conf_file, "r");
-	if (!fp) {
-		ErrPrint("Open failed: %s\n", strerror(errno));
-		return LB_STATUS_ERROR_IO;
-	}
-
-	updated = 0;
-	status = START;
-	idx = 0;
-	do {
-		ch = fgetc(fp);
-
-		if (idx == MAX_COLUMN) {
-			ErrPrint("Buffer overflow. Too long line. LINE MUST BE SHOT THAN %d\n", MAX_COLUMN);
-			status = ERROR;
-		}
-
-		switch (status) {
-		case START:
-			if (isspace(ch) || ch == EOF) {
-				continue;
-			}
-
-			s_info.base_parse = 0;
-
-			if (ch == '#') {
-				status = COMMENT;
-			} else {
-				status = TYPE;
-				idx = 0;
-				ungetc(ch, fp);
-			}
-			break;
-		case TYPE:
-			if (isblank(ch)) {
-				buffer[idx] = '\0';
-				status = TYPE_END;
-				if (sscanf(buffer, "%dx%d", &width_type, &height_type) != 2) {
-					if (!strcasecmp(buffer, "base")) {
-						s_info.base_parse = 1;
-					} else {
-						ErrPrint("Invalid syntax: [%s]\n", buffer);
-						status = ERROR;
-					}
-				}
-				break;
-			} else if (ch == '=') {
-				buffer[idx] = '\0';
-				status = SIZE_START;
-				if (sscanf(buffer, "%dx%d", &width_type, &height_type) != 2) {
-					if (!strcasecmp(buffer, "base")) {
-						s_info.base_parse = 1;
-					} else {
-						ErrPrint("Invalid syntax: [%s]\n", buffer);
-						status = ERROR;
-					}
-				}
-				break;
-			} else if (ch == EOF) {
-				ErrPrint("Invalid Syntax\n");
-				status = ERROR;
-				continue;
-			}
-			buffer[idx++] = ch;
-			break;
-		case TYPE_END:
-			if (ch == '=') {
-				status = SIZE_START;
-			}
-			break;
-		case SIZE_START:
-			if (isspace(ch) || ch == EOF) {
-				continue;
-			}
-
-			status = SIZE;
-			idx = 0;
-			ungetc(ch, fp);
-			break;
-		case SIZE:
-			if (isspace(ch) || ch == EOF) {
-				buffer[idx] = '\0';
-				status = EOL;
-
-				if (sscanf(buffer, "%dx%d", &width, &height) != 2) {
-					ErrPrint("Invalid syntax: [%s]\n", buffer);
-					status = ERROR;
-				} else if (ch == EOF) {
-					if (s_info.base_parse) {
-						s_info.base_w = width;
-						s_info.base_h = height;
-					} else {
-						updated += update_info(width_type, height_type, width, height);
-					}
-				}
-				break;
-			}
-			buffer[idx++] = ch;
-			break;
-		case EOL:
-			if (!s_info.base_parse) {
-				updated += update_info(width_type, height_type, width, height);
-			} else {
-				s_info.base_w = width;
-				s_info.base_h =  height;
-			}
-			status = START;
-			ungetc(ch, fp);
-			break;
-		case ERROR:
-			if (ch == '\n' || ch == '\r' || ch == '\f') {
-				status = START;
-			}
-			break;
-		case COMMENT:
-			if (ch == '\n' || ch == '\r' || ch == '\f') {
-				status = START;
-			}
-			break;
-		default:
-			ErrPrint("Unknown status. couldn't be reach to here\n");
-			break;
-		}
-	} while (!feof(fp));
-
-	if (fclose(fp) != 0) {
-		ErrPrint("fclose: %s\n", strerror(errno));
-	}
-
-	return NR_OF_SIZE_LIST - updated;
-}
-
-static int update_resolution(void)
-{
-	Display *disp;
-	Window root;
-	Window dummy;
-	int x, y;
-	unsigned int width;
-	unsigned int height;
-	unsigned int border;
-	unsigned int depth;
-	register int i;
-
-	if (s_info.res_resolved) {
-		return LB_STATUS_SUCCESS;
-	}
-
-	disp = XOpenDisplay(NULL);
-	if (!disp) {
-		ErrPrint("Failed to open a display\n");
-		return LB_STATUS_ERROR_FAULT;
-	}
-
-	root = XDefaultRootWindow(disp);
-	if (!XGetGeometry(disp, root, &dummy, &x, &y, &width, &height, &border, &depth)) {
-		XCloseDisplay(disp);
-		return LB_STATUS_ERROR_FAULT;
-	}
-
-	if (update_from_file() == 0) {
-		DbgPrint("Resolution info is all updated by file\n");
-	}
-
-	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
-		SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)s_info.base_w);
-		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)s_info.base_w);
-	}
-
-	XCloseDisplay(disp);
-	s_info.res_resolved = 1;
-	return LB_STATUS_SUCCESS;
-}
 
 static sqlite3 *open_db(void)
 {
@@ -372,7 +113,7 @@ static inline __attribute__((always_inline)) void close_db(sqlite3 *handle)
 	}
 }
 
-static inline int convert_size_from_type(enum livebox_size_type type, int *width, int *height)
+static int convert_size_from_type(enum livebox_size_type type, int *width, int *height)
 {
 	int idx;
 
@@ -420,7 +161,7 @@ static inline int convert_size_from_type(enum livebox_size_type type, int *width
 		return LB_STATUS_ERROR_INVALID;
 	}
 
-	if (update_resolution() < 0) {
+	if (util_update_resolution(&s_info, SIZE_LIST) < 0) {
 		ErrPrint("Failed to update resolution\n");
 	}
 
@@ -1118,7 +859,7 @@ out:
 	return ret;
 }
 
-static inline char *cur_locale(void)
+static char *cur_locale(void)
 {
 	char *language;
 	language = vconf_get_str(VCONFKEY_LANGSET);
@@ -1148,7 +889,7 @@ static inline char *cur_locale(void)
 	return language;
 }
 
-static inline char *get_default_name(const char *pkgid)
+static char *get_default_name(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1193,7 +934,7 @@ out:
 	return name;
 }
 
-static inline char *get_default_icon(const char *pkgid)
+static char *get_default_icon(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1378,7 +1119,7 @@ out:
 	return ret;
 }
 
-static inline char *get_lb_pkgname_by_appid(const char *appid)
+static char *get_lb_pkgname_by_appid(const char *appid)
 {
 	sqlite3_stmt *stmt;
 	char *pkgid;
@@ -1562,7 +1303,7 @@ out:
 	return ret;
 }
 
-EAPI int livebox_service_mouse_event(const char *pkgid)
+EAPI int livebox_service_mouse_event(const char *pkgid, int size_type)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1574,7 +1315,7 @@ EAPI int livebox_service_mouse_event(const char *pkgid)
 		return 0;
 	}
 
-	ret = sqlite3_prepare_v2(handle, "SELECT mouse_event FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	ret = sqlite3_prepare_v2(handle, "SELECT mouse_event FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
@@ -1590,6 +1331,13 @@ EAPI int livebox_service_mouse_event(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
 	free(lbid);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_bind_int(stmt, 2, size_type);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		ret = 0;
@@ -2915,7 +2663,7 @@ EAPI int livebox_service_size_type(int width, int height)
 {
 	int idx;
 
-	if (update_resolution() < 0) {
+	if (util_update_resolution(&s_info, SIZE_LIST) < 0) {
 		ErrPrint("Failed to update the size list\n");
 	}
 
