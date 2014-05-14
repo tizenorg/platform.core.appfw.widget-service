@@ -71,7 +71,8 @@ rm -rf %{buildroot}
 %make_install
 mkdir -p %{buildroot}/%{_datarootdir}/license
 
-%post
+%post -n liblivebox-service -p /sbin/ldconfig
+%postun -n liblivebox-service -p /sbin/ldconfig
 
 %files -n liblivebox-service
 %manifest %{name}.manifest
