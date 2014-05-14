@@ -1,6 +1,8 @@
+%bcond_with wayland
+
 Name: liblivebox-service
 Summary: Service API for gathering installed livebox information
-Version: 0.10.2
+Version: 0.11.0
 Release: 1
 Group: HomeTF/Livebox
 License: Flora
@@ -15,10 +17,15 @@ BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
-BuildRequires: pkgconfig(x11)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(ail)
 BuildRequires: pkgconfig(icu-uc)
+
+%if %{with wayland}
+# Nothing provides
+%else
+BuildRequires: pkgconfig(x11)
+%endif
 
 %description
 Service API for gathering information of installed liveboxes
@@ -47,7 +54,16 @@ export CFLAGS="${CFLAGS} -DTIZEN_ENGINEER_MODE"
 export CXXFLAGS="${CXXFLAGS} -DTIZEN_ENGINEER_MODE"
 export FFLAGS="${FFLAGS} -DTIZEN_ENGINEER_MODE"
 %endif
-%cmake .
+
+%if %{with wayland}
+export WAYLAND_SUPPORT=On
+export X11_SUPPORT=Off
+%else
+export WAYLAND_SUPPORT=Off
+export X11_SUPPORT=On
+%endif
+
+%cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT}
 make %{?jobs:-j%jobs}
 
 %install
@@ -55,7 +71,8 @@ rm -rf %{buildroot}
 %make_install
 mkdir -p %{buildroot}/%{_datarootdir}/license
 
-%post
+%post -n liblivebox-service -p /sbin/ldconfig
+%postun -n liblivebox-service -p /sbin/ldconfig
 
 %files -n liblivebox-service
 %manifest %{name}.manifest

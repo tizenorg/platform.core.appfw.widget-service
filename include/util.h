@@ -14,6 +14,28 @@
  * limitations under the License.
  */
 
+struct supported_size_list {
+	int w;
+	int h;
+};
+
+struct service_info {
+	sqlite3 *handle;
+	const char *dbfile;
+	const char *conf_file;
+	int init_count;
+
+	const char *iso3lang;
+	char country[ULOC_COUNTRY_CAPACITY];
+	char *syslang;
+	int country_len;
+
+	int base_w;
+	int base_h;
+
+	int base_parse;
+};
+
 extern double util_timestamp(void);
 extern const char *util_basename(const char *name);
 extern unsigned long util_free_space(const char *path);
@@ -22,9 +44,12 @@ extern const char *util_uri_to_path(const char *uri);
 extern int util_validate_livebox_package(const char *pkgname);
 extern char *util_conf_get_libexec(const char *pkgname);
 extern char *util_id_to_uri(const char *id);	/* For FILENAME id */
+extern int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST);
 
 #define SCHEMA_FILE	"file://"
 #define SCHEMA_PIXMAP	"pixmap://"
 #define SCHEMA_SHM	"shm://"
+
+#define MAX_COLUMN 80
 
 /* End of a file */

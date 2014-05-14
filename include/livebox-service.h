@@ -197,6 +197,7 @@ extern int livebox_service_size_type(int width, int height);
  * \details N/A
  * \remarks N/A
  * \param[in] pkgid Livebox's appid
+ * \param[in] size_type Size of livebox to get its mouse_event option
  * \return int
  * \retval 1 if the box requires mouse event
  * \retval 0 if the box doesn't requires mouse event
@@ -205,7 +206,7 @@ extern int livebox_service_size_type(int width, int height);
  * \see livebox_service_touch_effect
  * \see livebox_service_need_frame
  */
-extern int livebox_service_mouse_event(const char *pkgid);
+extern int livebox_service_mouse_event(const char *pkgid, int size_type);
 
 /*!
  * \brief Is this livebox requires touch effect?

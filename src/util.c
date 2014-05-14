@@ -23,6 +23,9 @@
 #include <sys/statvfs.h>
 #include <time.h>
 
+#include <sqlite3.h>
+#include <unicode/uloc.h>
+
 #include <dlog.h>
 
 #include "util.h"
@@ -31,14 +34,14 @@
 
 int errno;
 #if defined(_USE_ECORE_TIME_GET)
-static struct {
+static struct info {
 	clockid_t type;
 } s_info = {
 	.type = CLOCK_MONOTONIC,
 };
 #endif
 
-static inline char *check_native_livebox(const char *pkgname)
+static char *check_native_livebox(const char *pkgname)
 {
 	int len;
 	char *path;
@@ -62,7 +65,7 @@ static inline char *check_native_livebox(const char *pkgname)
 	return path;
 }
 
-static inline char *check_web_livebox(const char *pkgname)
+static char *check_web_livebox(const char *pkgname)
 {
 	int len;
 	char *path;
