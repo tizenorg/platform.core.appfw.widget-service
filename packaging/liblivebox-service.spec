@@ -27,6 +27,10 @@ BuildRequires: pkgconfig(icu-uc)
 BuildRequires: pkgconfig(x11)
 %endif
 
+%if "%{sec_product_feature_livebox}" == "0"
+ExclusiveArch:
+%endif
+
 %description
 Service API for gathering information of installed liveboxes
 
