@@ -136,28 +136,28 @@ struct pkglist_handle;
  * @brief Gets the pixel size of given size type.
  * @details
  *  Size types would be\n
- *  LB_SIZE_TYPE_1x1\n
- *  LB_SIZE_TYPE_2x1\n
- *  LB_SIZE_TYPE_2x2\n
- *  LB_SIZE_TYPE_4x1\n
- *  LB_SIZE_TYPE_4x2\n
- *  LB_SIZE_TYPE_4x3\n
- *  LB_SIZE_TYPE_4x4\n
- *  LB_SIZE_TYPE_4x5\n
- *  LB_SIZE_TYPE_4x6\n
- *  LB_SIZE_TYPE_0x0\n
- *  LB_SIZE_TYPE_EASY_1x1\n
- *  LB_SIZE_TYPE_EASY_3x1\n
- *  LB_SIZE_TYPE_EASY_3x3.
+ *  #LB_SIZE_TYPE_1x1\n
+ *  #LB_SIZE_TYPE_2x1\n
+ *  #LB_SIZE_TYPE_2x2\n
+ *  #LB_SIZE_TYPE_4x1\n
+ *  #LB_SIZE_TYPE_4x2\n
+ *  #LB_SIZE_TYPE_4x3\n
+ *  #LB_SIZE_TYPE_4x4\n
+ *  #LB_SIZE_TYPE_4x5\n
+ *  #LB_SIZE_TYPE_4x6\n
+ *  #LB_SIZE_TYPE_0x0\n
+ *  #LB_SIZE_TYPE_EASY_1x1\n
+ *  #LB_SIZE_TYPE_EASY_3x1\n
+ *  #LB_SIZE_TYPE_EASY_3x3.
  * @param[in] type Size type
  * @param[out] width Pixel size width
  * @param[out] height Pixel size height
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_SUCCESS Successfully done
- * @see livebox_size_type
- * @see livebox_service_size_type
+ * @retval #LB_STATUS_SUCCESS Successfully done
+ * @see livebox_size_type()
+ * @see livebox_service_size_type()
  */
 extern int livebox_service_get_size(int type, int *width, int *height);
 
@@ -165,30 +165,30 @@ extern int livebox_service_get_size(int type, int *width, int *height);
  * @brief Gets the size type for given pixel size.
  * @details
  *  Returnable size types are\n
- *  LB_SIZE_TYPE_1x1\n
- *  LB_SIZE_TYPE_2x1\n
- *  LB_SIZE_TYPE_2x2\n
- *  LB_SIZE_TYPE_4x1\n
- *  LB_SIZE_TYPE_4x2\n
- *  LB_SIZE_TYPE_4x3\n
- *  LB_SIZE_TYPE_4x4\n
- *  LB_SIZE_TYPE_4x5\n
- *  LB_SIZE_TYPE_4x6\n
- *  LB_SIZE_TYPE_0x0\n
- *  LB_SIZE_TYPE_EASY_1x1\n
- *  LB_SIZE_TYPE_EASY_3x1\n
- *  LB_SIZE_TYPE_EASY_3x3\n
+ *  #LB_SIZE_TYPE_1x1\n
+ *  #LB_SIZE_TYPE_2x1\n
+ *  #LB_SIZE_TYPE_2x2\n
+ *  #LB_SIZE_TYPE_4x1\n
+ *  #LB_SIZE_TYPE_4x2\n
+ *  #LB_SIZE_TYPE_4x3\n
+ *  #LB_SIZE_TYPE_4x4\n
+ *  #LB_SIZE_TYPE_4x5\n
+ *  #LB_SIZE_TYPE_4x6\n
+ *  #LB_SIZE_TYPE_0x0\n
+ *  #LB_SIZE_TYPE_EASY_1x1\n
+ *  #LB_SIZE_TYPE_EASY_3x1\n
+ *  #LB_SIZE_TYPE_EASY_3x3\n
  *  or\n
- *  LB_SIZE_TYPE_UNKNOWN for error.
+ *  #LB_SIZE_TYPE_UNKNOWN for error.
  * @param[in] width Pixel size width
  * @param[in] height Pixel size height
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_SIZE_TYPE_[EASY_] WxH Size type of given pixel size
- * @retval LB_SIZE_TYPE_UNKNOWN If the given pixel size is not valid
- * @see livebox_size_type
- * @see livebox_service_get_size
+ * @retval #LB_SIZE_TYPE_[EASY_]WxH Size type of given pixel size
+ * @retval #LB_SIZE_TYPE_UNKNOWN If the given pixel size is not valid
+ * @see livebox_size_type()
+ * @see livebox_service_get_size()
  */
 extern int livebox_service_size_type(int width, int height);
 
@@ -200,8 +200,8 @@ extern int livebox_service_size_type(int width, int height);
  * @return int type
  * @retval 1 If the box requires mouse event, A viewer must has to feed the mouse event to the box instance
  * @retval 0 If the box doesn't requires mouse event
- * @see livebox_service_touch_effect
- * @see livebox_service_need_frame
+ * @see livebox_service_touch_effect()
+ * @see livebox_service_need_frame()
  */
 extern int livebox_service_mouse_event(const char *lbid, int size_type);
 
@@ -215,8 +215,8 @@ extern int livebox_service_mouse_event(const char *lbid, int size_type);
  * @return int type
  * @retval 1 If the box requires touch effect, A viewer should make the touch effect, but it is just recomendation.
  * @retval 0 If the box doesn't requires touch effect, the box will make touch effect itself
- * @see livebox_service_mouse_event
- * @see livebox_service_need_frame
+ * @see livebox_service_mouse_event()
+ * @see livebox_service_need_frame()
  */
 extern int livebox_service_touch_effect(const char *lbid, int size_type);
 
@@ -230,46 +230,46 @@ extern int livebox_service_touch_effect(const char *lbid, int size_type);
  * @return int type
  * @retval 1 If the box requires frame for decorating its contents
  * @retval 0 If the box doesn't requires frame
- * @see livebox_service_mouse_event
- * @see livebox_service_touch_effect
+ * @see livebox_service_mouse_event()
+ * @see livebox_service_touch_effect()
  */
 extern int livebox_service_need_frame(const char *lbid, int size_type);
 
 /**
  * @brief Triggers the update event for given livebox instance.
  * @param[in] lbid Livebox AppId
- * @param[in] instance_id Set NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
- * @param[in] cluster Cluster name. Default NULL
- * @param[in] category Category name, Default NULL
+ * @param[in] instance_id Set @c NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
+ * @param[in] cluster Cluster name. Default @c NULL
+ * @param[in] category Category name, Default @c NULL
  * @param[in] force 1 if you want to update your livebox even if the provider is paused or 0. 0 is default
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.service
  * @return int type
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
- * @retval LB_STATUS_ERROR_MEMORY Memory is not enough to make request
- * @retval LB_STATUS_ERROR_FAULT Failed to create a request packet
- * @retval LB_STATUS_SUCCESS Successfully requested
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
+ * @retval #LB_STATUS_ERROR_MEMORY Memory is not enough to make request
+ * @retval #LB_STATUS_ERROR_FAULT Failed to create a request packet
+ * @retval #LB_STATUS_SUCCESS Successfully requested
  */
 extern int livebox_service_trigger_update(const char *lbid, const char *instance_id, const char *cluster, const char *category, int force);
 
 /**
  * @brief Triggers the update event for given livebox instance.
  * @param[in] lbid Livebox AppId
- * @param[in] instance_id Set NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
- * @param[in] cluster Cluster name. Default NULL
- * @param[in] category Category name, Default NULL
- * @param[in] content New content information, Default NULL
+ * @param[in] instance_id Set @c NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
+ * @param[in] cluster Cluster name. Default @c NULL
+ * @param[in] category Category name, Default @c NULL
+ * @param[in] content New content information, Default @c NULL
  * @param[in] force 1 if you want to update your livebox even if the provider is paused or 0. 0 is default
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.service
  * @return int type
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
- * @retval LB_STATUS_ERROR_MEMORY Memory is not enough to make request
- * @retval LB_STATUS_ERROR_FAULT Failed to create a request packet
- * @retval LB_STATUS_SUCCESS Successfully requested
- * @see livebox_service_trigger_update
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
+ * @retval #LB_STATUS_ERROR_MEMORY Memory is not enough to make request
+ * @retval #LB_STATUS_ERROR_FAULT Failed to create a request packet
+ * @retval #LB_STATUS_SUCCESS Successfully requested
+ * @see livebox_service_trigger_update()
  */
 extern int livebox_service_trigger_update_with_content(const char *lbid, const char *instance_id, const char *cluster, const char *category, const char *content, int force);
 
@@ -281,10 +281,10 @@ extern int livebox_service_trigger_update_with_content(const char *lbid, const c
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.service
  * @return int type
- * @retval LB_STATUS_SUCCESS Successfully changed(requested)
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_FAULT Failed to create a request packet
- * @retval LB_STATUS_ERROR_MEMORY Not enough memory
+ * @retval #LB_STATUS_SUCCESS Successfully changed(requested)
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_FAULT Failed to create a request packet
+ * @retval #LB_STATUS_ERROR_MEMORY Not enough memory
  */
 extern int livebox_service_change_period(const char *lbid, const char *instance_id, double period);
 
@@ -301,10 +301,10 @@ extern int livebox_service_change_period(const char *lbid, const char *instance_
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_ERROR_IO Failed to access DB
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_IO Failed to access DB
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
  * @retval count Count of livebox packages
- * @see livebox_service_get_pkglist_by_pkgid
+ * @see livebox_service_get_pkglist_by_pkgid()
  */
 extern int livebox_service_get_pkglist(int (*cb)(const char *pkgid, const char *lbid, int is_prime, void *data), void *data);
 
@@ -320,11 +320,11 @@ extern int livebox_service_get_pkglist(int (*cb)(const char *pkgid, const char *
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_SUCCESS Status success
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_IO Failed to access DB
- * @retval LB_STATUS_ERROR_MEMORY Memory error
- * @retval LB_STATUS_ERROR_FAULT
+ * @retval #LB_STATUS_SUCCESS Status success
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_IO Failed to access DB
+ * @retval #LB_STATUS_ERROR_MEMORY Memory error
+ * @retval #LB_STATUS_ERROR_FAULT
  */
 extern int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data);
 
@@ -334,7 +334,7 @@ extern int livebox_service_get_applist(const char *lbid, void (*cb)(const char *
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
- * @retval NULL If it fails to get main application Id (UI-APPID)
+ * @retval @c NULL If it fails to get main application Id (UI-APPID)
  * @retval appid Main application Id
  */
 extern char *livebox_service_mainappid(const char *lbid);
@@ -353,9 +353,9 @@ extern char *livebox_service_mainappid(const char *lbid);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval int Count of livebox packages
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_IO Failed to access DB
- * @see livebox_service_get_pkglist
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_IO Failed to access DB
+ * @see livebox_service_get_pkglist()
  */
 extern int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *lbid, int is_prime, void *data), void *data);
 
@@ -372,9 +372,9 @@ extern int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(con
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int count
  * @retval Count of livebox packages
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_IO Failed to access DB
- * @see livebox_service_get_pkglist_by_pkgid
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_IO Failed to access DB
+ * @see livebox_service_get_pkglist_by_pkgid()
  */
 extern int livebox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *lbid, void *data), void *data);
 
@@ -384,10 +384,10 @@ extern int livebox_service_get_pkglist_by_category(const char *category, int (*c
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
- * @retval NULL Failed to get primary lbid
+ * @retval @c NULL Failed to get primary lbid
  * @retval lbid Primary livebox Id. which is allocated in the heap
  * @pre Must be released returned string by manually.
- * @see livebox_service_appid
+ * @see livebox_service_appid()
  */
 extern char *livebox_service_pkgname(const char *lbid);
 
@@ -408,11 +408,11 @@ extern int livebox_service_is_primary(const char *lbid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char *
- * @retval NULL Failed to get primary lbid
+ * @retval @c NULL Failed to get primary lbid
  * @retval category Category string which is allocated in the heap.
  * @pre Must be released returned string by manually
  * @post N/A
- * @see livebox_service_pkgname
+ * @see livebox_service_pkgname()
  */
 extern char *livebox_service_category(const char *lbid);
 
@@ -427,7 +427,7 @@ extern char *livebox_service_category(const char *lbid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
- * @retval NULL Failed to get provider name
+ * @retval @c NULL Failed to get provider name
  * @retval lbid Livebox AppId which is allocated on the heap
  * @post Returned string must be free'd manually.
  */
@@ -443,8 +443,8 @@ extern char *livebox_service_provider_name(const char *lbid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
- * @retval NULL There is no setup application
- * @retval appid AppId if exists or NULL
+ * @retval @c NULL There is no setup application
+ * @retval appid AppId if exists or @c NULL
  * @post Returned string must be free'd manually.
  */
 extern char *livebox_service_setup_appid(const char *lbid);
@@ -456,24 +456,24 @@ extern char *livebox_service_setup_appid(const char *lbid);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval appid String which is allocated in the heap
- * @retval NULL Invalid appid
+ * @retval @c NULL Invalid appid
  * @post Returned string must be free'd manually.
- * @see livebox_service_pkgname
+ * @see livebox_service_pkgname()
  */
 extern char *livebox_service_appid(const char *lbid);
 
 /**
  * @brief Gives Internationalized name of livebox package.
  * @param[in] lbid Livebox AppId
- * @param[in] lang Locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
+ * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval name If it fails to get name
- * @retval NULL Allocated heap address
+ * @retval @c NULL Allocated heap address
  * @post Returned string must be free'd by manually.
- * @see livebox_service_i18n_icon
- * @see livebox_service_preview
+ * @see livebox_service_i18n_icon()
+ * @see livebox_service_preview()
  */
 extern char *livebox_service_i18n_name(const char *lbid, const char *lang);
 
@@ -486,10 +486,10 @@ extern char *livebox_service_i18n_name(const char *lbid, const char *lang);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval path Preview image path
- * @retval NULL There is no preview image file
+ * @retval @c NULL There is no preview image file
  * @post Returned string must be free'd manually.
- * @see livebox_service_i18n_icon
- * @see livebox_service_i18n_name
+ * @see livebox_service_i18n_icon()
+ * @see livebox_service_i18n_name()
  */
 extern char *livebox_service_preview(const char *lbid, int size_type);
 
@@ -503,7 +503,7 @@ extern char *livebox_service_preview(const char *lbid, int size_type);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval content Content string
- * @retval NULL There is no specified content string
+ * @retval @c NULL There is no specified content string
  * @pre Manifest has the default content string. &lt;content&gt;Default content string&lt;content&gt; tag.
  * @post Returned string must be free'd manually.
  */
@@ -513,15 +513,15 @@ extern char *livebox_service_content(const char *lbid);
  * @brief Gives Internationalized icon path of given livebox package.
  * @details The user should free the returned string with free().
  * @param[in] lbid Livebox AppId (It must has to be a livebox package ID. not the UI-APP and the PACKAGE)
- * @param[in] lang Locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
+ * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval name Allocated heap address
- * @retval NULL Fails to get path of an icon
+ * @retval @c NULL Fails to get path of an icon
  * @post Returned string must be free'd manually.
- * @see livebox_service_i18n_name
- * @see livebox_service_preview
+ * @see livebox_service_i18n_name()
+ * @see livebox_service_preview()
  */
 extern char *livebox_service_i18n_icon(const char *pkgid, const char *lang);
 
@@ -544,7 +544,7 @@ extern int livebox_service_nodisplay(const char *lbid);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval abi String which is allocated in the heap
- * @retval NULL Failed to get ABI of given livebox
+ * @retval @c NULL Failed to get ABI of given livebox
  * @post Returned string must be free'd manually.
  */
 extern char *livebox_service_abi(const char *lbid);
@@ -569,10 +569,10 @@ extern int livebox_service_is_enabled(const char *lbid);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval string Script file path
- * @retval NULL Not specified script file
+ * @retval @c NULL Not specified script file
  * @pre Livebox should be developed as script type.
  * @post Return'd string must be free'd manually.
- * @see livebox_service_lb_script_group
+ * @see livebox_service_lb_script_group()
  */
 extern char *livebox_service_lb_script_path(const char *lbid);
 
@@ -583,10 +583,10 @@ extern char *livebox_service_lb_script_path(const char *lbid);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval Group Name of livebox
- * @retval NULL If there is no group defined
+ * @retval @c NULL If there is no group defined
  * @pre Livebox should be developed as script type.
  * @post Return'd string must be free'd manually.
- * @see livebox_service_lb_script_path
+ * @see livebox_service_lb_script_path()
  */
 extern char *livebox_service_lb_script_group(const char *lbid);
 
@@ -597,9 +597,9 @@ extern char *livebox_service_lb_script_group(const char *lbid);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval string Script file path
- * @retval NULL No specified script file for PD layout
+ * @retval @c NULL No specified script file for PD layout
  * @post Returned string must be free'd manually.
- * @see livebox_service_pd_script_group
+ * @see livebox_service_pd_script_group()
  */
 extern char *livebox_service_pd_script_path(const char *lbid);
 
@@ -610,9 +610,9 @@ extern char *livebox_service_pd_script_path(const char *lbid);
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval string Script group name
- * @retval NULL No script path
+ * @retval @c NULL No script path
  * @post Returned string must be free'd manually.
- * @see livebox_service_pd_script_path
+ * @see livebox_service_pd_script_path()
  */
 extern char *livebox_service_pd_script_group(const char *lbid);
 
@@ -628,10 +628,10 @@ extern char *livebox_service_pd_script_group(const char *lbid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_SUCCESS If succeed to get supported size list
- * @retval LB_STATUS_ERROR_IO Failed to access DB
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @see livebox_service_get_supported_size_types
+ * @retval #LB_STATUS_SUCCESS If succeed to get supported size list
+ * @retval #LB_STATUS_ERROR_IO Failed to access DB
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @see livebox_service_get_supported_size_types()
  */
 extern int livebox_service_get_supported_sizes(const char *lbid, int *cnt, int *w, int *h);
 
@@ -644,10 +644,10 @@ extern int livebox_service_get_supported_sizes(const char *lbid, int *cnt, int *
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_IO Failed to access DB
- * @retval LB_STATUS_SUCCESS Successfully done
- * @see livebox_service_get_supported_sizes
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_IO Failed to access DB
+ * @retval #LB_STATUS_SUCCESS Successfully done
+ * @see livebox_service_get_supported_sizes()
  */
 extern int livebox_service_get_supported_size_types(const char *lbid, int *cnt, int *types);
 
@@ -659,10 +659,10 @@ extern int livebox_service_get_supported_size_types(const char *lbid, int *cnt, 
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_SUCCESS Successfully done
- * @retval LB_STATUS_ERROR_IO Failed to access DB
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @see livebox_service_enumerate_cluster_list
+ * @retval #LB_STATUS_SUCCESS Successfully done
+ * @retval #LB_STATUS_ERROR_IO Failed to access DB
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @see livebox_service_enumerate_cluster_list()
  */
 extern int livebox_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data);
 
@@ -673,10 +673,10 @@ extern int livebox_service_enumerate_category_list(const char *cluster, int (*cb
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_IO Failed to access DB
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_IO Failed to access DB
  * @retval count Count of category items
- * @see livebox_service_enumerate_category_list
+ * @see livebox_service_enumerate_category_list()
  */
 extern int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data);
 
@@ -691,9 +691,9 @@ extern int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster,
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_SUCCESS Succeed to initialize
- * @retval LB_STATUS_ERROR_IO Failed to access a DB
- * @see livebox_service_fini
+ * @retval #LB_STATUS_SUCCESS Succeed to initialize
+ * @retval #LB_STATUS_ERROR_IO Failed to access a DB
+ * @see livebox_service_fini()
  */
 extern int livebox_service_init(void);
 
@@ -702,10 +702,10 @@ extern int livebox_service_init(void);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_SUCCESS Succeed to finalize
- * @retval LB_STATUS_ERROR_IO Failed to close the DB (access failed to DB)
+ * @retval #LB_STATUS_SUCCESS Succeed to finalize
+ * @retval #LB_STATUS_ERROR_IO Failed to close the DB (access failed to DB)
  * @pre Livebox_service_init.
- * @see livebox_service_init
+ * @see livebox_service_init()
  */
 extern int livebox_service_fini(void);
 
@@ -721,32 +721,32 @@ extern int livebox_service_fini(void);
  *    If you call this function again using created pkglist handle, it will be reset.
  *    So you can get records from the first one again.
  * @param[in] lbid Livebox AppId
- * @param[in] handle NULL if you call this first, or it will be reset
+ * @param[in] handle @c NULL if you call this first, or it will be reset
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return handle
- * @retval NULL If it fails
+ * @retval @c NULL If it fails
  * @retval handle If it successfully create the package list iterator
- * @see livebox_service_pkglist_destroy
+ * @see livebox_service_pkglist_destroy()
  */
 extern struct pkglist_handle *livebox_service_pkglist_create(const char *lbid, struct pkglist_handle *handle);
 
 /**
  * @brief Gets the lbid & package name & is_prime flag.
- * @param[in] handle Handle which is created by livebox_service_pkglist_create function
+ * @param[in] handle Handle which is created by livebox_service_pkglist_create() function
  * @param[out] lbid  Livebox Id
  * @param[out] pkgname Package Id which includes liveboxes
  * @param[out] is_prime If the returned lbid is primary, this will be 1 or 0
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_SUCCESS Successfully get the record
- * @retval LB_STATUS_ERROR_INVALID Invalid argument
- * @retval LB_STATUS_ERROR_NOT_EXIST Reach to the end of result set. you can rewind the iterator call livebox_service_pkglist_create again with current handle
- * @retval LB_STATUS_ERROR_MEMORY Not enough memory
+ * @retval #LB_STATUS_SUCCESS Successfully get the record
+ * @retval #LB_STATUS_ERROR_INVALID Invalid argument
+ * @retval #LB_STATUS_ERROR_NOT_EXIST Reach to the end of result set. you can rewind the iterator call livebox_service_pkglist_create() again with current handle
+ * @retval #LB_STATUS_ERROR_MEMORY Not enough memory
  * @post You must release the lbid, pkgname manually.
- * @see livebox_service_pkglist_create
- * @see livebox_service_pkglist_destroy
+ * @see livebox_service_pkglist_create()
+ * @see livebox_service_pkglist_destroy()
  */
 extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char **lbid, char **pkgname, int *is_prime);
 
@@ -756,11 +756,11 @@ extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char 
  * @privlevel public
  * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
- * @retval LB_STATUS_ERROR_INVALID Invalid handle
- * @retval LB_STATUS_SUCCESS Successfully destroyed
- * @pre Handle must be created by livebox_service_pkglist_create.
+ * @retval #LB_STATUS_ERROR_INVALID Invalid handle
+ * @retval #LB_STATUS_SUCCESS Successfully destroyed
+ * @pre Handle must be created by livebox_service_pkglist_create().
  * @post You have not to use the handle again after destroy it.
- * @see livebox_service_pkglist_create
+ * @see livebox_service_pkglist_create()
  */
 extern int livebox_service_pkglist_destroy(struct pkglist_handle *handle);
 

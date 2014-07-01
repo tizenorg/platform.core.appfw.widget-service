@@ -38,7 +38,7 @@ extern "C" {
  * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.info
  * @return char * type
  * @retval path String which is allocated on the heap
- * @retval NULL No libexec attribute
+ * @retval @c NULL No libexec attribute
  * @post Returned string must be free'd manually.
  */
 extern char *livebox_service_libexec(const char *lbid);
@@ -51,9 +51,9 @@ extern char *livebox_service_libexec(const char *lbid);
  * @privlevel platform
  * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.info
  * @return char *
- * @retval NULL if it fails to get pkgname
+ * @retval @c NULL if it fails to get pkgname
  * @retval address heap address of pkgname
- * @post return'd string should be released via "free"
+ * @post return'd string should be released by "free()"
  */
 extern char *livebox_service_pkgname_by_libexec(const char *libexec);
 
