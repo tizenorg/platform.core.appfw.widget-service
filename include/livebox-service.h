@@ -135,7 +135,7 @@ struct pkglist_handle;
 /**
  * @brief Gets the pixel size of given size type.
  * @details
- *  Size types can be (defined in liblivebox-service pakcage, include livebox-service.h)\n
+ *  Size types would be\n
  *  LB_SIZE_TYPE_1x1\n
  *  LB_SIZE_TYPE_2x1\n
  *  LB_SIZE_TYPE_2x2\n
@@ -152,6 +152,8 @@ struct pkglist_handle;
  * @param[in] type Size type
  * @param[out] width Pixel size width
  * @param[out] height Pixel size height
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_SUCCESS Successfully done
  * @see livebox_size_type
@@ -162,7 +164,7 @@ extern int livebox_service_get_size(int type, int *width, int *height);
 /**
  * @brief Gets the size type for given pixel size.
  * @details
- *  Returnable size types are (defined in liblivebox-service pakcage, include livebox-service.h)\n
+ *  Returnable size types are\n
  *  LB_SIZE_TYPE_1x1\n
  *  LB_SIZE_TYPE_2x1\n
  *  LB_SIZE_TYPE_2x2\n
@@ -180,6 +182,8 @@ extern int livebox_service_get_size(int type, int *width, int *height);
  *  LB_SIZE_TYPE_UNKNOWN for error.
  * @param[in] width Pixel size width
  * @param[in] height Pixel size height
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_SIZE_TYPE_[EASY_] WxH Size type of given pixel size
  * @retval LB_SIZE_TYPE_UNKNOWN If the given pixel size is not valid
@@ -191,6 +195,8 @@ extern int livebox_service_size_type(int width, int height);
 /**
  * @brief Supports the mouse event of livebox content.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval 1 If the box requires mouse event, A viewer must has to feed the mouse event to the box instance
  * @retval 0 If the box doesn't requires mouse event
@@ -204,6 +210,8 @@ extern int livebox_service_mouse_event(const char *lbid, int size_type);
  * @details If this API returns true(1), the viewer should make touch effect when a user click the livebox.
  * @param[in] lbid Livebox AppId
  * @param[in] size_type Size type
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval 1 If the box requires touch effect, A viewer should make the touch effect, but it is just recomendation.
  * @retval 0 If the box doesn't requires touch effect, the box will make touch effect itself
@@ -217,6 +225,8 @@ extern int livebox_service_touch_effect(const char *lbid, int size_type);
  * @details If this API returns true(1), the viewer should make decoration border on the livebox content.
  * @param[in] lbid Livebox AppId
  * @param[in] size_type Size type
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval 1 If the box requires frame for decorating its contents
  * @retval 0 If the box doesn't requires frame
@@ -232,6 +242,8 @@ extern int livebox_service_need_frame(const char *lbid, int size_type);
  * @param[in] cluster Cluster name. Default NULL
  * @param[in] category Category name, Default NULL
  * @param[in] force 1 if you want to update your livebox even if the provider is paused or 0. 0 is default
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.service
  * @return int type
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
@@ -249,6 +261,8 @@ extern int livebox_service_trigger_update(const char *lbid, const char *instance
  * @param[in] category Category name, Default NULL
  * @param[in] content New content information, Default NULL
  * @param[in] force 1 if you want to update your livebox even if the provider is paused or 0. 0 is default
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.service
  * @return int type
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
@@ -264,6 +278,8 @@ extern int livebox_service_trigger_update_with_content(const char *lbid, const c
  * @param[in] lbid Livebox AppId
  * @param[in] instance_id Livebox instance id
  * @param[in] period New update period in sec
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.service
  * @return int type
  * @retval LB_STATUS_SUCCESS Successfully changed(requested)
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -282,6 +298,8 @@ extern int livebox_service_change_period(const char *lbid, const char *instance_
  *        If the callback returns negative value, the list crawling will be stopped.
  * @param[in] cb Callback function
  * @param[in] data Callback data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_ERROR_IO Failed to access DB
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -299,6 +317,8 @@ extern int livebox_service_get_pkglist(int (*cb)(const char *pkgid, const char *
  * @param[in] lbid Livebox App Id
  * @param[in] cb Callback function
  * @param[in] data Callback Data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_SUCCESS Status success
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -311,6 +331,8 @@ extern int livebox_service_get_applist(const char *lbid, void (*cb)(const char *
 /**
  * @brief Gets the MAIN application Id of given livebox package Id.
  * @param[in] lbid Livebox Package Id
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval NULL If it fails to get main application Id (UI-APPID)
  * @retval appid Main application Id
@@ -327,6 +349,8 @@ extern char *livebox_service_mainappid(const char *lbid);
  * @param[in] pkgid Package Id (Not the UI App Id)
  * @param[in] cb Callback function
  * @param[in] data Callback data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval int Count of livebox packages
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -344,6 +368,8 @@ extern int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(con
  * @param[in] category Name of category
  * @param[in] cb Callback function
  * @param[in] data Callback data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int count
  * @retval Count of livebox packages
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -355,6 +381,8 @@ extern int livebox_service_get_pkglist_by_category(const char *category, int (*c
 /**
  * @brief Gets the lbid of a primary livebox using given lbid or pkgid or UI appid.
  * @param[in] id Livebox Id or Package Id
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval NULL Failed to get primary lbid
  * @retval lbid Primary livebox Id. which is allocated in the heap
@@ -366,6 +394,8 @@ extern char *livebox_service_pkgname(const char *lbid);
 /**
  * @brief Checks the primary flag of given livebox Id.
  * @param[in] lbid Livebox Id
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval 0 If is not a primary
  * @retval 1 If it is a primary livebox
@@ -375,6 +405,8 @@ extern int livebox_service_is_primary(const char *lbid);
 /**
  * @brief Get the category using given lbid.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char *
  * @retval NULL Failed to get primary lbid
  * @retval category Category string which is allocated in the heap.
@@ -392,6 +424,8 @@ extern char *livebox_service_category(const char *lbid);
  *    If the given lbid is inhouse livebox, the return string will be the same with given argument but it is allocated in the heap.\n
  *    So you have to free it if you don't need it anymore.
  * @param[in] lbid Livebox Id
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval NULL Failed to get provider name
  * @retval lbid Livebox AppId which is allocated on the heap
@@ -406,6 +440,8 @@ extern char *livebox_service_provider_name(const char *lbid);
  *    This function should be called before add a livebox.
  *    To determine the content information string.
  * @param[in] lbid Livebox Id
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval NULL There is no setup application
  * @retval appid AppId if exists or NULL
@@ -416,6 +452,8 @@ extern char *livebox_service_setup_appid(const char *lbid);
 /**
  * @brief Gets the Package Id (Not the UI App Id) of given livebox, &lt;manifest package="AAA"&gt; tag.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval appid String which is allocated in the heap
  * @retval NULL Invalid appid
@@ -428,6 +466,8 @@ extern char *livebox_service_appid(const char *lbid);
  * @brief Gives Internationalized name of livebox package.
  * @param[in] lbid Livebox AppId
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval name If it fails to get name
  * @retval NULL Allocated heap address
@@ -442,6 +482,8 @@ extern char *livebox_service_i18n_name(const char *lbid, const char *lang);
  * @details This function will returns i18nized preview image path.
  * @param[in] lbid Livebox AppId
  * @param[in] size_type Livebox size type
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval path Preview image path
  * @retval NULL There is no preview image file
@@ -457,6 +499,8 @@ extern char *livebox_service_preview(const char *lbid, int size_type);
  *    If the user defines the default content string in the manifest file (.xml),
  *    this API will return it.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval content Content string
  * @retval NULL There is no specified content string
@@ -470,6 +514,8 @@ extern char *livebox_service_content(const char *lbid);
  * @details The user should free the returned string with free().
  * @param[in] lbid Livebox AppId (It must has to be a livebox package ID. not the UI-APP and the PACKAGE)
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is NULL, function will use the system locale automatically
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval name Allocated heap address
  * @retval NULL Fails to get path of an icon
@@ -480,18 +526,10 @@ extern char *livebox_service_content(const char *lbid);
 extern char *livebox_service_i18n_icon(const char *pkgid, const char *lang);
 
 /**
- * @brief Gets the path of the plug-in module.
- * @param[in] lbid Livebox AppId
- * @return char * type
- * @retval path String which is allocated on the heap
- * @retval NULL No libexec attribute
- * @post Returned string must be free'd manually.
- */
-extern char *livebox_service_libexec(const char *lbid);
-
-/**
  * @brief Gets the "nodisplay" value.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval 1 The box should not be listed by the livebox list app
  * @retval 0 Box should be listed
@@ -502,6 +540,8 @@ extern int livebox_service_nodisplay(const char *lbid);
 /**
  * @brief Gets the "ABI" of given package.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval abi String which is allocated in the heap
  * @retval NULL Failed to get ABI of given livebox
@@ -514,6 +554,8 @@ extern char *livebox_service_abi(const char *lbid);
  * @details Currently this API is not implemented. It just returns 1 all the time.
  * @remarks This API is not implemented. It will always return 1.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval 1 Enabled
  * @retval 0 Disabled
@@ -523,6 +565,8 @@ extern int livebox_service_is_enabled(const char *lbid);
 /**
  * @brief Gets the script file of livebox.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval string Script file path
  * @retval NULL Not specified script file
@@ -535,6 +579,8 @@ extern char *livebox_service_lb_script_path(const char *lbid);
 /**
  * @brief Gets the script group of livebox.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval Group Name of livebox
  * @retval NULL If there is no group defined
@@ -547,6 +593,8 @@ extern char *livebox_service_lb_script_group(const char *lbid);
 /**
  * @brief Gets the script file path of given livebox package.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval string Script file path
  * @retval NULL No specified script file for PD layout
@@ -558,6 +606,8 @@ extern char *livebox_service_pd_script_path(const char *lbid);
 /**
  * @brief Gets the group name for script file to load it.
  * @param[in] lbid Livebox AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return char * type
  * @retval string Script group name
  * @retval NULL No script path
@@ -575,6 +625,8 @@ extern char *livebox_service_pd_script_group(const char *lbid);
  * @param[out] cnt Count of array w and h
  * @param[out] w Width array
  * @param[out] h Height array
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_SUCCESS If succeed to get supported size list
  * @retval LB_STATUS_ERROR_IO Failed to access DB
@@ -589,6 +641,8 @@ extern int livebox_service_get_supported_sizes(const char *lbid, int *cnt, int *
  * @param[in] cnt Size of types array
  * @param[out] cnt Result count of types array
  * @param[out] types Array of types
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_IO Failed to access DB
@@ -602,6 +656,8 @@ extern int livebox_service_get_supported_size_types(const char *lbid, int *cnt, 
  * @param[in] cluster Cluster name
  * @param[in] cb Callback function
  * @param[in] data Callback data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_SUCCESS Successfully done
  * @retval LB_STATUS_ERROR_IO Failed to access DB
@@ -614,6 +670,8 @@ extern int livebox_service_enumerate_category_list(const char *cluster, int (*cb
  * @brief Gets the cluster list.
  * @param[in] cb Callback function for retrieving the cluster list
  * @param[in] data Callback data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
  * @retval LB_STATUS_ERROR_IO Failed to access DB
@@ -630,6 +688,8 @@ extern int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster,
  *    using this, initate the livebox service is more benefical to you.\n
  *    This API will prepare the DB operation, if you don't initiate the livebox service,
  *    every API which are related with DB operation will open DB and close it before return from it.
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_SUCCESS Succeed to initialize
  * @retval LB_STATUS_ERROR_IO Failed to access a DB
@@ -639,6 +699,8 @@ extern int livebox_service_init(void);
 
 /**
  * @brief Finalizes the livebox service API.
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_SUCCESS Succeed to finalize
  * @retval LB_STATUS_ERROR_IO Failed to close the DB (access failed to DB)
@@ -660,6 +722,8 @@ extern int livebox_service_fini(void);
  *    So you can get records from the first one again.
  * @param[in] lbid Livebox AppId
  * @param[in] handle NULL if you call this first, or it will be reset
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return handle
  * @retval NULL If it fails
  * @retval handle If it successfully create the package list iterator
@@ -673,6 +737,8 @@ extern struct pkglist_handle *livebox_service_pkglist_create(const char *lbid, s
  * @param[out] lbid  Livebox Id
  * @param[out] pkgname Package Id which includes liveboxes
  * @param[out] is_prime If the returned lbid is primary, this will be 1 or 0
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_SUCCESS Successfully get the record
  * @retval LB_STATUS_ERROR_INVALID Invalid argument
@@ -687,6 +753,8 @@ extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char 
 /**
  * @brief Destroys the iterator of pkglist.
  * @param[in] handle Package list handle
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
  * @return int type
  * @retval LB_STATUS_ERROR_INVALID Invalid handle
  * @retval LB_STATUS_SUCCESS Successfully destroyed
@@ -695,18 +763,6 @@ extern int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char 
  * @see livebox_service_pkglist_create
  */
 extern int livebox_service_pkglist_destroy(struct pkglist_handle *handle);
-
-/**
- * @brief Find the lbid using its libexec
- * @details only if the livebox should use the "libexec" attribute in its "<livebox>" tag
- * @remars Only usable for inhouse liveboxes
- * @param[in] libexec so filename
- * @return char *
- * @retval NULL if it fails to get pkgname
- * @retval address heap address of pkgname
- * @post return'd string should be released via "free"
- */
-extern char *livebox_service_pkgname_by_libexec(const char *libexec);
 
 /*@
  * @}

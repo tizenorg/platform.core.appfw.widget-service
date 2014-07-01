@@ -88,6 +88,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/livebox-service/livebox-service.h
+%{_includedir}/livebox-service/livebox-service_product.h
 %{_includedir}/livebox-service/livebox-errno.h
 %{_libdir}/pkgconfig/*.pc
 
