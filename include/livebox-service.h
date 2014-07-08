@@ -820,6 +820,18 @@ extern int livebox_service_pkglist_destroy(struct pkglist_handle *handle);
  */
 extern char *livebox_service_pkgname_by_libexec(const char *libexec);
 
+/**
+ * @brief Getting the activated instance count.
+ * @param[in] lbid Livebox Id, if you want to get whole instnaces list, use NULL.
+ * @param[in] cluster Cluster name if you don't know what this is, use NULL.
+ * @param[in] category Sub-cluster(category) name if you don't know what this is, use NULL.
+ * @return count of instances
+ * @retval #LB_STATUS_ERROR_INVALID Invalid parameter
+ * @retval #LB_STATUS_ERROR_FAULT Unrecorvarable error occurred
+ * @retval count Positive value including ZERO, Count of activated instances on viewers
+ */
+extern int livebox_service_get_instance_count(const char *lbid, const char *cluster, const char *category);
+
 /*!
  * \}
  */
