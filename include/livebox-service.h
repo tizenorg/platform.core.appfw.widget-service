@@ -770,7 +770,7 @@ extern int livebox_service_pkglist_destroy(struct pkglist_handle *handle);
  * @param[in] cluster Cluster name if you don't know what this is, use NULL.
  * @param[in] category Sub-cluster(category) name if you don't know what this is, use NULL.
  * @privlevel public
- * @privilege %http://tizen.org/privilege/core/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.service
  * @return count of instances
  * @retval #LB_STATUS_ERROR_INVALID Invalid parameter
  * @retval #LB_STATUS_ERROR_FAULT Unrecorvarable error occurred
