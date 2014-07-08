@@ -211,6 +211,36 @@ EAPI int livebox_service_change_period(const char *pkgname, const char *id, doub
 	return ret;
 }
 
+EAPI int livebox_service_get_instance_count(const char *pkgname, const char *cluster, const char *category)
+{
+	struct packet *packet;
+	struct packet *result;
+	char *uri;
+	int ret;
+
+	packet = packet_create("service_inst_cnt", "sssd", pkgname, cluster, category, util_timestamp());
+	if (!packet) {
+		ErrPrint("Failed to create a packet for period changing\n");
+		return LB_STATUS_ERROR_FAULT;
+	}
+
+	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
+	packet_unref(packet);
+
+	if (result) {
+		if (packet_get(result, "i", &ret) != 1) {
+			ErrPRint("Failed to parse a result packet\n");
+			ret = LB_STATUS_ERROR_INVALID;
+		}
+		packet_unref(result);
+	} else {
+		ErrPrint("Failed to get result packet\n");
+		ret = LB_STATUS_ERROR_FAULT;
+	}
+
+	return ret;
+}
+
 EAPI int livebox_service_trigger_update_with_content(const char *pkgname, const char *id, const char *cluster, const char *category, const char *content, int force)
 {
 	struct packet *packet;
