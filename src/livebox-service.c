@@ -215,6 +215,7 @@ EAPI int livebox_service_get_instance_count(const char *pkgname, const char *clu
 {
 	struct packet *packet;
 	struct packet *result;
+	char *uri;
 	int ret;
 
 	packet = packet_create("service_inst_cnt", "sssd", pkgname, cluster, category, util_timestamp());
@@ -228,7 +229,7 @@ EAPI int livebox_service_get_instance_count(const char *pkgname, const char *clu
 
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
-			ErrPrint("Failed to parse a result packet\n");
+			ErrPRint("Failed to parse a result packet\n");
 			ret = LB_STATUS_ERROR_INVALID;
 		}
 		packet_unref(result);
