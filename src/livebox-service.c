@@ -215,7 +215,6 @@ EAPI int livebox_service_get_instance_count(const char *pkgname, const char *clu
 {
 	struct packet *packet;
 	struct packet *result;
-	char *uri;
 	int ret;
 
 	packet = packet_create("service_inst_cnt", "sssd", pkgname, cluster, category, util_timestamp());
