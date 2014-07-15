@@ -229,7 +229,7 @@ EAPI int livebox_service_get_instance_count(const char *pkgname, const char *clu
 
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
-			ErrPRint("Failed to parse a result packet\n");
+			ErrPrint("Failed to parse a result packet\n");
 			ret = LB_STATUS_ERROR_INVALID;
 		}
 		packet_unref(result);
