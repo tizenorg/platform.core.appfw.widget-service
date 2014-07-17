@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-/*!
- * \ingroup CAPI_LIVEBOX_FRAMEWORK
- * \defgroup CAPI_LIVEBOX_SERVICE_MODULE Livebox Service
- * \brief Access the livebox manifest data.
- * \section CAPI_LIVEBOX_SERVICE_MODULE_HEADER Required Header
- * \#include <livebox-service.h>
- * \section CAPI_LIVEBOX_SERVICE_MOUDLE_OVERVIEW Overview
- * \brief
- * Livebox Service API supporting various kinds of DB access operations.
+#ifndef __LIVEBOX_SERVICE_DOC_H__
+#define __LIVEBOX_SERVICE_DOC_H__
+
+/**
+ * @defgroup DYNAMICBOX_SERVICE_MODULE Dynamic Box
+ * @brief To get the information of installed Dynamic Boxes
+ * @ingroup CAPI_DYNAMICBOX_FRAMEWORK 
+ * @section DYNAMICBOX_SERVICE_MODULE_HEADER Required Header
+ *   \#include <livebox-service.h>
+ *   \#include <livebox-errno.h>
+ * @section DYNAMICBOX_SERVICE_MODULE_OVERVIEW Overview
+ *
  */
+
+#endif
