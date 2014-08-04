@@ -777,6 +777,21 @@ extern int livebox_service_pkglist_destroy(struct pkglist_handle *handle);
  * @retval count Positive value including ZERO, Count of activated instances on viewers
  */
 extern int livebox_service_get_instance_count(const char *lbid, const char *cluster, const char *category);
+
+/**
+ * @brief Getting the max count of creatable instances.
+ * @param[in] lbid Livebox Id
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/core/dynamicbox.info
+ * @return int count of boxes
+ * @retval 0 Instance count is not limited
+ * @retval >0 Instance count is limited to >0
+ * @retval #LB_STATUS_ERROR_INVALID invalid parameter
+ * @retval #LB_STATUS_ERROR_IO Unable to access DB
+ * @see livebox_service_get_instance_count()
+ */
+extern int livebox_service_max_instance_count(const char *lbid);
+
 /*@
  * @}
  */
