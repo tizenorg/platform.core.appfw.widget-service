@@ -17,6 +17,14 @@
 
 int errno;
 
+static struct {
+	int w;
+	int h;
+} s_info = {
+	.w = 0,
+	.h = 0,
+};
+
 static int update_info(struct supported_size_list *SIZE_LIST, int width_type, int height_type, int width, int height)
 {
 	int idx;
@@ -164,9 +172,17 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 				status = EOL;
 
 				if (sscanf(buffer, "%dx%d", &width, &height) != 2) {
-					ErrPrint("Invalid syntax: [%s]\n", buffer);
-					status = ERROR;
-				} else if (ch == EOF) {
+					if (!strncasecmp(buffer, "screen", strlen("screen"))) {
+						width = s_info.w;
+						height = s_info.h;
+						DbgPrint("Select screen size: %dx%d\n", width, height);
+					} else {
+						ErrPrint("Invalid syntax: [%s]\n", buffer);
+						status = ERROR;
+					}
+				}
+
+				if (status != ERROR && ch == EOF) {
 					if (info->base_parse) {
 						info->base_w = width;
 						info->base_h = height;
@@ -183,7 +199,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 				updated += update_info(SIZE_LIST, width_type, height_type, width, height);
 			} else {
 				info->base_w = width;
-				info->base_h =  height;
+				info->base_h = height;
 			}
 			status = START;
 			ungetc(ch, fp);
@@ -239,6 +255,9 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 		XCloseDisplay(disp);
 		return LB_STATUS_ERROR_FAULT;
 	}
+
+	s_info.w = width;
+	s_info.h = height;
 
 	if (update_from_file(info, SIZE_LIST) == 0) {
 		DbgPrint("Resolution info is all updated by file\n");

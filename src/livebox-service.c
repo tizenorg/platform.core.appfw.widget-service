@@ -2547,6 +2547,60 @@ out:
 	return group;
 }
 
+EAPI int livebox_service_max_instance_count(const char *lbid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+
+	if (!lbid) {
+		ErrPrint("Invalid parameters\n");
+		return LB_STATUS_ERROR_INVALID;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return LB_STATUS_ERROR_IO;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT count FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = LB_STATUS_ERROR_FAULT;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = LB_STATUS_ERROR_FAULT;
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = LB_STATUS_ERROR_IO;
+		goto out;
+	}
+
+	ret = sqlite3_column_int(stmt, 0);
+	if (ret < 0) {
+		ErrPrint("Getting invalid value: %d\n", ret);
+		ret = LB_STATUS_ERROR_IO;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
 EAPI int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data)
 {
 	sqlite3_stmt *stmt;
