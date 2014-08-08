@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
+#include <unistd.h> // access
+#include <stdlib.h> // free
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -14,6 +16,8 @@
 #include "util.h"
 #include "livebox-service.h"
 #include "debug.h"
+
+#define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/resolution.ini"
 
 int errno;
 
@@ -227,6 +231,36 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 	return NR_OF_SIZE_LIST - updated;
 }
 
+/*
+ * Find proper configuration and install(link) it to conf path.
+ */
+static char *conf_path(void)
+{
+	char *path;
+	int length;
+
+	length = strlen(CONF_PATH_FORMAT) + 12;	// 12 == RESERVED SPACE
+	path = calloc(1, length);
+	if (!path) {
+		ErrPrint("calloc: %s\n", strerror(errno));
+		return NULL;
+	}
+
+	snprintf(path, length, CONF_PATH_FORMAT, s_info.w, s_info.h);
+	DbgPrint("Selected conf file: %s\n", path);
+	if (access(path, F_OK) != 0) {
+		ErrPrint("Fallback to default, access: %s\n", strerror(errno));
+		strncpy(path, RESOLUTION_FILE, length);
+		if (access(path, F_OK) != 0) {
+			ErrPrint("Serious error - there is no conf file, use default setting: %s\n", strerror(errno));
+			free(path);
+			path = NULL;
+		}
+	}
+
+	return path;
+}
+
 int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST)
 {
 	Display *disp;
@@ -259,13 +293,21 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	s_info.w = width;
 	s_info.h = height;
 
-	if (update_from_file(info, SIZE_LIST) == 0) {
-		DbgPrint("Resolution info is all updated by file\n");
+	if (!info->conf_file) {
+		info->conf_file = conf_path();
 	}
 
-	for (i = 0; i < NR_OF_SIZE_LIST; i++) {
-		SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)info->base_w);
-		SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)info->base_w);
+	if (info->conf_file) {
+		if (update_from_file(info, SIZE_LIST) == 0) {
+			DbgPrint("Resolution info is all updated by file\n");
+		}
+
+		for (i = 0; i < NR_OF_SIZE_LIST; i++) {
+			SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)info->base_w);
+			SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)info->base_w);
+		}
+	} else {
+		DbgPrint("Conf file is not loaded\n");
 	}
 
 	XCloseDisplay(disp);
