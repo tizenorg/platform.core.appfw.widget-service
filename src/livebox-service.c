@@ -73,7 +73,7 @@ struct pkglist_handle {
 static struct service_info s_info = {
 	.handle = NULL,
 	.dbfile = DB_FILE, 
-	.conf_file = RESOLUTION_FILE,
+	.conf_file = NULL,
 	.init_count = 0,
 
 	.iso3lang = NULL,
