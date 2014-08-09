@@ -16,7 +16,7 @@
 #include "livebox-service.h"
 #include "livebox-service_product.h"
 
-#include "dynamicbox-service.h"
+#include "dynamicbox_service.h"
 
 
 #define EAPI __attribute__((visibility("default")))

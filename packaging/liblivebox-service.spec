@@ -91,5 +91,8 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %{_includedir}/livebox-service/livebox-service_product.h
 %{_includedir}/livebox-service/livebox-errno.h
 %{_libdir}/pkgconfig/*.pc
+%{_includedir}/dynamicbox_service/dynamicbox_service.h
+%{_includedir}/dynamicbox_service/dynamicbox_service_product.h
+%{_includedir}/dynamicbox_service/dynamicbox_errno.h
 
 # End of a file
