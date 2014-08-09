@@ -61,6 +61,7 @@ SET(BUILD_SOURCE
 	src/dlist.c
 	src/livebox-service.c
 	src/util.c
+	src2/dynamicbox-service.c
 )
 
 IF (X11_SUPPORT)
