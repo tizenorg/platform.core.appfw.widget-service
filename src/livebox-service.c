@@ -2696,13 +2696,13 @@ EAPI int livebox_service_init(void)
 	if (s_info.handle) {
 		DbgPrint("Already initialized\n");
 		s_info.init_count++;
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	s_info.handle = open_db();
 	if (s_info.handle) {
 		s_info.init_count++;
-		return 0;
+		return LB_STATUS_SUCCESS;
 	}
 
 	return LB_STATUS_ERROR_IO;
