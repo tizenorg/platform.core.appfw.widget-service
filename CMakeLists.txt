@@ -98,7 +98,6 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/livebox-service_product.h DESTINATION 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/livebox-errno.h DESTINATION include/${PROJECT_NAME})
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_service.h DESTINATION include/dynamicbox_service)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_service_product.h DESTINATION include/dynamicbox_service)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_errno.h DESTINATION include/dynamicbox_service)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "libdynamicbox_service")
 

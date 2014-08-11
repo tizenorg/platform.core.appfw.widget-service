@@ -759,7 +759,36 @@ extern int dynamicbox_service_pkglist_destroy(struct pkglist_handle *handle);
  * @retval count Positive value including ZERO, Count of activated instances on viewers
  */
 extern int dynamicbox_service_get_instance_count(const char *dboxid, const char *cluster, const char *category);
-/*@
+
+/**
+ * @internal
+ * @brief Gets the path of the plug-in module.
+ * @param[in] lbid Dynamicbox AppId
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.info
+ * @return char * type
+ * @retval path String which is allocated on the heap
+ * @retval @c NULL No libexec attribute
+ * @post Returned string must be free'd manually.
+ */
+extern char *dynamicbox_service_libexec(const char *lbid);
+
+/**
+ * @internal
+ * @brief Find the lbid using its libexec
+ * @details only if the dynamicbox should use the "libexec" attribute in its "<dynamicbox>" tag
+ * @remars Only usable for inhouse dynamicboxes
+ * @param[in] libexec so filename
+ * @privlevel platform
+ * @privilege %http://developer.samsung.com/privilege/core/dynamicbox.info
+ * @return char *
+ * @retval @c NULL if it fails to get pkgname
+ * @retval address heap address of pkgname
+ * @post return'd string should be released by "free()"
+ */
+extern char *dynamicbox_service_pkgname_by_libexec(const char *libexec);
+
+/**
  * @}
  */
 
