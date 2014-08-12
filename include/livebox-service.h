@@ -77,6 +77,13 @@ enum livebox_script_event {
 	LB_SCRIPT_ACCESS_ACTION		= LB_SCRIPT_ACCESS_EVENT | 0x00000010, /**< Do specified action for the highlighted object */
 	LB_SCRIPT_ACCESS_SCROLL		= LB_SCRIPT_ACCESS_EVENT | 0x00000020, /**< Scroll operation */
 	LB_SCRIPT_ACCESS_UNHIGHLIGHT	= LB_SCRIPT_ACCESS_EVENT | 0x00000040, /**< Remove highlight */
+	LB_SCRIPT_ACCESS_VALUE_CHANGE	= LB_SCRIPT_ACCESS_EVENT | 0x00000080, /* TODO: deprecate this */
+	LB_SCRIPT_ACCESS_MOUSE		= LB_SCRIPT_ACCESS_EVENT | 0x00000100, /* give mouse event to highlight object */
+	LB_SCRIPT_ACCESS_BACK		= LB_SCRIPT_ACCESS_EVENT | 0x00000200, /* go back to a previous view ex: pop naviframe item */
+	LB_SCRIPT_ACCESS_OVER		= LB_SCRIPT_ACCESS_EVENT | 0x00000400, /* mouse over an object */
+	LB_SCRIPT_ACCESS_READ		= LB_SCRIPT_ACCESS_EVENT | 0x00000800, /* highlight an object */
+	LB_SCRIPT_ACCESS_ENABLE		= LB_SCRIPT_ACCESS_EVENT | 0x00001000, /* enable highlight and read ability */
+	LB_SCRIPT_ACCESS_DISABLE	= LB_SCRIPT_ACCESS_EVENT | 0x00002000, /* disable highlight and read ability */
 
 	LB_SCRIPT_MOUSE_DOWN		= LB_SCRIPT_MOUSE_EVENT | 0x00001000, /**< Mouse down */
 	LB_SCRIPT_MOUSE_MOVE		= LB_SCRIPT_MOUSE_EVENT | 0x00002000, /**< Mouse move */
