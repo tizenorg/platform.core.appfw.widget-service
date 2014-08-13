@@ -61,6 +61,7 @@ SET(BUILD_SOURCE
 	src/dlist.c
 	src/livebox-service.c
 	src/util.c
+	src2/dynamicbox_service.c
 )
 
 IF (X11_SUPPORT)
@@ -87,10 +88,17 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pkgs_LDFLAGS} ${pkg_extra_LDFLAGS})
 
 CONFIGURE_FILE(${PROJECT_NAME}.pc.in ${PROJECT_NAME}.pc @ONLY)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${PROJECT_NAME}.pc")
+CONFIGURE_FILE("dynamicbox_service.pc.in" "dynamicbox_service.pc" @ONLY)
+SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "dynamicbox_service.pc")
 
 INSTALL(TARGETS ${PROJECT_NAME} DESTINATION ${LIB_INSTALL_DIR})
 INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/livebox-service.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/livebox-service_product.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/livebox-errno.h DESTINATION include/${PROJECT_NAME})
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "lib${PROJECT_NAME}")
+
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_service.h DESTINATION include/dynamicbox_service)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_errno.h DESTINATION include/dynamicbox_service)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "libdynamicbox_service")
+
+# End of a file

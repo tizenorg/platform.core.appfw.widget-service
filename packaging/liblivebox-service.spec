@@ -2,7 +2,7 @@
 
 Name: liblivebox-service
 Summary: Service API for gathering installed livebox information
-Version: 0.11.3
+Version: 0.11.4
 Release: 1
 Group: HomeTF/Livebox
 License: Flora
@@ -91,5 +91,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %{_includedir}/livebox-service/livebox-service_product.h
 %{_includedir}/livebox-service/livebox-errno.h
 %{_libdir}/pkgconfig/*.pc
+%{_includedir}/dynamicbox_service/dynamicbox_service.h
+%{_includedir}/dynamicbox_service/dynamicbox_errno.h
 
 # End of a file
