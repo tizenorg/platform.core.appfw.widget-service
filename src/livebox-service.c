@@ -1954,7 +1954,7 @@ out:
 EAPI char *livebox_service_pkgname(const char *appid)
 {
 	char *lb_pkgname;
-	pkgmgr_appinfo_h handle;
+	pkgmgrinfo_appinfo_h handle;
 	int ret;
 	char *new_appid;
 
@@ -1971,21 +1971,21 @@ EAPI char *livebox_service_pkgname(const char *appid)
 	 * \note
 	 * Try to get the package id using given appid
 	 */
-	ret = pkgmgr_appinfo_get_appinfo(appid, &handle);
+	ret = pkgmgrinfo_appinfo_get_appinfo(appid, &handle);
 	if (ret != PKGMGR_R_OK) {
 		ErrPrint("Failed to get appinfo\n");
 		return NULL;
 	}
 
-	ret = pkgmgr_appinfo_get_pkgname(handle, &new_appid);
+	ret = pkgmgrinfo_appinfo_get_pkgid(handle, &new_appid);
 	if (ret != PKGMGR_R_OK) {
-		pkgmgr_appinfo_destroy_appinfo(handle);
+		pkgmgrinfo_appinfo_destroy_appinfo(handle);
 		ErrPrint("Failed to get pkgname for (%s)\n", appid);
 		return NULL;
 	}
 
 	lb_pkgname = get_lb_pkgname_by_appid(new_appid);
-	pkgmgr_appinfo_destroy_appinfo(handle);
+	pkgmgrinfo_appinfo_destroy_appinfo(handle);
 
 	if (!lb_pkgname && util_validate_livebox_package(appid) == 0) {
 		return strdup(appid);
@@ -2228,23 +2228,23 @@ EAPI char *livebox_service_appid(const char *pkgname)
 
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
-		pkgmgr_appinfo_h pkg_handle;
+		pkgmgrinfo_appinfo_h pkg_handle;
 		char *new_appid;
 
 		ErrPrint("Has no record?: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 
-		ret = pkgmgr_appinfo_get_appinfo(pkgname, &pkg_handle);
+		ret = pkgmgrinfo_appinfo_get_appinfo(pkgname, &pkg_handle);
 		if (ret != PKGMGR_R_OK) {
 			ErrPrint("Failed to get appinfo: %s\n", pkgname);
 			goto out;
 		}
 
-		ret = pkgmgr_appinfo_get_pkgname(pkg_handle, &new_appid);
+		ret = pkgmgrinfo_appinfo_get_pkgid(pkg_handle, &new_appid);
 		if (ret != PKGMGR_R_OK) {
 			ErrPrint("Failed to get pkgname for (%s)\n", appid);
-			pkgmgr_appinfo_destroy_appinfo(pkg_handle);
+			pkgmgrinfo_appinfo_destroy_appinfo(pkg_handle);
 			goto out;
 		}
 
@@ -2253,7 +2253,7 @@ EAPI char *livebox_service_appid(const char *pkgname)
 			ErrPrint("Heap: %s\n", strerror(errno));
 		}
 
-		pkgmgr_appinfo_destroy_appinfo(pkg_handle);
+		pkgmgrinfo_appinfo_destroy_appinfo(pkg_handle);
 		goto out;
 	}
 
