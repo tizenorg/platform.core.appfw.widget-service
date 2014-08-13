@@ -190,12 +190,12 @@ EAPI char *dynamicbox_service_dbox_script_group(const char *pkgid)
 	return livebox_service_lb_script_group(pkgid);
 }
 
-EAPI char *dynamicbox_service_pd_script_path(const char *pkgid)
+EAPI char *dynamicbox_service_glance_bar_script_path(const char *pkgid)
 {
 	return livebox_service_pd_script_path(pkgid);
 }
 
-EAPI char *dynamicbox_service_pd_script_group(const char *pkgid)
+EAPI char *dynamicbox_service_glance_bar_script_group(const char *pkgid)
 {
 	return livebox_service_pd_script_group(pkgid);
 }

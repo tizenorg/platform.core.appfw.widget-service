@@ -623,9 +623,9 @@ extern char *dynamicbox_service_dbox_script_group(const char *dboxid);
  * @retval string Script file path
  * @retval @c NULL No specified script file for Glance Bar layout
  * @post Returned string must be free'd manually.
- * @see dynamicbox_service_gbar_script_group()
+ * @see dynamicbox_service_glance_bar_script_group()
  */
-extern char *dynamicbox_service_gbar_script_path(const char *dboxid);
+extern char *dynamicbox_service_glance_bar_script_path(const char *dboxid);
 
 /**
  * @brief Gets the group name for script file to load it.
@@ -639,7 +639,7 @@ extern char *dynamicbox_service_gbar_script_path(const char *dboxid);
  * @post Returned string must be free'd manually.
  * @see dynamicbox_service_gbar_script_path()
  */
-extern char *dynamicbox_service_gbar_script_group(const char *dboxid);
+extern char *dynamicbox_service_glance_bar_script_group(const char *dboxid);
 
 /**
  * @brief Gets the supported size list.
