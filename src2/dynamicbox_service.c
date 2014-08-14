@@ -140,7 +140,7 @@ EAPI char *dynamicbox_service_abi(const char *dboxid)
 	return livebox_service_abi(dboxid);
 }
 
-EAPI char *dynamicbox_service_pkgname_by_libexec(const char *libexec)
+EAPI char *dynamicbox_service_dbox_id_by_libexec(const char *libexec)
 {
 	return livebox_service_pkgname_by_libexec(libexec);
 }
@@ -150,9 +150,14 @@ EAPI char *dynamicbox_service_libexec(const char *pkgid)
 	return livebox_service_libexec(pkgid);
 }
 
-EAPI char *dynamicbox_service_pkgname(const char *appid)
+EAPI char *dynamicbox_service_dbox_id(const char *appid)
 {
 	return livebox_service_pkgname(appid);
+}
+
+EAPI char *dynamicbox_service_package_id(const char *pkgname)
+{
+	return livebox_service_appid(pkgname);
 }
 
 EAPI char *dynamicbox_service_provider_name(const char *dboxid)
@@ -175,11 +180,6 @@ EAPI char *dynamicbox_service_category(const char *dboxid)
 	return livebox_service_category(dboxid);
 }
 
-EAPI char *dynamicbox_service_appid(const char *pkgname)
-{
-	return livebox_service_appid(pkgname);
-}
-
 EAPI char *dynamicbox_service_dbox_script_path(const char *pkgid)
 {
 	return livebox_service_lb_script_path(pkgid);
@@ -190,12 +190,12 @@ EAPI char *dynamicbox_service_dbox_script_group(const char *pkgid)
 	return livebox_service_lb_script_group(pkgid);
 }
 
-EAPI char *dynamicbox_service_glance_bar_script_path(const char *pkgid)
+EAPI char *dynamicbox_service_gbar_script_path(const char *pkgid)
 {
 	return livebox_service_pd_script_path(pkgid);
 }
 
-EAPI char *dynamicbox_service_glance_bar_script_group(const char *pkgid)
+EAPI char *dynamicbox_service_gbar_script_group(const char *pkgid)
 {
 	return livebox_service_pd_script_group(pkgid);
 }

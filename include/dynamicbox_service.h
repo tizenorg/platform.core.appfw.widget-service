@@ -387,9 +387,9 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
 extern int dynamicbox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *dboxid, void *data), void *data);
 
 /**
- * @brief Gets the dboxid of a primary dynamicbox using given dboxid or pkgid or UI appid.
+ * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id.
  * @since_tizen 2.3
- * @param[in] id Dynamicbox Id or Package Id
+ * @param[in] id Dynamic Box Id or Package Id or UI App Id
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.info
  * @return char * type
@@ -398,7 +398,7 @@ extern int dynamicbox_service_get_pkglist_by_category(const char *category, int 
  * @pre Must be released returned string by manually.
  * @see dynamicbox_service_appid()
  */
-extern char *dynamicbox_service_pkgname(const char *dboxid);
+extern char *dynamicbox_service_dbox_id(const char *id);
 
 /**
  * @brief Checks the primary flag of given dynamicbox Id.
@@ -474,7 +474,7 @@ extern char *dynamicbox_service_setup_appid(const char *dboxid);
  * @post Returned string must be free'd manually.
  * @see dynamicbox_service_pkgname()
  */
-extern char *dynamicbox_service_appid(const char *dboxid);
+extern char *dynamicbox_service_package_id(const char *dboxid);
 
 /**
  * @brief Gives Internationalized name of dynamicbox package.
@@ -623,9 +623,9 @@ extern char *dynamicbox_service_dbox_script_group(const char *dboxid);
  * @retval string Script file path
  * @retval @c NULL No specified script file for Glance Bar layout
  * @post Returned string must be free'd manually.
- * @see dynamicbox_service_glance_bar_script_group()
+ * @see dynamicbox_service_gbar_script_group()
  */
-extern char *dynamicbox_service_glance_bar_script_path(const char *dboxid);
+extern char *dynamicbox_service_gbar_script_path(const char *dboxid);
 
 /**
  * @brief Gets the group name for script file to load it.
@@ -639,7 +639,7 @@ extern char *dynamicbox_service_glance_bar_script_path(const char *dboxid);
  * @post Returned string must be free'd manually.
  * @see dynamicbox_service_gbar_script_path()
  */
-extern char *dynamicbox_service_glance_bar_script_group(const char *dboxid);
+extern char *dynamicbox_service_gbar_script_group(const char *dboxid);
 
 /**
  * @brief Gets the supported size list.
@@ -841,7 +841,7 @@ extern char *dynamicbox_service_libexec(const char *dboxid);
  * @retval address heap address of pkgname
  * @post return'd string should be released by "free()"
  */
-extern char *dynamicbox_service_pkgname_by_libexec(const char *libexec);
+extern char *dynamicbox_service_dbox_id_by_libexec(const char *libexec);
 
 /**
  * @}
