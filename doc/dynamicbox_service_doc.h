@@ -31,12 +31,12 @@ Every Dynamic Boxes are installed via package manager utilities.
 The information of installed Dynamic Boxes are stored in the system DB.
 
 In some cases, application developer needs to send update request to its Dynamic Box.
-To make it possible, this module provider such kinds of API set.
+To make it possible, this module providers such kinds of API set.
 
-Those APIs are communicate with master service provider called data-provider-master.
+Those APIs are for communicating with master service provider called data-provider-master.
 When it receives request from applications, it will find the proper service provider called data-provider-slave or application Dynamic Box Provider.
 If master finds proper service provider, it will forward the requests to them.
-Then each Dynamic Box application can gets update request.
+Then each Dynamic Box application can get update request.
 
 <H2>1.1 APIs for retrieving information of Dynamic Boxes</H2>
 
