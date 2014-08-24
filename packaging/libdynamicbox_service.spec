@@ -2,9 +2,9 @@
 
 Name: libdynamicbox_service
 Summary: Service API for gathering installed dynamicbox information
-Version: 0.11.3
+Version: 1.0.0
 Release: 1
-Group: HomeTF/Dynamicbox
+Group: HomeTF/DynamicBox
 License: Flora
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
@@ -67,7 +67,7 @@ export WAYLAND_SUPPORT=Off
 export X11_SUPPORT=On
 %endif
 
-%cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT} -DDYNAMICBOX_ENABLED=On
+%cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT}
 make %{?jobs:-j%jobs}
 
 %install
@@ -75,10 +75,10 @@ rm -rf %{buildroot}
 %make_install
 mkdir -p %{buildroot}/%{_datarootdir}/license
 
-%post -n libdynamicbox_service -p /sbin/ldconfig
-%postun -n libdynamicbox_service -p /sbin/ldconfig
+%post -n %{name} -p /sbin/ldconfig
+%postun -n %{name} -p /sbin/ldconfig
 
-%files -n libdynamicbox_service
+%files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_libdir}/*.so*
