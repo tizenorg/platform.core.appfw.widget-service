@@ -7,9 +7,9 @@
 #include <sqlite3.h>
 #include <unicode/uloc.h>
 
-#include "livebox-errno.h"
+#include "dynamicbox_errno.h"
 #include "util.h"
-#include "livebox-service.h"
+#include "dynamicbox_service.h"
 #include "debug.h"
 
 int errno;

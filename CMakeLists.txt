@@ -60,7 +60,6 @@ ADD_DEFINITIONS("-DDB_FILE=\"/opt/dbspace/.livebox.db\"")
 
 SET(BUILD_SOURCE
 	src/dlist.c
-	src/livebox-service.c
 	src/dynamicbox_service.c
 	src/util.c
 )

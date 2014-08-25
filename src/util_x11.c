@@ -12,9 +12,9 @@
 #include <sqlite3.h>
 #include <unicode/uloc.h>
 
-#include "livebox-errno.h"
+#include "dynamicbox_errno.h"
 #include "util.h"
-#include "livebox-service.h"
+#include "dynamicbox_service.h"
 #include "debug.h"
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/resolution.ini"
@@ -94,7 +94,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 	fp = fopen(info->conf_file, "r");
 	if (!fp) {
 		ErrPrint("Open failed: %s\n", strerror(errno));
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
 	updated = 0;
@@ -228,7 +228,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 		ErrPrint("fclose: %s\n", strerror(errno));
 	}
 
-	return NR_OF_SIZE_LIST - updated;
+	return DBOX_NR_OF_SIZE_LIST - updated;
 }
 
 /*
@@ -275,19 +275,19 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	static int res_resolved = 0;
 
 	if (res_resolved) {
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	disp = XOpenDisplay(NULL);
 	if (!disp) {
 		ErrPrint("Failed to open a display\n");
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 	root = XDefaultRootWindow(disp);
 	if (!XGetGeometry(disp, root, &dummy, &x, &y, &width, &height, &border, &depth)) {
 		XCloseDisplay(disp);
-		return LB_STATUS_ERROR_FAULT;
+		return DBOX_STATUS_ERROR_FAULT;
 	}
 
 	s_info.w = width;
@@ -302,7 +302,7 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 			DbgPrint("Resolution info is all updated by file\n");
 		}
 
-		for (i = 0; i < NR_OF_SIZE_LIST; i++) {
+		for (i = 0; i < DBOX_NR_OF_SIZE_LIST; i++) {
 			SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)info->base_w);
 			SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)info->base_w);
 		}
@@ -312,7 +312,7 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 
 	XCloseDisplay(disp);
 	res_resolved = 1;
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 /* End of a file */

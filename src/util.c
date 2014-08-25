@@ -30,7 +30,7 @@
 
 #include "util.h"
 #include "debug.h"
-#include "livebox-errno.h"
+#include "dynamicbox_errno.h"
 
 int errno;
 #if defined(_USE_ECORE_TIME_GET)
@@ -40,78 +40,6 @@ static struct info {
 	.type = CLOCK_MONOTONIC,
 };
 #endif
-
-static char *check_native_livebox(const char *pkgname)
-{
-	int len;
-	char *path;
-
-	len = strlen(pkgname) * 2;
-	len += strlen("/opt/usr/live/%s/libexec/liblive-%s.so");
-
-	path = malloc(len + 1);
-	if (!path) {
-		ErrPrint("Heap: %s\n", strerror(errno));
-		return NULL;
-	}
-
-	snprintf(path, len, "/opt/usr/live/%s/libexec/liblive-%s.so", pkgname, pkgname);
-	if (access(path, F_OK | R_OK) != 0) {
-		ErrPrint("%s is not a valid package (%s)\n", pkgname, strerror(errno));
-		free(path);
-		return NULL;
-	}
-
-	return path;
-}
-
-static char *check_web_livebox(const char *pkgname)
-{
-	int len;
-	char *path;
-
-	len = strlen(pkgname) * 2;
-	len += strlen("/opt/usr/apps/%s/res/wgt/livebox/index.html");
-
-	path = malloc(len + 1);
-	if (!path) {
-		ErrPrint("Heap: %s\n", strerror(errno));
-		return NULL;
-	}
-
-	snprintf(path, len, "/opt/usr/apps/%s/res/wgt/livebox/index.html", pkgname);
-	if (access(path, F_OK | R_OK) != 0) {
-		ErrPrint("%s is not a valid package (%s)\n", pkgname, strerror(errno));
-		free(path);
-		return NULL;
-	}
-
-	return path;
-}
-
-int util_validate_livebox_package(const char *pkgname)
-{
-	char *path;
-
-	if (!pkgname) {
-		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	path = check_native_livebox(pkgname);
-	if (path) {
-		free(path);
-		return 0;
-	}
-
-	path = check_web_livebox(pkgname);
-	if (path) {
-		free(path);
-		return 0;
-	}
-
-	return LB_STATUS_ERROR_INVALID;
-}
 
 double util_timestamp(void)
 {
@@ -323,23 +251,6 @@ const char *util_uri_to_path(const char *uri)
 	}
 
 	return uri + len;
-}
-
-char *util_conf_get_libexec(const char *pkgname)
-{
-	char *path;
-
-	if (!pkgname) {
-		ErrPrint("Invalid argument\n");
-		return NULL;
-	}
-
-	path = check_native_livebox(pkgname);
-	if (!path) {
-		path = check_web_livebox(pkgname);
-	}
-
-	return path;
 }
 
 char *util_id_to_uri(const char *id)
