@@ -62,7 +62,7 @@ static struct supported_size_list SIZE_LIST[DBOX_NR_OF_SIZE_LIST] = {
 	{ 720, 1280 }, /*!< 0x0 */
 };
 
-struct pkglist_handle {
+struct dynamicbox_pkglist_handle {
 	enum pkglist_type {
 		PKGLIST_TYPE_DBOX_LIST = 0x00beef00,
 		PKGLIST_TYPE_UNKNOWN = 0x00dead00
@@ -608,7 +608,7 @@ EAPI int dynamicbox_service_trigger_update(const char *pkgname, const char *id, 
 	return ret;
 }
 
-EAPI struct pkglist_handle *dynamicbox_service_pkglist_create(const char *pkgid, struct pkglist_handle *handle)
+EAPI dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *pkgid, dynamicbox_pkglist_h handle)
 {
 	int ret;
 
@@ -671,7 +671,7 @@ EAPI struct pkglist_handle *dynamicbox_service_pkglist_create(const char *pkgid,
 	return handle;
 }
 
-EAPI int dynamicbox_service_get_pkglist_item(struct pkglist_handle *handle, char **appid, char **pkgname, int *is_prime)
+EAPI int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char **appid, char **pkgname, int *is_prime)
 {
 	const char *tmp;
 	char *_appid = NULL;
@@ -723,7 +723,7 @@ EAPI int dynamicbox_service_get_pkglist_item(struct pkglist_handle *handle, char
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_service_pkglist_destroy(struct pkglist_handle *handle)
+EAPI int dynamicbox_service_pkglist_destroy(dynamicbox_pkglist_h handle)
 {
 	if (!handle || handle->type != PKGLIST_TYPE_DBOX_LIST) {
 		return DBOX_STATUS_ERROR_INVALID_PARAMETER;

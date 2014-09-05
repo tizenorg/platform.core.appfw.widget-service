@@ -144,7 +144,7 @@ enum dynamicbox_gbar_close_type {
  * @brief Package list handle.
  * @since_tizen 2.3
  */
-struct pkglist_handle;
+typedef struct dynamicbox_pkglist_handle *dynamicbox_pkglist_h;
 
 /**
  * @brief Gets the pixel size of given size type.
@@ -761,7 +761,7 @@ extern int dynamicbox_service_fini(void);
  * @retval handle If it successfully create the package list iterator
  * @see dynamicbox_service_pkglist_destroy()
  */
-extern struct pkglist_handle *dynamicbox_service_pkglist_create(const char *dboxid, struct pkglist_handle *handle);
+extern dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *dboxid, dynamicbox_pkglist_h handle);
 
 /**
  * @brief Gets the dboxid & package name & is_prime flag.
@@ -781,7 +781,7 @@ extern struct pkglist_handle *dynamicbox_service_pkglist_create(const char *dbox
  * @see dynamicbox_service_pkglist_create()
  * @see dynamicbox_service_pkglist_destroy()
  */
-extern int dynamicbox_service_get_pkglist_item(struct pkglist_handle *handle, char **dboxid, char **pkgname, int *is_prime);
+extern int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char **dboxid, char **pkgname, int *is_prime);
 
 /**
  * @brief Destroys the iterator of pkglist.
@@ -796,7 +796,7 @@ extern int dynamicbox_service_get_pkglist_item(struct pkglist_handle *handle, ch
  * @post You have not to use the handle again after destroy it.
  * @see dynamicbox_service_pkglist_create()
  */
-extern int dynamicbox_service_pkglist_destroy(struct pkglist_handle *handle);
+extern int dynamicbox_service_pkglist_destroy(dynamicbox_pkglist_h handle);
 
 /**
  * @brief Getting the activated instance count.
