@@ -2142,7 +2142,7 @@ EAPI int dynamicbox_service_is_enabled(const char *dboxid)
 	bool enabled;
 	int ret;
 
-	pkgname = dynamicbox_service_appid(dboxid);
+	pkgname = dynamicbox_service_package_id(dboxid);
 	if (!pkgname)
 		return 0;
 

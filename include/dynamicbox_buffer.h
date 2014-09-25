@@ -31,6 +31,13 @@ extern "C" {
  * @{
  */
 
+enum dynamicbox_fb_type { /*!< Must have to be sync with libprovider, liblivebox-viewer */
+	DBOX_FB_TYPE_FILE,
+	DBOX_FB_TYPE_SHM,
+	DBOX_FB_TYPE_PIXMAP,
+	DBOX_FB_TYPE_ERROR
+};
+
 /**
  * @internal
  * @brief This enumeration values should be sync'd with libdynamicbox interface. (only for inhouse dynamicbox)
@@ -101,6 +108,17 @@ typedef struct dynamicbox_buffer_event_data {
 	} info;
 } *dynamicbox_buffer_event_data_t;
 
+
+typedef struct dynamicbox_fb { /*!< Must has to be sync with slave & provider */
+	enum {
+		DBOX_FB_STATE_CREATED = 0x00beef00,
+		DBOX_FB_STATE_DESTROYED = 0x00dead00
+	} state;
+	enum dynamicbox_fb_type type;
+	int refcnt;
+	void *info;
+	char data[];
+} *dynamicbox_fb_t;
 
 #ifdef __cplusplus
 }

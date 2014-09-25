@@ -351,7 +351,7 @@ extern int dynamicbox_service_get_pkglist_by_category(const char *category, int 
  * @retval @c NULL Failed to get primary dboxid
  * @retval dboxid Primary dynamicbox Id. which is allocated in the heap
  * @pre Must be released returned string by manually.
- * @see dynamicbox_service_appid()
+ * @see dynamicbox_service_package_id()
  */
 extern char *dynamicbox_service_dbox_id(const char *id);
 

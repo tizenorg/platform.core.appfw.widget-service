@@ -82,7 +82,7 @@ enum dynamicbox_script_event {
  * Text signal & Content event uses this data structure.
  * @since_tizen 2.3
  */
-struct dynamicbox_event_info {
+typedef struct dynamicbox_event_info {
         struct _pointer {
                 double x; /**< X value of current mouse(touch) position */
                 double y; /**< Y value of current mouse(touch) position */
@@ -95,7 +95,7 @@ struct dynamicbox_event_info {
                 double ex; /**< Pressed object's right bottom X */
                 double ey; /**< Pressed object's right bottom Y */
         } part;
-};
+} *dynamicbox_event_info_t;
 
 #ifdef __cplusplus
 }
