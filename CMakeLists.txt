@@ -97,6 +97,7 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_service.h DESTINATION inclu
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_errno.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_cmd_list.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_buffer.h DESTINATION include/${PROJECT_NAME})
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_script.h DESTINATION include/${PROJECT_NAME})
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "lib${PROJECT_NAME}")
 
