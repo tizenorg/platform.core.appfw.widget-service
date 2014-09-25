@@ -40,7 +40,7 @@
 #include "debug.h"
 #include "dynamicbox_service.h"
 #include "dynamicbox_errno.h"
-#include "provider_cmd_list.h"
+#include "dynamicbox_cmd_list.h"
 
 #define SAMSUNG_PREFIX	"com.samsung."
 #define EAPI __attribute__((visibility("default")))

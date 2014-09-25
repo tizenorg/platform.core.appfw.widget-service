@@ -22,8 +22,8 @@ extern "C" {
 #endif
 
 /**
- * @file dynamicbox-errno.h
- * @brief  This file declares API of libdynamicbox-service library
+ * @file dynamicbox_errno.h
+ * @brief This file declares API of libdynamicbox-service library
  */
 
 /**

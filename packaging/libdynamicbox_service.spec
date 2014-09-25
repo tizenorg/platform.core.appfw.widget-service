@@ -89,6 +89,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %defattr(-,root,root,-)
 %{_includedir}/dynamicbox_service/dynamicbox_service.h
 %{_includedir}/dynamicbox_service/dynamicbox_errno.h
+%{_includedir}/dynamicbox_service/dynamicbox_cmd_list.h
 %{_libdir}/pkgconfig/*.pc
 
 # End of a file
