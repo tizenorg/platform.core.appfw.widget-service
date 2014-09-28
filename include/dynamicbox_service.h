@@ -95,6 +95,24 @@ enum dynamicbox_gbar_close_type {
 	DBOX_CLOSE_GBAR_INVALID = 0xff,	/**< Unknown event type */
 };
 
+enum dynamicbox_dbox_type {
+	DBOX_TYPE_NONE = 0x0,
+	DBOX_TYPE_SCRIPT,
+	DBOX_TYPE_FILE,
+	DBOX_TYPE_TEXT,
+	DBOX_TYPE_BUFFER,
+	DBOX_TYPE_UIFW
+};
+
+enum dynamicbox_gbar_type {
+	GBAR_TYPE_NONE = 0x0,
+	GBAR_TYPE_SCRIPT,
+	GBAR_TYPE_TEXT,
+	GBAR_TYPE_BUFFER,
+	GBAR_TYPE_UIFW
+};
+
+
 /**
  * @brief Package list handle.
  * @since_tizen 2.3
