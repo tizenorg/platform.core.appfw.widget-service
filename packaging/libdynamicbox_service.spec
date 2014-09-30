@@ -92,6 +92,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %{_includedir}/dynamicbox_service/dynamicbox_cmd_list.h
 %{_includedir}/dynamicbox_service/dynamicbox_buffer.h
 %{_includedir}/dynamicbox_service/dynamicbox_script.h
+%{_includedir}/dynamicbox_service/dynamicbox_conf.h
 %{_libdir}/pkgconfig/*.pc
 
 # End of a file

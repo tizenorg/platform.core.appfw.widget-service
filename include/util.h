@@ -43,6 +43,7 @@ extern char *util_replace_string(const char *src, const char *pattern, const cha
 extern const char *util_uri_to_path(const char *uri);
 extern char *util_id_to_uri(const char *id);	/* For FILENAME id */
 extern int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST);
+extern int util_screen_size_get(unsigned int *width, unsigned int *height);
 
 #define SCHEMA_FILE	"file://"
 #define SCHEMA_PIXMAP	"pixmap://"

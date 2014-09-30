@@ -22,11 +22,13 @@
 int errno;
 
 static struct {
-	int w;
-	int h;
+	unsigned int w;
+	unsigned int h;
+	int res_resolved;
 } s_info = {
 	.w = 0,
 	.h = 0,
+	.res_resolved = 0,
 };
 
 static int update_info(struct supported_size_list *SIZE_LIST, int width_type, int height_type, int width, int height)
@@ -261,21 +263,30 @@ static char *conf_path(void)
 	return path;
 }
 
-int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST)
+int util_screen_size_get(unsigned int *width, unsigned int *height)
 {
 	Display *disp;
 	Window root;
 	Window dummy;
-	int x, y;
-	unsigned int width;
-	unsigned int height;
 	unsigned int border;
 	unsigned int depth;
-	register int i;
-	static int res_resolved = 0;
+	int x;
+	int y;
+	int ret;
+	unsigned int _width;	
+	unsigned int _height;
 
-	if (res_resolved) {
-		return DBOX_STATUS_ERROR_NONE;
+	if (!width) {
+		width = &_width;
+	}
+
+	if (!height) {
+		height = &_height;
+	}
+
+	if (s_info.w != 0 && s_info.h != 0) {
+		DbgPrint("Already prepared (%dx%d)\n", s_info.w, s_info.h);
+		goto out;
 	}
 
 	disp = XOpenDisplay(NULL);
@@ -285,33 +296,54 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	}
 
 	root = XDefaultRootWindow(disp);
-	if (!XGetGeometry(disp, root, &dummy, &x, &y, &width, &height, &border, &depth)) {
-		XCloseDisplay(disp);
+	ret = XGetGeometry(disp, root, &dummy, &x, &y, &s_info.w, &s_info.h, &border, &depth);
+	XCloseDisplay(disp);
+	if (!ret) {
+		ErrPrint("Failed to get geometry\n");
 		return DBOX_STATUS_ERROR_FAULT;
 	}
 
-	s_info.w = width;
-	s_info.h = height;
+out:
+	*width = s_info.w;
+	*height = s_info.h;
+	return DBOX_STATUS_ERROR_NONE;
+}
+
+int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST)
+{
+	if (s_info.res_resolved) {
+		return DBOX_STATUS_ERROR_NONE;
+	}
 
 	if (!info->conf_file) {
 		info->conf_file = conf_path();
 	}
 
 	if (info->conf_file) {
+		register int i;
+		unsigned int width;
+		unsigned int height;
+
+		i = util_screen_size_get(&width, &height);
+		if (i != DBOX_STATUS_ERROR_NONE) {
+			return i;
+		}
+
 		if (update_from_file(info, SIZE_LIST) == 0) {
 			DbgPrint("Resolution info is all updated by file\n");
 		}
 
-		for (i = 0; i < DBOX_NR_OF_SIZE_LIST; i++) {
-			SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)info->base_w);
-			SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)info->base_w);
+		if (width != info->base_w) {
+			for (i = 0; i < DBOX_NR_OF_SIZE_LIST; i++) {
+				SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)info->base_w);
+				SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)info->base_w);
+			}
 		}
 	} else {
 		DbgPrint("Conf file is not loaded\n");
 	}
 
-	XCloseDisplay(disp);
-	res_resolved = 1;
+	s_info.res_resolved = 1;
 	return DBOX_STATUS_ERROR_NONE;
 }
 

@@ -43,7 +43,6 @@
 #include "dynamicbox_cmd_list.h"
 
 #define SAMSUNG_PREFIX	"com.samsung."
-#define EAPI __attribute__((visibility("default")))
 #define DEFAULT_TIMEOUT 2.0
 
 static struct supported_size_list SIZE_LIST[DBOX_NR_OF_SIZE_LIST] = {
