@@ -89,13 +89,13 @@ typedef struct dynamicbox_buffer_event_data {
 	enum dynamicbox_buffer_event type; /**< Event type */
 	double timestamp; /**< Timestamp */
 
-	union _input_data {
-		struct _mouse {
+	union input_data {
+		struct mouse {
 			int x; /**< Touch X coordinate */
 			int y; /**< Touch Y coordinate */
 		} pointer;
 
-		struct _access {
+		struct access {
 			int x; /**< Accessibility event X coordinate */
 			int y; /**< Accessibility event Y coordinate */
 			unsigned int mouse_type; /**< 0: down, 1: move, 2: up | 0: cur, 1: next, 2: prev, 3: off */
@@ -110,7 +110,7 @@ typedef struct dynamicbox_buffer_event_data {
 
 
 typedef struct dynamicbox_fb { /*!< Must has to be sync with slave & provider */
-	enum {
+	enum dynamicbox_fb_state {
 		DBOX_FB_STATE_CREATED = 0x00beef00,
 		DBOX_FB_STATE_DESTROYED = 0x00dead00
 	} state;
@@ -119,6 +119,53 @@ typedef struct dynamicbox_fb { /*!< Must has to be sync with slave & provider */
 	void *info;
 	char data[];
 } *dynamicbox_fb_t;
+
+/**
+ * @internal
+ * @brief This enumeration value has to be sync'd with the libdynamicbox interface. (only for inhouse dynamicbox)
+ * @since_tizen 2.3
+ */
+enum dynamicbox_target_type {
+	DBOX_TYPE_DBOX, /**< Dynamicbox */
+	DBOX_TYPE_GBAR, /**< Glance Bar */
+	DBOX_TYPE_ERROR /**< Error */
+};
+
+/**
+ * @internal
+ * @brief Dynamic Box Buffer structure
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_buffer {
+	enum {
+		BUFFER_INITIALIZED = 0x0b0e0e0f,
+		BUFFER_CREATED = 0x00beef00,
+		BUFFER_DESTROYED = 0x00dead00,
+	} state;
+
+	enum dynamicbox_target_type type;
+
+	union {
+		int fd; /* File handle(descriptor) */
+		int id; /* SHM handle(id) */
+	} handle;
+
+	char *pkgname;
+	char *id;
+	int width;
+	int height;
+	int pixel_size;
+	int auto_align;
+
+	struct fb_info *fb;
+
+	int (*handler)(struct dynamicbox_buffer *info, struct dynamicbox_buffer_event_data *event_info, void *data);
+	void *data;
+
+	void *user_data;
+	char *lock;
+	int lock_fd;
+} *dynamicbox_buffer_h;
 
 #ifdef __cplusplus
 }

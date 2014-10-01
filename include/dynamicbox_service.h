@@ -112,7 +112,6 @@ enum dynamicbox_gbar_type {
 	GBAR_TYPE_UIFW
 };
 
-
 /**
  * @brief Package list handle.
  * @since_tizen 2.3
