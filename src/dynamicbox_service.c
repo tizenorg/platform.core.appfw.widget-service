@@ -1333,8 +1333,8 @@ EAPI int dynamicbox_service_touch_effect(const char *pkgid, int size_type)
 		return 1;
 	}
 
-	/*!
-	 * \note
+	/**
+	 * @note
 	 * This function will validate the "pkgid"
 	 * call the exported API in the exported API is not recomended
 	 * but... I used.
@@ -1365,7 +1365,7 @@ EAPI int dynamicbox_service_touch_effect(const char *pkgid, int size_type)
 	if (ret == SQLITE_ROW) {
 		ret = !!sqlite3_column_int(stmt, 0);
 	} else {
-		ret = 1; /*!< Default true: In this case the DB is corrupted. */
+		ret = 1; /**< Default true: In this case the DB is corrupted. */
 		ErrPrint("There is no result\n");
 	}
 
@@ -1421,7 +1421,7 @@ EAPI int dynamicbox_service_mouse_event(const char *pkgid, int size_type)
 	if (ret == SQLITE_ROW) {
 		ret = !!sqlite3_column_int(stmt, 0);
 	} else {
-		ret = 0; /*!< Default is false, In this case the DB is corrupted */
+		ret = 0; /**< Default is false, In this case the DB is corrupted */
 		ErrPrint("There is no result.\n");
 	}
 
@@ -2680,7 +2680,7 @@ EAPI int dynamicbox_service_get_size(int type, int *width, int *height)
 	return convert_size_from_type(type, width, height);
 }
 
-EAPI int dynamicbox_service_size_type(int width, int height)
+EAPI enum dynamicbox_size_type dynamicbox_service_size_type(int width, int height)
 {
 	int idx;
 
