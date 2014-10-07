@@ -64,7 +64,7 @@ extern const int const dynamicbox_conf_is_loaded(void);
  * @brief configuration value getter
  * @detail If your service provider intended to check the window stack directly,
  *         Refer this flag, if this returns 1, you should monitor the window stack
- *         to send the pause/resume event.
+ *         to send the pause/resume event and it should be managed manually.
  * @remarks this is just a recommendation to implement service provider,
  *          so the service provider's behaviour is depeneds on its implementation.
  * @since_tizen 2.3
@@ -87,8 +87,33 @@ extern const int const dynamicbox_conf_use_event_time(void);
  * @retval 0 Content will be aligned by UIFW, using stride information.
  */
 extern const int const dynamicbox_conf_auto_align(void);
+
+/**
+ * @internal
+ * @brief this returns formatted string that represents service list to be enabled
+ *        format is "[service name1],[service name2],..."\n
+ *        Candidate services are\n
+ *        [dynamicbox]\n
+ *        [badge]\n
+ *        [notification]\n
+ *        [utility]\n
+ *        [shortcut]\n
+ * @return string
+ * @retval NULL if there is no defined list. you should treat this as a default service list
+ */
 extern const char * const dynamicbox_conf_services(void);
+
+/**
+ * @internal
+ * @brief Get the configuration value of "use_sw_backend"
+ *        if this returns 1, the provider should not use the Graphics buffer.
+ * @return int
+ * @retval 1 true Use the S/W buffer such as heap instead of graphics buffer
+ * @retval 0 false You can choose S/W buffer or Graphics buffer
+ * @see dynamicbox_conf_provider_method()
+ */
 extern const int const dynamicbox_conf_use_sw_backend(void);
+
 extern const char * const dynamicbox_conf_provider_method(void);
 extern const int const dynamicbox_conf_debug_mode(void);
 extern const int const dynamicbox_conf_overwrite_content(void);

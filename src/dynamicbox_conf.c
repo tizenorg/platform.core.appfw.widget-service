@@ -509,6 +509,11 @@ static void gbar_request_timeout_handler(char *buffer)
 
 EAPI void dynamicbox_conf_init(void)
 {
+	if (s_info.conf_loaded) {
+		DbgPrint("Already initialized.\n");
+		return;
+	}
+
 	s_conf.width = CONF_DEFAULT_WIDTH;
 	s_conf.height = CONF_DEFAULT_HEIGHT;
 	s_conf.base_width = CONF_DEFAULT_BASE_WIDTH;
@@ -792,6 +797,11 @@ EAPI int dynamicbox_conf_load(void)
 			.handler = NULL,
 		},
 	};
+
+	if (s_info.conf_loaded) {
+		ErrPrint("Already loaded\n");
+		return DBOX_STATUS_ERROR_ALREADY;
+	}
 
 	util_screen_size_get(&s_conf.width, &s_conf.height);
 
@@ -1131,6 +1141,8 @@ EAPI void dynamicbox_conf_reset(void)
 		free(s_conf.services);
 		s_conf.services = (char *)CONF_DEFAULT_SERVICES;
 	}
+
+	s_info.conf_loaded = 0;
 }
 
 EAPI const int const dynamicbox_conf_use_xmonitor(void)
