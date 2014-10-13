@@ -40,6 +40,7 @@
 #include "debug.h"
 #include "livebox-service.h"
 #include "livebox-errno.h"
+#include "provider_cmd_list.h"
 
 #define SAMSUNG_PREFIX	"com.samsung."
 #define EAPI __attribute__((visibility("default")))
@@ -174,6 +175,7 @@ EAPI int livebox_service_change_period(const char *pkgname, const char *id, doub
 {
 	struct packet *packet;
 	struct packet *result;
+	unsigned int cmd = CMD_SERVICE_CHANGE_PERIOD;
 	char *uri;
 	int ret;
 
@@ -187,7 +189,7 @@ EAPI int livebox_service_change_period(const char *pkgname, const char *id, doub
 		return LB_STATUS_ERROR_MEMORY;
 	}
 
-	packet = packet_create("service_change_period", "ssd", pkgname, uri, period);
+	packet = packet_create((const char *)&cmd, "ssd", pkgname, uri, period);
 	free(uri);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for period changing\n");
@@ -215,9 +217,10 @@ EAPI int livebox_service_get_instance_count(const char *pkgname, const char *clu
 {
 	struct packet *packet;
 	struct packet *result;
+	unsigned int cmd = CMD_SERVICE_INST_CNT;
 	int ret;
 
-	packet = packet_create("service_inst_cnt", "sssd", pkgname, cluster, category, util_timestamp());
+	packet = packet_create((const char *)&cmd, "sssd", pkgname, cluster, category, util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a packet for period changing\n");
 		return LB_STATUS_ERROR_FAULT;
@@ -244,6 +247,7 @@ EAPI int livebox_service_trigger_update_with_content(const char *pkgname, const 
 {
 	struct packet *packet;
 	struct packet *result;
+	unsigned int cmd = CMD_SERVICE_UPDATE;
 	char *uri;
 	int ret;
 
@@ -274,7 +278,7 @@ EAPI int livebox_service_trigger_update_with_content(const char *pkgname, const 
 		category = "default";
 	}
 
-	packet = packet_create("service_update", "sssssi", pkgname, uri, cluster, category, content, force);
+	packet = packet_create((const char *)&cmd, "sssssi", pkgname, uri, cluster, category, content, force);
 	/*!
 	 * \note
 	 * "free" function accepts NULL
