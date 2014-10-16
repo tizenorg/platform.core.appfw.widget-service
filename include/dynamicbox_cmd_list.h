@@ -83,15 +83,21 @@ extern "C" {
 #define CMD_HELLO              0x00001201
 #define CMD_PING               0x00001301
 #define CMD_CTRL               0x00001401
+#define CMD_ACQUIRE_XBUFFER    0x00001501 // eXtra Buffer
+#define CMD_RELEASE_XBUFFER    0x00001601 // eXtra Buffer
+#define CMD_RESIZE_XBUFFER     0x00001701 // eXtra Buffer
 
-#define CMD_STR_CALL           "call"
-#define CMD_STR_RET            "ret"
-#define CMD_STR_ACQUIRE_BUFFER "acquire_buffer"
-#define CMD_STR_RESIZE_BUFFER  "resize_buffer"
-#define CMD_STR_RELEASE_BUFFER "release_buffer"
-#define CMD_STR_HELLO          "hello"
-#define CMD_STR_PING           "ping"
-#define CMD_STR_CTRL           "ctrl"
+#define CMD_STR_CALL            "call"
+#define CMD_STR_RET             "ret"
+#define CMD_STR_ACQUIRE_BUFFER  "acquire_buffer"
+#define CMD_STR_RESIZE_BUFFER   "resize_buffer"
+#define CMD_STR_RELEASE_BUFFER  "release_buffer"
+#define CMD_STR_HELLO           "hello"
+#define CMD_STR_PING            "ping"
+#define CMD_STR_CTRL            "ctrl"
+#define CMD_STR_ACQUIRE_XBUFFER "acquire_xbuffer"
+#define CMD_STR_RELEASE_XBUFFER "release_xbuffer"
+#define CMD_STR_RESIZE_XBUFFER  "resize_xbuffer"
 
 
 /**
