@@ -71,8 +71,43 @@ extern const int const dynamicbox_conf_is_loaded(void);
  * @return int 1 if the xmonitor should be enabled or 0
  */
 extern const int const dynamicbox_conf_use_xmonitor(void);
+
+/**
+ * @internal
+ * @brief configuration value getter for emergency disk mount information
+ * @detail if the system has not enough space to operate itself, the master provider allocate memory for
+ *         its temporary storage. to save some files.
+ * @remarks this is only used for master service provider.
+ *          all other service provider should not need to know this configuration value.
+ *          but this API support to get current configuration.
+ * @since_tizen 2.3
+ * @return const char * const
+ * @retval string emergency disk mount information includes options
+ * @retval @c NULL if there is no configuration information
+ */
 extern const char * const dynamicbox_conf_emergency_disk(void);
+
+/**
+ * @internal
+ * @brief if the master service provider should need to check the lcd status to pause/resume the service providers,
+ *        this function will returns 1, or 0.
+ * @since_tizen 2.3
+ * @return int
+ * @retval 1 need to care the lcd status by master service provider
+ * @retval 0 do not care it even if the lcd is off/on, do not send any pause/resume event to the service providers.
+ */
 extern const int const dynamicbox_conf_check_lcd(void);
+
+/**
+ * @internal
+ * @brief select the option whether use the event time of each event data from device or not.
+ *        if this returns 1, the master service provider should keep its timestamp of each event data,
+ *        or use the logical timestamp that is get by service provider.
+ * @since_tizen 2.3
+ * @return int
+ * @retval 1 use the timestamp of event data
+ * @retval 0 use the system timestamp instead of event data of device
+ */
 extern const int const dynamicbox_conf_use_event_time(void);
 
 /**
@@ -98,6 +133,7 @@ extern const int const dynamicbox_conf_auto_align(void);
  *        [notification]\n
  *        [utility]\n
  *        [shortcut]\n
+ * @since_tizen 2.3
  * @return string
  * @retval NULL if there is no defined list. you should treat this as a default service list
  */
@@ -107,6 +143,7 @@ extern const char * const dynamicbox_conf_services(void);
  * @internal
  * @brief Get the configuration value of "use_sw_backend"
  *        if this returns 1, the provider should not use the Graphics buffer.
+ * @since_tizen 2.3
  * @return int
  * @retval 1 true Use the S/W buffer such as heap instead of graphics buffer
  * @retval 0 false You can choose S/W buffer or Graphics buffer
@@ -114,8 +151,34 @@ extern const char * const dynamicbox_conf_services(void);
  */
 extern const int const dynamicbox_conf_use_sw_backend(void);
 
+/**
+ * @internal
+ * @brief Content sharing method for buffer type dbox (or gbar)
+ *        it could be "pixmap", "shm", "file"
+ *        in case of pixmap, the master service provider will try to allocate a resource from graphics sub system (ex, Xorg)
+ *        in case of shm, it will try to allocate shared memory.
+ *        in case of file, it will create a dummy file to write and read frame data from/to it.
+ * @since_tizen 2.3
+ * @return const char * const
+ * @retval "pixmap" use the pixmap
+ * @retval "shm" use the shared memory
+ * @retval "file" use a file
+ */
 extern const char * const dynamicbox_conf_provider_method(void);
+
+/**
+ * @internal
+ * @brief if a debug mode is enabled, master will not launch the service provider directly.
+ *        instead of it, the master will permanently waiting the launch of service provider.
+ *        so the developer should launch the service provider with correct bundle data.
+ *        and it should send the "hello" message to the master provider
+ * @since_tizen 2.3
+ * @return int
+ * @retval 1 master will turn on the debug mode
+ * @retval 0 master will turn off the debug mode
+ */
 extern const int const dynamicbox_conf_debug_mode(void);
+
 extern const int const dynamicbox_conf_overwrite_content(void);
 extern const int const dynamicbox_conf_com_core_thread(void);
 extern const unsigned int const dynamicbox_conf_base_width(void);

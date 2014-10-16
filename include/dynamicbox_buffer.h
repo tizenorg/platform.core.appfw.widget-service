@@ -31,19 +31,19 @@ extern "C" {
  * @{
  */
 
-enum dynamicbox_fb_type { /*!< Must have to be sync with libprovider, liblivebox-viewer */
+typedef enum dynamicbox_fb_type { /*!< Must have to be sync with libprovider, liblivebox-viewer */
 	DBOX_FB_TYPE_FILE,
 	DBOX_FB_TYPE_SHM,
 	DBOX_FB_TYPE_PIXMAP,
 	DBOX_FB_TYPE_ERROR
-};
+} dynamicbox_fb_type_e;
 
 /**
  * @internal
  * @brief This enumeration values should be sync'd with libdynamicbox interface. (only for inhouse dynamicbox)
  * @since_tizen 2.3
  */
-enum dynamicbox_buffer_event {
+typedef enum dynamicbox_buffer_event {
 	DBOX_BUFFER_EVENT_ENTER, /**< get the focus */
 	DBOX_BUFFER_EVENT_LEAVE, /**< lost the focus */
 	DBOX_BUFFER_EVENT_DOWN, /**< Touch down */
@@ -78,7 +78,7 @@ enum dynamicbox_buffer_event {
 	DBOX_BUFFER_EVENT_ACCESS_READ, /**< highlight an object */
 	DBOX_BUFFER_EVENT_ACCESS_ENABLE, /**< enable highlight and read ability */
 	DBOX_BUFFER_EVENT_ACCESS_DISABLE /**< disable highlight and read ability */
-};
+} dynamicbox_buffer_event_e;
 
 /**
  * @internal
@@ -86,7 +86,7 @@ enum dynamicbox_buffer_event {
  * @since_tizen 2.3
  */
 typedef struct dynamicbox_buffer_event_data {
-	enum dynamicbox_buffer_event type; /**< Event type */
+	dynamicbox_buffer_event_e type; /**< Event type */
 	double timestamp; /**< Timestamp */
 
 	union input_data {
@@ -114,7 +114,7 @@ typedef struct dynamicbox_fb { /*!< Must has to be sync with slave & provider */
 		DBOX_FB_STATE_CREATED = 0x00beef00,
 		DBOX_FB_STATE_DESTROYED = 0x00dead00
 	} state;
-	enum dynamicbox_fb_type type;
+	dynamicbox_fb_type_e type;
 	int refcnt;
 	void *info;
 	char data[];
@@ -125,11 +125,11 @@ typedef struct dynamicbox_fb { /*!< Must has to be sync with slave & provider */
  * @brief This enumeration value has to be sync'd with the libdynamicbox interface. (only for inhouse dynamicbox)
  * @since_tizen 2.3
  */
-enum dynamicbox_target_type {
+typedef enum dynamicbox_target_type {
 	DBOX_TYPE_DBOX, /**< Dynamicbox */
 	DBOX_TYPE_GBAR, /**< Glance Bar */
 	DBOX_TYPE_ERROR /**< Error */
-};
+} dynamicbox_target_type_e;
 
 /**
  * @internal
@@ -143,7 +143,7 @@ typedef struct dynamicbox_buffer {
 		BUFFER_DESTROYED = 0x00dead00,
 	} state;
 
-	enum dynamicbox_target_type type;
+	dynamicbox_target_type_e type;
 
 	union {
 		int fd; /* File handle(descriptor) */

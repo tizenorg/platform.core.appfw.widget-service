@@ -34,7 +34,7 @@ extern "C" {
 /**
  * @brief Enumeration for the result status of dynamicbox operation.
  */
-enum dynamicbox_status {
+typedef enum dynamicbox_status {
 	DBOX_STATUS_ERROR_NONE = 0x00000000, /**< Operation is successfully completed */
 	DBOX_STATUS_ERROR = 0x80000000, /**< This will be OR'd with other specific error value */
 	DBOX_STATUS_ERROR_INVALID_PARAMETER = DBOX_STATUS_ERROR | 0x0001, /**< Invalid request */
@@ -51,7 +51,7 @@ enum dynamicbox_status {
 	DBOX_STATUS_ERROR_NOT_IMPLEMENTED = DBOX_STATUS_ERROR | 0x0800, /**< Operation is not implemented */
 	DBOX_STATUS_ERROR_NO_SPACE = DBOX_STATUS_ERROR | 0x1000, /**< No space to operate */
 	DBOX_STATUS_ERROR_DISABLED = DBOX_STATUS_ERROR | 0x2000 /**< Disabled */
-};
+} dynamicbox_status_e;
 
 /**
  * @brief Definition for macro function to check whether given code value indicates error or not.

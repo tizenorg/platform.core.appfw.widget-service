@@ -39,7 +39,7 @@ extern "C" {
  * Master will send down these accessibility events to the script plugin.
  * @since_tizen 2.3
  */
-enum dynamicbox_script_event {
+typedef enum dynamicbox_script_event {
     DBOX_SCRIPT_ACCESS_EVENT          = 0x01000000, /**< Mask value */
     DBOX_SCRIPT_MOUSE_EVENT           = 0x02000000, /**< Mask value */
     DBOX_SCRIPT_KEY_EVENT             = 0x04000000, /**< Mask value */
@@ -74,7 +74,7 @@ enum dynamicbox_script_event {
     DBOX_SCRIPT_KEY_UP                = DBOX_SCRIPT_KEY_EVENT | 0x00040000, /**< Key released */
     DBOX_SCRIPT_KEY_FOCUS_IN          = DBOX_SCRIPT_KEY_EVENT | 0x00080000, /**< Key focus in */
     DBOX_SCRIPT_KEY_FOCUS_OUT         = DBOX_SCRIPT_KEY_EVENT | 0x00100000, /**< Key focus out */
-};
+} dynamicbox_script_event_e;
 
 /**
  * @internal

@@ -119,7 +119,7 @@ static inline __attribute__((always_inline)) void close_db(sqlite3 *handle)
 	}
 }
 
-static int convert_size_from_type(enum dynamicbox_size_type type, int *width, int *height)
+static int convert_size_from_type(dynamicbox_size_type_e type, int *width, int *height)
 {
 	int idx;
 
@@ -1711,7 +1711,7 @@ EAPI int dynamicbox_service_get_supported_sizes(const char *pkgid, int *cnt, int
 	ret = 0;
 	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
 		size = sqlite3_column_int(stmt, 0);
-		ret += (convert_size_from_type(size, w + ret, h + ret) == 0);
+		ret += (convert_size_from_type((dynamicbox_size_type_e)size, w + ret, h + ret) == 0);
 	}
 
 	*cnt = ret;
@@ -2680,7 +2680,7 @@ EAPI int dynamicbox_service_get_size(int type, int *width, int *height)
 	return convert_size_from_type(type, width, height);
 }
 
-EAPI enum dynamicbox_size_type dynamicbox_service_size_type(int width, int height)
+EAPI dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height)
 {
 	int idx;
 
