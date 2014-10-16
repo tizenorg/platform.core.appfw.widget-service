@@ -235,6 +235,7 @@ extern const char * const dynamicbox_conf_launch_key_secured(void);
 extern const char * const dynamicbox_conf_launch_key_abi(void);
 extern const char * const dynamicbox_conf_empty_content(void);
 extern const char * const dynamicbox_conf_empty_title(void);
+extern const int const dynamicbox_conf_extra_buffer_count(void);
 
 #define DYNAMICBOX_CONF_BASE_W               dynamicbox_conf_base_width()
 #define DYNAMICBOX_CONF_BASE_H               dynamicbox_conf_base_height()
@@ -296,6 +297,7 @@ extern const char * const dynamicbox_conf_empty_title(void);
 #define DYNAMICBOX_CONF_DEFAULT_PING_TIME    dynamicbox_conf_ping_time()
 #define DYNAMICBOX_CONF_PREMULTIPLIED_COLOR  dynamicbox_conf_premultiplied_alpha()
 #define DYNAMICBOX_CONF_SERVICES             dynamicbox_conf_services()
+#define DYNAMICBOX_CONF_EXTRA_BUFFER_COUNT   dynamicbox_conf_extra_buffer_count()
 
 #define DYNAMICBOX_CONF_SERVICE_DYNAMICBOX   "[dynamicbox]"
 #define DYNAMICBOX_CONF_SERVICE_NOTIFICATION "[notification]"

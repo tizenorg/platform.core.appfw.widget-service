@@ -93,6 +93,7 @@ static const int CONF_DEFAULT_PIXELS = sizeof(int);
 static const int CONF_DEFAULT_AUTO_ALIGN = 1;
 static const int CONF_DEFAULT_USE_EVENT_TIME = 1;
 static const int CONF_DEFAULT_CHECK_LCD = 1;
+static const int CONF_DEFAULT_EXTRA_BUFFER_COUNT = 1;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -182,6 +183,7 @@ struct dynamicbox_conf {
 	int auto_align;
 	int use_event_time;
 	int check_lcd;
+	int extra_buffer_count;
 };
 
 static struct dynamicbox_conf s_conf;
@@ -191,6 +193,13 @@ static struct info {
 } s_info = {
 	.conf_loaded = 0,
 };
+
+static void extra_buffer_count_handler(char *buffer)
+{
+	if (sscanf(buffer, "%d", &s_conf.extra_buffer_count) != 1) {
+		ErrPrint("Extra buffer count is not valid: [%s], remained %d\n", buffer, s_conf.extra_buffer_count);
+	}
+}
 
 static void use_xmonitor(char *buffer)
 {
@@ -568,6 +577,7 @@ EAPI void dynamicbox_conf_init(void)
 	s_conf.auto_align = CONF_DEFAULT_AUTO_ALIGN;
 	s_conf.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
 	s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
+	s_conf.extra_buffer_count = CONF_DEFAULT_EXTRA_BUFFER_COUNT;
 }
 
 /*
@@ -791,6 +801,10 @@ EAPI int dynamicbox_conf_load(void)
 		{
 			.name = "premultiplied",
 			.handler = premultiplied_handler,
+		},
+		{
+			.name = "extra_buffer_count",
+			.handler = extra_buffer_count_handler,
 		},
 		{
 			.name = NULL,
@@ -1021,6 +1035,7 @@ EAPI void dynamicbox_conf_reset(void)
 	s_conf.auto_align = CONF_DEFAULT_AUTO_ALIGN;
 	s_conf.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
 	s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
+	s_conf.extra_buffer_count = CONF_DEFAULT_EXTRA_BUFFER_COUNT;
 
 	if (s_conf.default_conf.script != CONF_DEFAULT_SCRIPT_TYPE) {
 		free(s_conf.default_conf.script);
@@ -1143,6 +1158,11 @@ EAPI void dynamicbox_conf_reset(void)
 	}
 
 	s_info.conf_loaded = 0;
+}
+
+EAPI const int const dynamicbox_conf_extra_buffer_count(void)
+{
+	return s_conf.extra_buffer_count;
 }
 
 EAPI const int const dynamicbox_conf_use_xmonitor(void)
