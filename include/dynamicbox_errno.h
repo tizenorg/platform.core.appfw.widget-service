@@ -22,8 +22,8 @@ extern "C" {
 #endif
 
 /**
- * @file dynamicbox-errno.h
- * @brief  This file declares API of libdynamicbox-service library
+ * @file dynamicbox_errno.h
+ * @brief This file declares API of libdynamicbox-service library
  */
 
 /**
@@ -42,7 +42,7 @@ enum dynamicbox_status {
 	DBOX_STATUS_ERROR_OUT_OF_MEMORY = DBOX_STATUS_ERROR | 0x0004, /**< Memory is not enough to do this operation */
 	DBOX_STATUS_ERROR_EXIST = DBOX_STATUS_ERROR | 0x0008, /**< Already exists */
 	DBOX_STATUS_ERROR_BUSY = DBOX_STATUS_ERROR | 0x0010, /**< Busy so the operation is not started(accepted), try again */
-	DBOX_STATUS_ERROR_PERMISSIOND_DENIED = DBOX_STATUS_ERROR | 0x0020, /**< Permission error */
+	DBOX_STATUS_ERROR_PERMISSION_DENIED = DBOX_STATUS_ERROR | 0x0020, /**< Permission error */
 	DBOX_STATUS_ERROR_ALREADY = DBOX_STATUS_ERROR | 0x0040, /**< Operation is already started */
 	DBOX_STATUS_ERROR_CANCEL = DBOX_STATUS_ERROR | 0x0080, /**< Operation is canceled */
 	DBOX_STATUS_ERROR_IO_ERROR = DBOX_STATUS_ERROR | 0x0100, /**< I/O Error */

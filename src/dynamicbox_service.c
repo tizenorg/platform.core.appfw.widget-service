@@ -38,15 +38,14 @@
 #include "dlist.h"
 #include "util.h"
 #include "debug.h"
-#include "livebox-service.h"
-#include "livebox-errno.h"
-#include "provider_cmd_list.h"
+#include "dynamicbox_service.h"
+#include "dynamicbox_errno.h"
+#include "dynamicbox_cmd_list.h"
 
 #define SAMSUNG_PREFIX	"com.samsung."
-#define EAPI __attribute__((visibility("default")))
 #define DEFAULT_TIMEOUT 2.0
 
-static struct supported_size_list SIZE_LIST[NR_OF_SIZE_LIST] = {
+static struct supported_size_list SIZE_LIST[DBOX_NR_OF_SIZE_LIST] = {
 	{ 175, 175 }, /*!< 1x1 */
 	{ 354, 175 }, /*!< 2x1 */
 	{ 354, 354 }, /*!< 2x2 */
@@ -62,9 +61,9 @@ static struct supported_size_list SIZE_LIST[NR_OF_SIZE_LIST] = {
 	{ 720, 1280 }, /*!< 0x0 */
 };
 
-struct pkglist_handle {
+struct dynamicbox_pkglist_handle {
 	enum pkglist_type {
-		PKGLIST_TYPE_LB_LIST = 0x00beef00,
+		PKGLIST_TYPE_DBOX_LIST = 0x00beef00,
 		PKGLIST_TYPE_UNKNOWN = 0x00dead00
 	} type;
 	sqlite3 *handle;
@@ -73,7 +72,7 @@ struct pkglist_handle {
 
 static struct service_info s_info = {
 	.handle = NULL,
-	.dbfile = DB_FILE, 
+	.dbfile = DB_FILE,
 	.conf_file = NULL,
 	.init_count = 0,
 
@@ -86,6 +85,12 @@ static struct service_info s_info = {
 	.base_h = 1280,
 
 	.base_parse = 0,
+};
+
+struct pkgmgr_cbdata {
+	const char *dboxid;
+	void (*cb)(const char *dboxid, const char *appid, void *data);
+	void *cbdata;
 };
 
 static sqlite3 *open_db(void)
@@ -114,52 +119,52 @@ static inline __attribute__((always_inline)) void close_db(sqlite3 *handle)
 	}
 }
 
-static int convert_size_from_type(enum livebox_size_type type, int *width, int *height)
+static int convert_size_from_type(enum dynamicbox_size_type type, int *width, int *height)
 {
 	int idx;
 
 	switch (type) {
-	case LB_SIZE_TYPE_1x1: /*!< 175x175 */
+	case DBOX_SIZE_TYPE_1x1: /*!< 175x175 */
 		idx = 0;
 		break;
-	case LB_SIZE_TYPE_2x1: /*!< 354x175 */
+	case DBOX_SIZE_TYPE_2x1: /*!< 354x175 */
 		idx = 1;
 		break;
-	case LB_SIZE_TYPE_2x2: /*!< 354x354 */
+	case DBOX_SIZE_TYPE_2x2: /*!< 354x354 */
 		idx = 2;
 		break;
-	case LB_SIZE_TYPE_4x1: /*!< 712x175 */
+	case DBOX_SIZE_TYPE_4x1: /*!< 712x175 */
 		idx = 3;
 		break;
-	case LB_SIZE_TYPE_4x2: /*!< 712x354 */
+	case DBOX_SIZE_TYPE_4x2: /*!< 712x354 */
 		idx = 4;
 		break;
-	case LB_SIZE_TYPE_4x3: /*!< 712x533 */
+	case DBOX_SIZE_TYPE_4x3: /*!< 712x533 */
 		idx = 5;
 		break;
-	case LB_SIZE_TYPE_4x4: /*!< 712x712 */
+	case DBOX_SIZE_TYPE_4x4: /*!< 712x712 */
 		idx = 6;
 		break;
-	case LB_SIZE_TYPE_4x5: /*!< 712x891 */
+	case DBOX_SIZE_TYPE_4x5: /*!< 712x891 */
 		idx = 7;
 		break;
-	case LB_SIZE_TYPE_4x6: /*!< 712x1070 */
+	case DBOX_SIZE_TYPE_4x6: /*!< 712x1070 */
 		idx = 8;
 		break;
-	case LB_SIZE_TYPE_EASY_1x1: /*< 224x215 */
+	case DBOX_SIZE_TYPE_EASY_1x1: /*< 224x215 */
 		idx = 9;
 		break;
-	case LB_SIZE_TYPE_EASY_3x1: /*!< 680x215 */
+	case DBOX_SIZE_TYPE_EASY_3x1: /*!< 680x215 */
 		idx = 10;
 		break;
-	case LB_SIZE_TYPE_EASY_3x3: /*!< 680x653 */
+	case DBOX_SIZE_TYPE_EASY_3x3: /*!< 680x653 */
 		idx = 11;
 		break;
-	case LB_SIZE_TYPE_0x0: /*!< 720x1280 */
+	case DBOX_SIZE_TYPE_0x0: /*!< 720x1280 */
 		idx = 12;
 		break;
 	default:
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	if (util_update_resolution(&s_info, SIZE_LIST) < 0) {
@@ -168,459 +173,8 @@ static int convert_size_from_type(enum livebox_size_type type, int *width, int *
 
 	*width = SIZE_LIST[idx].w;
 	*height = SIZE_LIST[idx].h;
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
 }
-
-EAPI int livebox_service_change_period(const char *pkgname, const char *id, double period)
-{
-	struct packet *packet;
-	struct packet *result;
-	unsigned int cmd = CMD_SERVICE_CHANGE_PERIOD;
-	char *uri;
-	int ret;
-
-	if (!pkgname || !id || period < 0.0f) {
-		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	uri = util_id_to_uri(id);
-	if (!uri) {
-		return LB_STATUS_ERROR_MEMORY;
-	}
-
-	packet = packet_create((const char *)&cmd, "ssd", pkgname, uri, period);
-	free(uri);
-	if (!packet) {
-		ErrPrint("Failed to create a packet for period changing\n");
-		return LB_STATUS_ERROR_FAULT;
-	}
-
-	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
-	packet_unref(packet);
-
-	if (result) {
-		if (packet_get(result, "i", &ret) != 1) {
-			ErrPrint("Failed to parse a result packet\n");
-			ret = LB_STATUS_ERROR_INVALID;
-		}
-		packet_unref(result);
-	} else {
-		ErrPrint("Failed to get result packet\n");
-		ret = LB_STATUS_ERROR_FAULT;
-	}
-
-	return ret;
-}
-
-EAPI int livebox_service_get_instance_count(const char *pkgname, const char *cluster, const char *category)
-{
-	struct packet *packet;
-	struct packet *result;
-	unsigned int cmd = CMD_SERVICE_INST_CNT;
-	int ret;
-
-	packet = packet_create((const char *)&cmd, "sssd", pkgname, cluster, category, util_timestamp());
-	if (!packet) {
-		ErrPrint("Failed to create a packet for period changing\n");
-		return LB_STATUS_ERROR_FAULT;
-	}
-
-	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
-	packet_unref(packet);
-
-	if (result) {
-		if (packet_get(result, "i", &ret) != 1) {
-			ErrPrint("Failed to parse a result packet\n");
-			ret = LB_STATUS_ERROR_INVALID;
-		}
-		packet_unref(result);
-	} else {
-		ErrPrint("Failed to get result packet\n");
-		ret = LB_STATUS_ERROR_FAULT;
-	}
-
-	return ret;
-}
-
-EAPI int livebox_service_trigger_update_with_content(const char *pkgname, const char *id, const char *cluster, const char *category, const char *content, int force)
-{
-	struct packet *packet;
-	struct packet *result;
-	unsigned int cmd = CMD_SERVICE_UPDATE;
-	char *uri;
-	int ret;
-
-	if (!pkgname) {
-		ErrPrint("Invalid argument\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	if (!force && access("/tmp/.live.paused", R_OK) == 0) {
-		DbgPrint("Provider is paused\n");
-		return LB_STATUS_ERROR_CANCEL;
-	}
-
-	if (id) {
-		uri = util_id_to_uri(id);
-		if (!uri) {
-			return LB_STATUS_ERROR_MEMORY;
-		}
-	} else {
-		uri = NULL;
-	}
-
-	if (!cluster) {
-		cluster = "user,created";
-	}
-
-	if (!category) {
-		category = "default";
-	}
-
-	packet = packet_create((const char *)&cmd, "sssssi", pkgname, uri, cluster, category, content, force);
-	/*!
-	 * \note
-	 * "free" function accepts NULL
-	 */
-	free(uri);
-	if (!packet) {
-		ErrPrint("Failed to create a packet for service_update\n");
-		return LB_STATUS_ERROR_FAULT;
-	}
-
-	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
-	packet_unref(packet);
-
-	if (result) {
-		if (packet_get(result, "i", &ret) != 1) {
-			ErrPrint("Failed to parse a result packet\n");
-			ret = LB_STATUS_ERROR_INVALID;
-		}
-
-		packet_unref(result);
-	} else {
-		ErrPrint("Failed to get result packet\n");
-		ret = LB_STATUS_ERROR_FAULT;
-	}
-
-	return ret;
-}
-
-EAPI int livebox_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, int force)
-{
-	return livebox_service_trigger_update_with_content(pkgname, id, cluster, category, NULL, force);
-}
-
-/*!
- * pkgid == Package Id (not the livebox id)
- */
-EAPI struct pkglist_handle *livebox_service_pkglist_create(const char *pkgid, struct pkglist_handle *handle)
-{
-	int ret;
-
-	if (handle) {
-		if (handle->type != PKGLIST_TYPE_LB_LIST) {
-			ErrPrint("Invalid handle\n");
-			return NULL;
-		}
-
-		if (pkgid) {
-			ErrPrint("pkgid should be NULL\n");
-			return NULL;
-		}
-
-		sqlite3_reset(handle->stmt);
-		return handle;
-	}
-
-	handle = calloc(1, sizeof(*handle));
-	if (!handle) {
-		ErrPrint("Heap: %s\n", strerror(errno));
-		return NULL;
-	}
-
-	handle->type = PKGLIST_TYPE_LB_LIST;
-
-	handle->handle = open_db();
-	if (!handle->handle) {
-		free(handle);
-		return NULL;
-	}
-
-	if (!pkgid) {
-		ret = sqlite3_prepare_v2(handle->handle, "SELECT appid, pkgid, prime FROM pkgmap", -1, &handle->stmt, NULL);
-		if (ret != SQLITE_OK) {
-			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
-			close_db(handle->handle);
-			free(handle);
-			return NULL;
-		}
-	} else {
-		ret = sqlite3_prepare_v2(handle->handle, "SELECT appid, pkgid, prime FROM pkgmap WHERE appid = ?", -1, &handle->stmt, NULL);
-		if (ret != SQLITE_OK) {
-			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
-			close_db(handle->handle);
-			free(handle);
-			return NULL;
-		}
-
-		ret = sqlite3_bind_text(handle->stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
-		if (ret != SQLITE_OK) {
-			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
-			sqlite3_finalize(handle->stmt);
-			close_db(handle->handle);
-			free(handle);
-			return NULL;
-		}
-	}
-
-	return handle;
-}
-
-EAPI int livebox_service_get_pkglist_item(struct pkglist_handle *handle, char **appid, char **pkgname, int *is_prime)
-{
-	const char *tmp;
-	char *_appid = NULL;
-	char *_pkgname = NULL;
-
-	if (!handle || handle->type != PKGLIST_TYPE_LB_LIST) {
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	if (sqlite3_step(handle->stmt) != SQLITE_ROW) {
-		return LB_STATUS_ERROR_NOT_EXIST;
-	}
-
-	if (appid) {
-		tmp = (const char *)sqlite3_column_text(handle->stmt, 0);
-		if (tmp && strlen(tmp)) {
-			_appid = strdup(tmp);
-			if (!_appid) {
-				ErrPrint("Heap: %s\n", strerror(errno));
-				return LB_STATUS_ERROR_MEMORY;
-			}
-		}
-	}
-
-	if (pkgname) {
-		tmp = (const char *)sqlite3_column_text(handle->stmt, 1);
-		if (tmp && strlen(tmp)) {
-			_pkgname = strdup(tmp);
-			if (!_pkgname) {
-				ErrPrint("Heap: %s\n", strerror(errno));
-				free(_appid);
-				return LB_STATUS_ERROR_MEMORY;
-			}
-		}
-	}
-
-	if (is_prime) {
-		*is_prime = sqlite3_column_int(handle->stmt, 2);
-	}
-
-	if (appid) {
-		*appid = _appid;
-	}
-
-	if (pkgname) {
-		*pkgname = _pkgname;
-	}
-
-	return LB_STATUS_SUCCESS;
-}
-
-EAPI int livebox_service_pkglist_destroy(struct pkglist_handle *handle)
-{
-	if (!handle || handle->type != PKGLIST_TYPE_LB_LIST) {
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	handle->type = PKGLIST_TYPE_UNKNOWN;
-	sqlite3_reset(handle->stmt);
-	sqlite3_finalize(handle->stmt);
-	close_db(handle->handle);
-	free(handle);
-	return LB_STATUS_SUCCESS;
-}
-
-EAPI int livebox_service_get_pkglist(int (*cb)(const char *appid, const char *pkgname, int is_prime, void *data), void *data)
-{
-	int ret;
-	sqlite3_stmt *stmt;
-	char *appid;
-	char *pkgid;
-	int is_prime;
-	sqlite3 *handle;
-
-	if (!cb) {
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return LB_STATUS_ERROR_IO;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT appid, pkgid, prime FROM pkgmap", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = 0;
-	while (sqlite3_step(stmt) == SQLITE_ROW) {
-		appid = (char *)sqlite3_column_text(stmt, 0);
-		if (!appid || !strlen(appid)) {
-			ErrPrint("APPID is not valid\n");
-			continue;
-		}
-
-		pkgid = (char *)sqlite3_column_text(stmt, 1);
-		if (!pkgid || !strlen(pkgid)) {
-			ErrPrint("pkgid is not valid\n");
-			continue;
-		}
-
-		is_prime = sqlite3_column_int(stmt, 2);
-
-		ret++;
-
-		if (cb(appid, pkgid, is_prime, data) < 0) {
-			DbgPrint("Callback stopped package crawling\n");
-			break;
-		}
-	}
-
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-
-out:
-	close_db(handle);
-	return ret;
-}
-
-EAPI int livebox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *lbid, int is_prime, void *data), void *data)
-{
-	int ret;
-	sqlite3_stmt *stmt;
-	const char *lbid;
-	int is_prime;
-	sqlite3 *handle;
-
-	if (!cb || !pkgid) {
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return LB_STATUS_ERROR_IO;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT pkgid, prime FROM pkgmap WHERE appid = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = 0;
-	while (sqlite3_step(stmt) == SQLITE_ROW) {
-		lbid = (const char *)sqlite3_column_text(stmt, 0);
-		if (!lbid || !strlen(lbid)) {
-			ErrPrint("LBID is not valid\n");
-			continue;
-		}
-
-		is_prime = sqlite3_column_int(stmt, 1);
-
-		ret++;
-
-		if (cb(lbid, is_prime, data) < 0) {
-			DbgPrint("Callback stopped package crawling\n");
-			break;
-		}
-	}
-
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-
-out:
-	close_db(handle);
-	return ret;
-}
-
-EAPI int livebox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *lbid, void *data), void *data)
-{
-	int ret;
-	sqlite3_stmt *stmt;
-	const char *lbid;
-	sqlite3 *handle;
-
-	if (!cb || !category) {
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return LB_STATUS_ERROR_IO;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE category = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, category, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = 0;
-	while (sqlite3_step(stmt) == SQLITE_ROW) {
-		lbid = (const char *)sqlite3_column_text(stmt, 0);
-		if (!lbid || !strlen(lbid)) {
-			ErrPrint("LBID is not valid\n");
-			continue;
-		}
-
-		ret++;
-
-		if (cb(lbid, data) < 0) {
-			DbgPrint("Callback stopped package crawling\n");
-			break;
-		}
-	}
-
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-
-out:
-	close_db(handle);
-	return ret;
-}
-
-struct pkgmgr_cbdata {
-	const char *lbid;
-	void (*cb)(const char *lbid, const char *appid, void *data);
-	void *cbdata;
-};
 
 static int pkgmgr_cb(const pkgmgrinfo_appinfo_h handle, void *user_data)
 {
@@ -632,7 +186,7 @@ static int pkgmgr_cb(const pkgmgrinfo_appinfo_h handle, void *user_data)
 	if (ret < 0) {
 		ErrPrint("Unable to get appid\n");
 	} else {
-		cbdata->cb(cbdata->lbid, appid, cbdata->cbdata);
+		cbdata->cb(cbdata->dboxid, appid, cbdata->cbdata);
 	}
 
 	return 0;
@@ -660,7 +214,7 @@ static inline char *pkgmgr_get_mainapp(const char *pkgid)
 	return ret;
 }
 
-static inline int pkgmgr_get_applist(const char *pkgid, const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data)
+static inline int pkgmgr_get_applist(const char *pkgid, const char *dboxid, void (*cb)(const char *dboxid, const char *appid, void *data), void *data)
 {
 	struct pkgmgr_cbdata cbdata;
 	pkgmgrinfo_pkginfo_h handle;
@@ -672,7 +226,7 @@ static inline int pkgmgr_get_applist(const char *pkgid, const char *lbid, void (
 		return ret;
 	}
 
-	cbdata.lbid = lbid;
+	cbdata.dboxid = dboxid;
 	cbdata.cb = cb;
 	cbdata.cbdata = data;
 
@@ -682,213 +236,6 @@ static inline int pkgmgr_get_applist(const char *pkgid, const char *lbid, void (
 	}
 
 	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
-	return ret;
-}
-
-EAPI int livebox_service_get_applist(const char *lbid, void (*cb)(const char *lbid, const char *appid, void *data), void *data)
-{
-	sqlite3_stmt *stmt;
-	const char *tmp;
-	char *pkgid;
-	sqlite3 *handle;
-	int ret;
-
-	if (!lbid || !cb) {
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return LB_STATUS_ERROR_IO;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE (pkgid = ?) or (appid = ?)", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 2, lbid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	if (sqlite3_step(stmt) != SQLITE_ROW) {
-		ret = LB_STATUS_ERROR_INVALID;
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	tmp = (const char *)sqlite3_column_text(stmt, 0);
-	if (!tmp || !strlen(tmp)) {
-		ErrPrint("Invalid package name (%s)\n", lbid);
-		ret = LB_STATUS_ERROR_INVALID;
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	pkgid = strdup(tmp);
-	if (!pkgid) {
-		ErrPrint("Error: %s\n", strerror(errno));
-		ret = LB_STATUS_ERROR_MEMORY;
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-
-	ret = pkgmgr_get_applist(pkgid, lbid, cb, data);
-	free(pkgid);
-
-	switch (ret) {
-	case PMINFO_R_EINVAL:
-		ret = LB_STATUS_ERROR_INVALID;
-		break;
-	case PMINFO_R_OK:
-		ret = LB_STATUS_SUCCESS;
-		break;
-	case PMINFO_R_ERROR:
-	default:
-		ret = LB_STATUS_ERROR_FAULT;
-		break;
-	}
-
-out:
-	close_db(handle);
-	return ret;
-}
-
-EAPI char *livebox_service_mainappid(const char *lbid)
-{
-	sqlite3_stmt *stmt;
-	const char *tmp;
-	const char *pkgid;
-	sqlite3 *handle;
-	char *ret = NULL;
-
-	if (!lbid) {
-		return NULL;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return NULL;
-	}
-
-	if (sqlite3_prepare_v2(handle, "SELECT appid, uiapp FROM pkgmap WHERE (pkgid = ?) or (appid = ? and prime = 1)", -1, &stmt, NULL) != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	if (sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	if (sqlite3_bind_text(stmt, 2, lbid, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	if (sqlite3_step(stmt) != SQLITE_ROW) {
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	tmp = (const char *)sqlite3_column_text(stmt, 0);
-	if (!tmp || !strlen(tmp)) {
-		ErrPrint("Invalid package name (%s)\n", lbid);
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	pkgid = (const char *)sqlite3_column_text(stmt, 1);
-	if (!pkgid || !strlen(pkgid)) {
-		/*
-		 * This record has no uiapp.
-		 * Try to find the main ui-app id.
-		 */
-		ret = pkgmgr_get_mainapp(tmp);
-	} else {
-		ret = strdup(pkgid);
-		if (!ret) {
-			ErrPrint("Error: %s\n", strerror(errno));
-		}
-	}
-
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-
-out:
-	close_db(handle);
-	return ret;
-}
-
-EAPI int livebox_service_get_supported_size_types(const char *pkgid, int *cnt, int *types)
-{
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int size;
-	int ret;
-
-	if (!types || !cnt || !pkgid) {
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return LB_STATUS_ERROR_IO;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	if (*cnt > NR_OF_SIZE_LIST) {
-		*cnt = NR_OF_SIZE_LIST;
-	}
-
-	ret = 0;
-	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
-		size = sqlite3_column_int(stmt, 0);
-		types[ret] = size;
-		ret++;
-	}
-
-	*cnt = ret;
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	ret = LB_STATUS_SUCCESS;
-out:
-	close_db(handle);
 	return ret;
 }
 
@@ -1012,147 +359,7 @@ out:
 	return icon;
 }
 
-EAPI char *livebox_service_content(const char *pkgid)
-{
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	char *content = NULL;
-	int ret;
-
-	handle = open_db();
-	if (!handle) {
-		return NULL;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT content FROM client WHERE pkgid = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return NULL;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		const char *tmp;
-
-		tmp = (const char *)sqlite3_column_text(stmt, 0);
-		if (tmp && strlen(tmp)) {
-			content = strdup(tmp);
-			if (!content) {
-				ErrPrint("Heap: %s\n", strerror(errno));
-			}
-		}
-	}
-
-out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
-	return content;
-}
-
-EAPI char *livebox_service_setup_appid(const char *lbid)
-{
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int ret;
-	char *appid;
-
-	if (!lbid) {
-		return NULL;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return NULL;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT setup FROM client WHERE pkgid = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return NULL;
-	}
-
-	appid = NULL;
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		const char *tmp;
-
-		tmp = (const char *)sqlite3_column_text(stmt, 0);
-		if (!tmp || !strlen(tmp)) {
-			goto out;
-		}
-
-		appid = strdup(tmp);
-		if (!appid) {
-			ErrPrint("Error: %s\n", strerror(errno));
-		}
-	}
-
-out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
-	return appid;
-}
-
-EAPI int livebox_service_nodisplay(const char *pkgid)
-{
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int ret;
-
-	if (!pkgid) {
-		return 0;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return 0;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT nodisplay FROM client WHERE pkgid = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return 0;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		ret = !!sqlite3_column_int(stmt, 0);
-	} else {
-		ret = 0;
-	}
-
-out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
-	return ret;
-}
-
-static char *get_lb_pkgname_by_appid(const char *appid)
+static char *get_dbox_pkgname_by_appid(const char *appid)
 {
 	sqlite3_stmt *stmt;
 	char *pkgid;
@@ -1215,183 +422,6 @@ out:
 	return pkgid;
 }
 
-EAPI int livebox_service_need_frame(const char *pkgid, int size_type)
-{
-	char *lbid;
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int ret;
-
-	handle = open_db();
-	if (!handle) {
-		ErrPrint("Unable to open a DB\n");
-		return 0;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT need_frame FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return 0;
-	}
-
-	/*!
-	 */
-	lbid = livebox_service_pkgname(pkgid);
-	if (!lbid) {
-		ErrPrint("Invalid appid (%s)\n", pkgid);
-		ret = 0;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
-	free(lbid);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
-		goto out;
-	}
-
-	ret = sqlite3_bind_int(stmt, 2, size_type);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		ret = !!sqlite3_column_int(stmt, 0);
-	} else {
-		ret = 0;
-		ErrPrint("There is no such result\n");
-	}
-out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
-	return ret;
-}
-
-EAPI int livebox_service_touch_effect(const char *pkgid, int size_type)
-{
-	char *lbid;
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int ret;
-
-	handle = open_db();
-	if (!handle) {
-		ErrPrint("Unable to open a DB\n");
-		return 1;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return 1;
-	}
-
-	/*!
-	 * \note
-	 * This function will validate the "pkgid"
-	 * call the exported API in the exported API is not recomended
-	 * but... I used.
-	 */
-	lbid = livebox_service_pkgname(pkgid);
-	if (!lbid) {
-		ErrPrint("Invalid appid (%s)\n", pkgid);
-		ret = 1;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
-	free(lbid);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 1;
-		goto out;
-	}
-
-	ret = sqlite3_bind_int(stmt, 2, size_type);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 1;
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		ret = !!sqlite3_column_int(stmt, 0);
-	} else {
-		ret = 1; /*!< Default true: In this case the DB is corrupted. */
-		ErrPrint("There is no result\n");
-	}
-
-out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
-	return ret;
-}
-
-EAPI int livebox_service_mouse_event(const char *pkgid, int size_type)
-{
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	char *lbid;
-	int ret;
-
-	handle = open_db();
-	if (!handle) {
-		return 0;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT mouse_event FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return 0;
-	}
-
-	lbid = livebox_service_pkgname(pkgid);
-	if (!lbid) {
-		ErrPrint("Failed to get lbid: %s\n", pkgid);
-		ret = 0;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
-	free(lbid);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
-		goto out;
-	}
-
-	ret = sqlite3_bind_int(stmt, 2, size_type);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		ret = !!sqlite3_column_int(stmt, 0);
-	} else {
-		ret = 0; /*!< Default is false, In this case the DB is corrupted */
-		ErrPrint("There is no result.\n");
-	}
-
-out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
-	return ret;
-}
-
 static inline int update_lang_info(void)
 {
 	char *syslang;
@@ -1441,7 +471,968 @@ static inline int update_lang_info(void)
 	return 0;
 }
 
-EAPI char *livebox_service_preview(const char *pkgid, int size_type)
+EAPI int dynamicbox_service_change_period(const char *pkgname, const char *id, double period)
+{
+	struct packet *packet;
+	struct packet *result;
+	unsigned int cmd = CMD_SERVICE_CHANGE_PERIOD;
+	char *uri;
+	int ret;
+
+	if (!pkgname || !id || period < 0.0f) {
+		ErrPrint("Invalid argument\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	uri = util_id_to_uri(id);
+	if (!uri) {
+		return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+	}
+
+	packet = packet_create((const char *)&cmd, "ssd", pkgname, uri, period);
+	free(uri);
+	if (!packet) {
+		ErrPrint("Failed to create a packet for period changing\n");
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
+	packet_unref(packet);
+
+	if (result) {
+		if (packet_get(result, "i", &ret) != 1) {
+			ErrPrint("Failed to parse a result packet\n");
+			ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+		packet_unref(result);
+	} else {
+		ErrPrint("Failed to get result packet\n");
+		ret = DBOX_STATUS_ERROR_FAULT;
+	}
+
+	return ret;
+}
+
+EAPI int dynamicbox_service_get_instance_count(const char *pkgname, const char *cluster, const char *category)
+{
+	struct packet *packet;
+	struct packet *result;
+	unsigned int cmd = CMD_SERVICE_INST_CNT;
+	int ret;
+
+	packet = packet_create((const char *)&cmd, "sssd", pkgname, cluster, category, util_timestamp());
+	if (!packet) {
+		ErrPrint("Failed to create a packet for period changing\n");
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
+	packet_unref(packet);
+
+	if (result) {
+		if (packet_get(result, "i", &ret) != 1) {
+			ErrPrint("Failed to parse a result packet\n");
+			ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+		packet_unref(result);
+	} else {
+		ErrPrint("Failed to get result packet\n");
+		ret = DBOX_STATUS_ERROR_FAULT;
+	}
+
+	return ret;
+}
+
+EAPI int dynamicbox_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, const char *content, int force)
+{
+	struct packet *packet;
+	struct packet *result;
+	unsigned int cmd = CMD_SERVICE_UPDATE;
+	char *uri;
+	int ret;
+
+	if (!pkgname) {
+		ErrPrint("Invalid argument\n");
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!force && access("/tmp/.live.paused", R_OK) == 0) {
+		DbgPrint("Provider is paused\n");
+		return DBOX_STATUS_ERROR_CANCEL;
+	}
+
+	if (id) {
+		uri = util_id_to_uri(id);
+		if (!uri) {
+			return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+		}
+	} else {
+		uri = NULL;
+	}
+
+	if (!cluster) {
+		cluster = "user,created";
+	}
+
+	if (!category) {
+		category = "default";
+	}
+
+	packet = packet_create((const char *)&cmd, "sssssi", pkgname, uri, cluster, category, content, force);
+	/*!
+	 * \note
+	 * "free" function accepts NULL
+	 */
+	free(uri);
+	if (!packet) {
+		ErrPrint("Failed to create a packet for service_update\n");
+		return DBOX_STATUS_ERROR_FAULT;
+	}
+
+	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
+	packet_unref(packet);
+
+	if (result) {
+		if (packet_get(result, "i", &ret) != 1) {
+			ErrPrint("Failed to parse a result packet\n");
+			ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		}
+
+		packet_unref(result);
+	} else {
+		ErrPrint("Failed to get result packet\n");
+		ret = DBOX_STATUS_ERROR_FAULT;
+	}
+
+	return ret;
+}
+
+EAPI dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *pkgid, dynamicbox_pkglist_h handle)
+{
+	int ret;
+
+	if (handle) {
+		if (handle->type != PKGLIST_TYPE_DBOX_LIST) {
+			ErrPrint("Invalid handle\n");
+			return NULL;
+		}
+
+		if (pkgid) {
+			ErrPrint("pkgid should be NULL\n");
+			return NULL;
+		}
+
+		sqlite3_reset(handle->stmt);
+		return handle;
+	}
+
+	handle = calloc(1, sizeof(*handle));
+	if (!handle) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		return NULL;
+	}
+
+	handle->type = PKGLIST_TYPE_DBOX_LIST;
+
+	handle->handle = open_db();
+	if (!handle->handle) {
+		free(handle);
+		return NULL;
+	}
+
+	if (!pkgid) {
+		ret = sqlite3_prepare_v2(handle->handle, "SELECT appid, pkgid, prime FROM pkgmap", -1, &handle->stmt, NULL);
+		if (ret != SQLITE_OK) {
+			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
+			close_db(handle->handle);
+			free(handle);
+			return NULL;
+		}
+	} else {
+		ret = sqlite3_prepare_v2(handle->handle, "SELECT appid, pkgid, prime FROM pkgmap WHERE appid = ?", -1, &handle->stmt, NULL);
+		if (ret != SQLITE_OK) {
+			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
+			close_db(handle->handle);
+			free(handle);
+			return NULL;
+		}
+
+		ret = sqlite3_bind_text(handle->stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+		if (ret != SQLITE_OK) {
+			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
+			sqlite3_finalize(handle->stmt);
+			close_db(handle->handle);
+			free(handle);
+			return NULL;
+		}
+	}
+
+	return handle;
+}
+
+EAPI int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char **appid, char **pkgname, int *is_prime)
+{
+	const char *tmp;
+	char *_appid = NULL;
+	char *_pkgname = NULL;
+
+	if (!handle || handle->type != PKGLIST_TYPE_DBOX_LIST) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (sqlite3_step(handle->stmt) != SQLITE_ROW) {
+		return DBOX_STATUS_ERROR_NOT_EXIST;
+	}
+
+	if (appid) {
+		tmp = (const char *)sqlite3_column_text(handle->stmt, 0);
+		if (tmp && strlen(tmp)) {
+			_appid = strdup(tmp);
+			if (!_appid) {
+				ErrPrint("Heap: %s\n", strerror(errno));
+				return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+			}
+		}
+	}
+
+	if (pkgname) {
+		tmp = (const char *)sqlite3_column_text(handle->stmt, 1);
+		if (tmp && strlen(tmp)) {
+			_pkgname = strdup(tmp);
+			if (!_pkgname) {
+				ErrPrint("Heap: %s\n", strerror(errno));
+				free(_appid);
+				return DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+			}
+		}
+	}
+
+	if (is_prime) {
+		*is_prime = sqlite3_column_int(handle->stmt, 2);
+	}
+
+	if (appid) {
+		*appid = _appid;
+	}
+
+	if (pkgname) {
+		*pkgname = _pkgname;
+	}
+
+	return DBOX_STATUS_ERROR_NONE;
+}
+
+EAPI int dynamicbox_service_pkglist_destroy(dynamicbox_pkglist_h handle)
+{
+	if (!handle || handle->type != PKGLIST_TYPE_DBOX_LIST) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	handle->type = PKGLIST_TYPE_UNKNOWN;
+	sqlite3_reset(handle->stmt);
+	sqlite3_finalize(handle->stmt);
+	close_db(handle->handle);
+	free(handle);
+	return DBOX_STATUS_ERROR_NONE;
+}
+
+EAPI int dynamicbox_service_get_pkglist(int (*cb)(const char *appid, const char *pkgname, int is_prime, void *data), void *data)
+{
+	int ret;
+	sqlite3_stmt *stmt;
+	char *appid;
+	char *pkgid;
+	int is_prime;
+	sqlite3 *handle;
+
+	if (!cb) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return DBOX_STATUS_ERROR_IO_ERROR;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT appid, pkgid, prime FROM pkgmap", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		appid = (char *)sqlite3_column_text(stmt, 0);
+		if (!appid || !strlen(appid)) {
+			ErrPrint("APPID is not valid\n");
+			continue;
+		}
+
+		pkgid = (char *)sqlite3_column_text(stmt, 1);
+		if (!pkgid || !strlen(pkgid)) {
+			ErrPrint("pkgid is not valid\n");
+			continue;
+		}
+
+		is_prime = sqlite3_column_int(stmt, 2);
+
+		ret++;
+
+		if (cb(appid, pkgid, is_prime, data) < 0) {
+			DbgPrint("Callback stopped package crawling\n");
+			break;
+		}
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *dboxid, int is_prime, void *data), void *data)
+{
+	int ret;
+	sqlite3_stmt *stmt;
+	const char *dboxid;
+	int is_prime;
+	sqlite3 *handle;
+
+	if (!cb || !pkgid) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return DBOX_STATUS_ERROR_IO_ERROR;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid, prime FROM pkgmap WHERE appid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		dboxid = (const char *)sqlite3_column_text(stmt, 0);
+		if (!dboxid || !strlen(dboxid)) {
+			ErrPrint("DBOXID is not valid\n");
+			continue;
+		}
+
+		is_prime = sqlite3_column_int(stmt, 1);
+
+		ret++;
+
+		if (cb(dboxid, is_prime, data) < 0) {
+			DbgPrint("Callback stopped package crawling\n");
+			break;
+		}
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI int dynamicbox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *dboxid, void *data), void *data)
+{
+	int ret;
+	sqlite3_stmt *stmt;
+	const char *dboxid;
+	sqlite3 *handle;
+
+	if (!cb || !category) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return DBOX_STATUS_ERROR_IO_ERROR;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE category = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, category, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		dboxid = (const char *)sqlite3_column_text(stmt, 0);
+		if (!dboxid || !strlen(dboxid)) {
+			ErrPrint("DBOXID is not valid\n");
+			continue;
+		}
+
+		ret++;
+
+		if (cb(dboxid, data) < 0) {
+			DbgPrint("Callback stopped package crawling\n");
+			break;
+		}
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI int dynamicbox_service_get_applist(const char *dboxid, void (*cb)(const char *dboxid, const char *appid, void *data), void *data)
+{
+	sqlite3_stmt *stmt;
+	const char *tmp;
+	char *pkgid;
+	sqlite3 *handle;
+	int ret;
+
+	if (!dboxid || !cb) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return DBOX_STATUS_ERROR_IO_ERROR;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE (pkgid = ?) or (appid = ?)", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, dboxid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	if (sqlite3_step(stmt) != SQLITE_ROW) {
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	tmp = (const char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("Invalid package name (%s)\n", dboxid);
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	pkgid = strdup(tmp);
+	if (!pkgid) {
+		ErrPrint("Error: %s\n", strerror(errno));
+		ret = DBOX_STATUS_ERROR_OUT_OF_MEMORY;
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+	ret = pkgmgr_get_applist(pkgid, dboxid, cb, data);
+	free(pkgid);
+
+	switch (ret) {
+	case PMINFO_R_EINVAL:
+		ret = DBOX_STATUS_ERROR_INVALID_PARAMETER;
+		break;
+	case PMINFO_R_OK:
+		ret = DBOX_STATUS_ERROR_NONE;
+		break;
+	case PMINFO_R_ERROR:
+	default:
+		ret = DBOX_STATUS_ERROR_FAULT;
+		break;
+	}
+
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI char *dynamicbox_service_mainappid(const char *dboxid)
+{
+	sqlite3_stmt *stmt;
+	const char *tmp;
+	const char *pkgid;
+	sqlite3 *handle;
+	char *ret = NULL;
+
+	if (!dboxid) {
+		return NULL;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return NULL;
+	}
+
+	if (sqlite3_prepare_v2(handle, "SELECT appid, uiapp FROM pkgmap WHERE (pkgid = ?) or (appid = ? and prime = 1)", -1, &stmt, NULL) != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	if (sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	if (sqlite3_bind_text(stmt, 2, dboxid, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	if (sqlite3_step(stmt) != SQLITE_ROW) {
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	tmp = (const char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("Invalid package name (%s)\n", dboxid);
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	pkgid = (const char *)sqlite3_column_text(stmt, 1);
+	if (!pkgid || !strlen(pkgid)) {
+		/*
+		 * This record has no uiapp.
+		 * Try to find the main ui-app id.
+		 */
+		ret = pkgmgr_get_mainapp(tmp);
+	} else {
+		ret = strdup(pkgid);
+		if (!ret) {
+			ErrPrint("Error: %s\n", strerror(errno));
+		}
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI int dynamicbox_service_get_supported_size_types(const char *pkgid, int *cnt, int *types)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int size;
+	int ret;
+
+	if (!types || !cnt || !pkgid) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return DBOX_STATUS_ERROR_IO_ERROR;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	if (*cnt > DBOX_NR_OF_SIZE_LIST) {
+		*cnt = DBOX_NR_OF_SIZE_LIST;
+	}
+
+	ret = 0;
+	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
+		size = sqlite3_column_int(stmt, 0);
+		types[ret] = size;
+		ret++;
+	}
+
+	*cnt = ret;
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	ret = DBOX_STATUS_ERROR_NONE;
+out:
+	close_db(handle);
+	return ret;
+}
+
+EAPI char *dynamicbox_service_content(const char *pkgid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	char *content = NULL;
+	int ret;
+
+	handle = open_db();
+	if (!handle) {
+		return NULL;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT content FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return NULL;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		const char *tmp;
+
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (tmp && strlen(tmp)) {
+			content = strdup(tmp);
+			if (!content) {
+				ErrPrint("Heap: %s\n", strerror(errno));
+			}
+		}
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return content;
+}
+
+EAPI char *dynamicbox_service_setup_appid(const char *dboxid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+	char *appid;
+
+	if (!dboxid) {
+		return NULL;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return NULL;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT setup FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return NULL;
+	}
+
+	appid = NULL;
+	ret = sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		const char *tmp;
+
+		tmp = (const char *)sqlite3_column_text(stmt, 0);
+		if (!tmp || !strlen(tmp)) {
+			goto out;
+		}
+
+		appid = strdup(tmp);
+		if (!appid) {
+			ErrPrint("Error: %s\n", strerror(errno));
+		}
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return appid;
+}
+
+EAPI int dynamicbox_service_nodisplay(const char *pkgid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+
+	if (!pkgid) {
+		return 0;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return 0;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT nodisplay FROM client WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return 0;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		ret = !!sqlite3_column_int(stmt, 0);
+	} else {
+		ret = 0;
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return ret;
+}
+
+EAPI int dynamicbox_service_need_frame(const char *pkgid, int size_type)
+{
+	char *dboxid;
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+
+	handle = open_db();
+	if (!handle) {
+		ErrPrint("Unable to open a DB\n");
+		return 0;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT need_frame FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return 0;
+	}
+
+	/*!
+	 */
+	dboxid = dynamicbox_service_dbox_id(pkgid);
+	if (!dboxid) {
+		ErrPrint("Invalid appid (%s)\n", pkgid);
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT);
+	free(dboxid);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_bind_int(stmt, 2, size_type);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		ret = !!sqlite3_column_int(stmt, 0);
+	} else {
+		ret = 0;
+		ErrPrint("There is no such result\n");
+	}
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return ret;
+}
+
+EAPI int dynamicbox_service_touch_effect(const char *pkgid, int size_type)
+{
+	char *dboxid;
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret;
+
+	handle = open_db();
+	if (!handle) {
+		ErrPrint("Unable to open a DB\n");
+		return 1;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return 1;
+	}
+
+	/**
+	 * @note
+	 * This function will validate the "pkgid"
+	 * call the exported API in the exported API is not recomended
+	 * but... I used.
+	 */
+	dboxid = dynamicbox_service_dbox_id(pkgid);
+	if (!dboxid) {
+		ErrPrint("Invalid appid (%s)\n", pkgid);
+		ret = 1;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT);
+	free(dboxid);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 1;
+		goto out;
+	}
+
+	ret = sqlite3_bind_int(stmt, 2, size_type);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 1;
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		ret = !!sqlite3_column_int(stmt, 0);
+	} else {
+		ret = 1; /**< Default true: In this case the DB is corrupted. */
+		ErrPrint("There is no result\n");
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return ret;
+}
+
+EAPI int dynamicbox_service_mouse_event(const char *pkgid, int size_type)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	char *dboxid;
+	int ret;
+
+	handle = open_db();
+	if (!handle) {
+		return 0;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT mouse_event FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return 0;
+	}
+
+	dboxid = dynamicbox_service_dbox_id(pkgid);
+	if (!dboxid) {
+		ErrPrint("Failed to get dboxid: %s\n", pkgid);
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT);
+	free(dboxid);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_bind_int(stmt, 2, size_type);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		ret = 0;
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret == SQLITE_ROW) {
+		ret = !!sqlite3_column_int(stmt, 0);
+	} else {
+		ret = 0; /**< Default is false, In this case the DB is corrupted */
+		ErrPrint("There is no result.\n");
+	}
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return ret;
+}
+
+EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1531,7 +1522,7 @@ out:
 	return preview;
 }
 
-EAPI char *livebox_service_i18n_icon(const char *pkgid, const char *lang)
+EAPI char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1606,7 +1597,7 @@ out:
 	return icon;
 }
 
-EAPI char *livebox_service_i18n_name(const char *pkgid, const char *lang)
+EAPI char *dynamicbox_service_i18n_name(const char *pkgid, const char *lang)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1681,7 +1672,7 @@ out:
 	return name;
 }
 
-EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h)
+EAPI int dynamicbox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1689,18 +1680,18 @@ EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w
 	int ret;
 
 	if (!w || !h || !cnt || !pkgid) {
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_IO;
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -1709,12 +1700,12 @@ EAPI int livebox_service_get_supported_sizes(const char *pkgid, int *cnt, int *w
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-		ret = LB_STATUS_ERROR_IO;
+		ret = DBOX_STATUS_ERROR_IO_ERROR;
 		goto out;
 	}
 
-	if (*cnt > NR_OF_SIZE_LIST) {
-		*cnt = NR_OF_SIZE_LIST;
+	if (*cnt > DBOX_NR_OF_SIZE_LIST) {
+		*cnt = DBOX_NR_OF_SIZE_LIST;
 	}
 
 	ret = 0;
@@ -1732,7 +1723,7 @@ out:
 	return ret;
 }
 
-EAPI char *livebox_service_abi(const char *lbid)
+EAPI char *dynamicbox_service_abi(const char *dboxid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1740,7 +1731,7 @@ EAPI char *livebox_service_abi(const char *lbid)
 	char *abi;
 	char *tmp;
 
-	if (!lbid) {
+	if (!dboxid) {
 		ErrPrint("Invalid argument\n");
 		return NULL;
 	}
@@ -1757,7 +1748,7 @@ EAPI char *livebox_service_abi(const char *lbid)
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
+	ret = sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
@@ -1797,7 +1788,7 @@ out:
 	return abi;
 }
 
-EAPI char *livebox_service_pkgname_by_libexec(const char *libexec)
+EAPI char *dynamicbox_service_dbox_id_by_libexec(const char *libexec)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1872,7 +1863,7 @@ out:
 	return pkgid;
 }
 
-EAPI char *livebox_service_libexec(const char *pkgid)
+EAPI char *dynamicbox_service_libexec(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1916,9 +1907,6 @@ EAPI char *livebox_service_libexec(const char *pkgid)
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-
-		libexec = util_conf_get_libexec(pkgid);
-		DbgPrint("Fallback to conf checker: %s\n", libexec);
 		goto out;
 	}
 
@@ -1955,9 +1943,9 @@ out:
 	return libexec;
 }
 
-EAPI char *livebox_service_pkgname(const char *appid)
+EAPI char *dynamicbox_service_dbox_id(const char *appid)
 {
-	char *lb_pkgname;
+	char *dbox_pkgname;
 	pkgmgrinfo_appinfo_h handle;
 	int ret;
 	char *new_appid;
@@ -1966,9 +1954,9 @@ EAPI char *livebox_service_pkgname(const char *appid)
 		return NULL;
 	}
 
-	lb_pkgname = get_lb_pkgname_by_appid(appid);
-	if (lb_pkgname) {
-		return lb_pkgname;
+	dbox_pkgname = get_dbox_pkgname_by_appid(appid);
+	if (dbox_pkgname) {
+		return dbox_pkgname;
 	}
 
 	/*!
@@ -1988,208 +1976,17 @@ EAPI char *livebox_service_pkgname(const char *appid)
 		return NULL;
 	}
 
-	lb_pkgname = get_lb_pkgname_by_appid(new_appid);
+	dbox_pkgname = get_dbox_pkgname_by_appid(new_appid);
 	pkgmgrinfo_appinfo_destroy_appinfo(handle);
 
-	if (!lb_pkgname && util_validate_livebox_package(appid) == 0) {
-		return strdup(appid);
+	if (!dbox_pkgname) {
+		dbox_pkgname = strdup(appid);
 	}
 
-	return lb_pkgname;
+	return dbox_pkgname;
 }
 
-EAPI char *livebox_service_provider_name(const char *lbid)
-{
-	char *ret;
-	int stage = 0;
-	int seq = 0;
-	int idx = 0;
-	char *str = SAMSUNG_PREFIX;
-
-	if (!lbid) {
-		return NULL;
-	}
-
-	while (str[idx] && lbid[idx] && lbid[idx] == str[idx]) {
-		idx++;
-		if (seq < 2 && lbid[idx] == '.') {
-			stage = idx;
-			seq++;
-		}
-	}
-
-	if (!str[idx] && lbid[idx]) {
-		/* Inhouse */
-		return strdup(lbid);
-	} else if (seq < 2) {
-		while (seq < 2) {
-			if (lbid[idx] == '.') {
-				seq++;
-			} else if (!lbid[idx]) {
-				ErrPrint("Invalid lbid: %s\n", lbid);
-				return NULL;
-			}
-
-			idx++;
-		}
-
-		stage = idx;
-	} else {
-		stage++;
-	}
-
-	ret = strdup(lbid + stage);
-	if (!ret) {
-		ErrPrint("Error: %s\n", strerror(errno));
-		return NULL;
-	}
-
-	return ret;
-}
-
-EAPI int livebox_service_is_enabled(const char *lbid)
-{
-	return 1;
-	/*
-	ail_appinfo_h ai;
-	char *pkgname;
-	bool enabled;
-	int ret;
-
-	pkgname = livebox_service_appid(lbid);
-	if (!pkgname)
-		return 0;
-
-	ret = ail_get_appinfo(pkgname, &ai);
-	if (ret != AIL_ERROR_OK) {
-		free(pkgname);
-		return 0;
-	}
-
-	if (ail_appinfo_get_bool(ai, AIL_PROP_X_SLP_ENABLED_BOOL, &enabled) != AIL_ERROR_OK)
-		enabled = false;
-
-	ail_destroy_appinfo(ai);
-	free(pkgname);
-	return enabled == true;
-	*/
-}
-
-EAPI int livebox_service_is_primary(const char *lbid)
-{
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int ret = 0;
-
-	if (!lbid) {
-		return 0;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return 0;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT prime FROM pkgmap WHERE pkgid = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return 0;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret != SQLITE_ROW) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	ret = sqlite3_column_int(stmt, 0);
-
-out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
-	return ret;
-}
-
-EAPI char *livebox_service_category(const char *lbid)
-{
-	sqlite3_stmt *stmt;
-	char *category = NULL;
-	char *tmp;
-	sqlite3 *handle;
-	int ret;
-
-	if (!lbid) {
-		return NULL;
-	}
-
-	category = NULL;
-	handle = open_db();
-	if (!handle) {
-		return NULL;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT category FROM pkgmap WHERE pkgid = ? OR appid = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 2, lbid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret != SQLITE_ROW) {
-		ErrPrint("Has no record?: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	tmp = (char *)sqlite3_column_text(stmt, 0);
-	if (!tmp || !strlen(tmp)) {
-		ErrPrint("APPID is NIL\n");
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	category = strdup(tmp);
-	if (!category) {
-		ErrPrint("Heap: %s\n", strerror(errno));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-out:
-	close_db(handle);
-	return category;
-}
-
-EAPI char *livebox_service_appid(const char *pkgname)
+EAPI char *dynamicbox_service_package_id(const char *pkgname)
 {
 	sqlite3_stmt *stmt;
 	char *appid;
@@ -2286,14 +2083,205 @@ out:
 	return appid;
 }
 
-EAPI char *livebox_service_lb_script_path(const char *pkgid)
+EAPI char *dynamicbox_service_provider_name(const char *dboxid)
+{
+	char *ret;
+	int stage = 0;
+	int seq = 0;
+	int idx = 0;
+	char *str = SAMSUNG_PREFIX;
+
+	if (!dboxid) {
+		return NULL;
+	}
+
+	while (str[idx] && dboxid[idx] && dboxid[idx] == str[idx]) {
+		idx++;
+		if (seq < 2 && dboxid[idx] == '.') {
+			stage = idx;
+			seq++;
+		}
+	}
+
+	if (!str[idx] && dboxid[idx]) {
+		/* Inhouse */
+		return strdup(dboxid);
+	} else if (seq < 2) {
+		while (seq < 2) {
+			if (dboxid[idx] == '.') {
+				seq++;
+			} else if (!dboxid[idx]) {
+				ErrPrint("Invalid dboxid: %s\n", dboxid);
+				return NULL;
+			}
+
+			idx++;
+		}
+
+		stage = idx;
+	} else {
+		stage++;
+	}
+
+	ret = strdup(dboxid + stage);
+	if (!ret) {
+		ErrPrint("Error: %s\n", strerror(errno));
+		return NULL;
+	}
+
+	return ret;
+}
+
+EAPI int dynamicbox_service_is_enabled(const char *dboxid)
+{
+	return 1;
+	/*
+	ail_appinfo_h ai;
+	char *pkgname;
+	bool enabled;
+	int ret;
+
+	pkgname = dynamicbox_service_package_id(dboxid);
+	if (!pkgname)
+		return 0;
+
+	ret = ail_get_appinfo(pkgname, &ai);
+	if (ret != AIL_ERROR_OK) {
+		free(pkgname);
+		return 0;
+	}
+
+	if (ail_appinfo_get_bool(ai, AIL_PROP_X_SLP_ENABLED_BOOL, &enabled) != AIL_ERROR_OK)
+		enabled = false;
+
+	ail_destroy_appinfo(ai);
+	free(pkgname);
+	return enabled == true;
+	*/
+}
+
+EAPI int dynamicbox_service_is_primary(const char *dboxid)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret = 0;
+
+	if (!dboxid) {
+		return 0;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return 0;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT prime FROM pkgmap WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		close_db(handle);
+		return 0;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_column_int(stmt, 0);
+
+out:
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+	close_db(handle);
+	return ret;
+}
+
+EAPI char *dynamicbox_service_category(const char *dboxid)
+{
+	sqlite3_stmt *stmt;
+	char *category = NULL;
+	char *tmp;
+	sqlite3 *handle;
+	int ret;
+
+	if (!dboxid) {
+		return NULL;
+	}
+
+	category = NULL;
+	handle = open_db();
+	if (!handle) {
+		return NULL;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT category FROM pkgmap WHERE pkgid = ? OR appid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, dboxid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 2, dboxid, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		ErrPrint("Has no record?: %s\n", sqlite3_errmsg(handle));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	tmp = (char *)sqlite3_column_text(stmt, 0);
+	if (!tmp || !strlen(tmp)) {
+		ErrPrint("APPID is NIL\n");
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	category = strdup(tmp);
+	if (!category) {
+		ErrPrint("Heap: %s\n", strerror(errno));
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+out:
+	close_db(handle);
+	return category;
+}
+
+EAPI char *dynamicbox_service_dbox_script_path(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
 	int ret;
 	char *path;
 	char *appid;
-	char *lb_src;
+	char *dbox_src;
 
 	if (!pkgid) {
 		return NULL;
@@ -2341,15 +2329,15 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 		goto out;
 	}
 
-	lb_src = (char *)sqlite3_column_text(stmt, 1);
-	if (!lb_src || !strlen(lb_src)) {
-		ErrPrint("No records for lb src : %s, pkgid(%s), appid(%s)\n", sqlite3_errmsg(handle), pkgid, appid);
+	dbox_src = (char *)sqlite3_column_text(stmt, 1);
+	if (!dbox_src || !strlen(dbox_src)) {
+		ErrPrint("No records for dbox src : %s, pkgid(%s), appid(%s)\n", sqlite3_errmsg(handle), pkgid, appid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
-	path = strdup(lb_src);
+	path = strdup(dbox_src);
 	if (!path) {
 		ErrPrint("Heap: %s\n", strerror(errno));
 		sqlite3_reset(stmt);
@@ -2357,7 +2345,7 @@ EAPI char *livebox_service_lb_script_path(const char *pkgid)
 		goto out;
 	}
 
-	DbgPrint("LB Src: %s\n", path);
+	DbgPrint("DBOX Src: %s\n", path);
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
 out:
@@ -2365,7 +2353,7 @@ out:
 	return path;
 }
 
-EAPI char *livebox_service_lb_script_group(const char *pkgid)
+EAPI char *dynamicbox_service_dbox_script_group(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2419,13 +2407,13 @@ out:
 	return group;
 }
 
-EAPI char *livebox_service_pd_script_path(const char *pkgid)
+EAPI char *dynamicbox_service_gbar_script_path(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
 	int ret;
 	char *path;
-	char *pd_src;
+	char *gbar_src;
 	const char *appid;
 
 	if (!pkgid) {
@@ -2474,15 +2462,15 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 		goto out;
 	}
 
-	pd_src = (char *)sqlite3_column_text(stmt, 1);
-	if (!pd_src || !strlen(pd_src)) {
+	gbar_src = (char *)sqlite3_column_text(stmt, 1);
+	if (!gbar_src || !strlen(gbar_src)) {
 		ErrPrint("Error: %s pkgid(%s) appid(%s)\n", sqlite3_errmsg(handle), pkgid, appid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
-	path = strdup(pd_src);
+	path = strdup(gbar_src);
 	if (!path) {
 		ErrPrint("Heap: %s\n", strerror(errno));
 		sqlite3_reset(stmt);
@@ -2490,7 +2478,7 @@ EAPI char *livebox_service_pd_script_path(const char *pkgid)
 		goto out;
 	}
 
-	DbgPrint("PD Src: %s\n", path);
+	DbgPrint("GBAR Src: %s\n", path);
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
 out:
@@ -2498,7 +2486,7 @@ out:
 	return path;
 }
 
-EAPI char *livebox_service_pd_script_group(const char *pkgid)
+EAPI char *dynamicbox_service_gbar_script_group(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2551,61 +2539,7 @@ out:
 	return group;
 }
 
-EAPI int livebox_service_max_instance_count(const char *lbid)
-{
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int ret;
-
-	if (!lbid) {
-		ErrPrint("Invalid parameters\n");
-		return LB_STATUS_ERROR_INVALID;
-	}
-
-	handle = open_db();
-	if (!handle) {
-		return LB_STATUS_ERROR_IO;
-	}
-
-	ret = sqlite3_prepare_v2(handle, "SELECT count FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_FAULT;
-		goto out;
-	}
-
-	ret = sqlite3_bind_text(stmt, 1, lbid, -1, SQLITE_TRANSIENT);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = LB_STATUS_ERROR_FAULT;
-		sqlite3_finalize(stmt);
-		goto out;
-	}
-
-	ret = sqlite3_step(stmt);
-	if (ret != SQLITE_ROW) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		sqlite3_reset(stmt);
-		sqlite3_finalize(stmt);
-		ret = LB_STATUS_ERROR_IO;
-		goto out;
-	}
-
-	ret = sqlite3_column_int(stmt, 0);
-	if (ret < 0) {
-		ErrPrint("Getting invalid value: %d\n", ret);
-		ret = LB_STATUS_ERROR_IO;
-	}
-
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-
-out:
-	close_db(handle);
-	return ret;
-}
-
-EAPI int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data)
+EAPI int dynamicbox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2614,19 +2548,19 @@ EAPI int livebox_service_enumerate_cluster_list(int (*cb)(const char *cluster, v
 	int ret;
 
 	if (!cb) {
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
 	cnt = 0;
 	ret = sqlite3_prepare_v2(handle, "SELECT DISTINCT cluster FROM groupinfo", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		cnt = LB_STATUS_ERROR_IO;
+		cnt = DBOX_STATUS_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -2650,7 +2584,7 @@ out:
 	return cnt;
 }
 
-EAPI int livebox_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data)
+EAPI int dynamicbox_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2659,18 +2593,18 @@ EAPI int livebox_service_enumerate_category_list(const char *cluster, int (*cb)(
 	int ret;
 
 	if (!cluster || !cb) {
-		return LB_STATUS_ERROR_INVALID;
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT DISTINCT category FROM groupinfo WHERE cluster = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		cnt = LB_STATUS_ERROR_IO;
+		cnt = DBOX_STATUS_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -2695,42 +2629,42 @@ out:
 	return cnt;
 }
 
-EAPI int livebox_service_init(void)
+EAPI int dynamicbox_service_init(void)
 {
 	if (s_info.handle) {
 		DbgPrint("Already initialized\n");
 		s_info.init_count++;
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	s_info.handle = open_db();
 	if (s_info.handle) {
 		s_info.init_count++;
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
-	return LB_STATUS_ERROR_IO;
+	return DBOX_STATUS_ERROR_IO_ERROR;
 }
 
-EAPI int livebox_service_fini(void)
+EAPI int dynamicbox_service_fini(void)
 {
 	if (!s_info.handle || s_info.init_count <= 0) {
 		ErrPrint("Service is not initialized\n");
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
 	s_info.init_count--;
 	if (s_info.init_count > 0) {
 		DbgPrint("Init count %d\n", s_info.init_count);
-		return 0;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	db_util_close(s_info.handle);
 	s_info.handle = NULL;
-	return 0;
+	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int livebox_service_get_size(int type, int *width, int *height)
+EAPI int dynamicbox_service_get_size(int type, int *width, int *height)
 {
 	int _width;
 	int _height;
@@ -2746,7 +2680,7 @@ EAPI int livebox_service_get_size(int type, int *width, int *height)
 	return convert_size_from_type(type, width, height);
 }
 
-EAPI int livebox_service_size_type(int width, int height)
+EAPI enum dynamicbox_size_type dynamicbox_service_size_type(int width, int height)
 {
 	int idx;
 
@@ -2754,7 +2688,7 @@ EAPI int livebox_service_size_type(int width, int height)
 		ErrPrint("Failed to update the size list\n");
 	}
 
-	for (idx = 0; idx < NR_OF_SIZE_LIST; idx++) {
+	for (idx = 0; idx < DBOX_NR_OF_SIZE_LIST; idx++) {
 		if (SIZE_LIST[idx].w == width && SIZE_LIST[idx].h == height) {
 			break;
 		}
@@ -2762,36 +2696,36 @@ EAPI int livebox_service_size_type(int width, int height)
 
 	switch (idx) {
 	case 0:
-		return LB_SIZE_TYPE_1x1;
+		return DBOX_SIZE_TYPE_1x1;
 	case 1:
-		return LB_SIZE_TYPE_2x1;
+		return DBOX_SIZE_TYPE_2x1;
 	case 2:
-		return LB_SIZE_TYPE_2x2;
+		return DBOX_SIZE_TYPE_2x2;
 	case 3:
-		return LB_SIZE_TYPE_4x1;
+		return DBOX_SIZE_TYPE_4x1;
 	case 4:
-		return LB_SIZE_TYPE_4x2;
+		return DBOX_SIZE_TYPE_4x2;
 	case 5:
-		return LB_SIZE_TYPE_4x3;
+		return DBOX_SIZE_TYPE_4x3;
 	case 6:
-		return LB_SIZE_TYPE_4x4;
+		return DBOX_SIZE_TYPE_4x4;
 	case 7:
-		return LB_SIZE_TYPE_4x5;
+		return DBOX_SIZE_TYPE_4x5;
 	case 8:
-		return LB_SIZE_TYPE_4x6;
+		return DBOX_SIZE_TYPE_4x6;
 	case 9:
-		return LB_SIZE_TYPE_EASY_1x1;
+		return DBOX_SIZE_TYPE_EASY_1x1;
 	case 10:
-		return LB_SIZE_TYPE_EASY_3x1;
+		return DBOX_SIZE_TYPE_EASY_3x1;
 	case 11:
-		return LB_SIZE_TYPE_EASY_3x3;
+		return DBOX_SIZE_TYPE_EASY_3x3;
 	case 12:
-		return LB_SIZE_TYPE_0x0;
+		return DBOX_SIZE_TYPE_0x0;
 	default:
 		break;
 	}
 
-	return LB_SIZE_TYPE_UNKNOWN;
+	return DBOX_SIZE_TYPE_UNKNOWN;
 }
 
 /* End of a file */

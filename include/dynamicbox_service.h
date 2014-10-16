@@ -63,51 +63,6 @@ enum dynamicbox_size_type {
 };
 
 /**
- * @internal
- * @brief Enumeration for script event of dynamicbox.
- * @details
- * This enumeration values will be used for script plugin of data-provider-master.
- * Master will send down these accessibility events to the script plugin.
- * @since_tizen 2.3
- */
-enum dynamicbox_script_event {
-	DBOX_SCRIPT_ACCESS_EVENT	= 0x01000000, /**< Mask value */
-	DBOX_SCRIPT_MOUSE_EVENT		= 0x02000000, /**< Mask value */
-	DBOX_SCRIPT_KEY_EVENT		= 0x04000000, /**< Mask value */
-
-	DBOX_SCRIPT_ACCESS_HIGHLIGHT	= DBOX_SCRIPT_ACCESS_EVENT | 0x00000001, /**< Highlight */
-	DBOX_SCRIPT_ACCESS_HIGHLIGHT_NEXT	= DBOX_SCRIPT_ACCESS_EVENT | 0x00000002, /**< Move Highlight focus to the next object */
-	DBOX_SCRIPT_ACCESS_HIGHLIGHT_PREV	= DBOX_SCRIPT_ACCESS_EVENT | 0x00000004, /**< Move Highlight focus to the prev object */
-	DBOX_SCRIPT_ACCESS_ACTIVATE	= DBOX_SCRIPT_ACCESS_EVENT | 0x00000008, /**< Activate the highlighted object */
-	DBOX_SCRIPT_ACCESS_ACTION		= DBOX_SCRIPT_ACCESS_EVENT | 0x00000010, /**< Do specified action for the highlighted object */
-	DBOX_SCRIPT_ACCESS_SCROLL		= DBOX_SCRIPT_ACCESS_EVENT | 0x00000020, /**< Scroll operation */
-	DBOX_SCRIPT_ACCESS_UNHIGHLIGHT	= DBOX_SCRIPT_ACCESS_EVENT | 0x00000040, /**< Remove highlight */
-	DBOX_SCRIPT_ACCESS_VALUE_CHANGE	= DBOX_SCRIPT_ACCESS_EVENT | 0x00000080, /* TODO: deprecate this */
-	DBOX_SCRIPT_ACCESS_MOUSE		= DBOX_SCRIPT_ACCESS_EVENT | 0x00000100, /* give mouse event to highlight object */
-	DBOX_SCRIPT_ACCESS_BACK		= DBOX_SCRIPT_ACCESS_EVENT | 0x00000200, /* go back to a previous view ex: pop naviframe item */
-	DBOX_SCRIPT_ACCESS_OVER		= DBOX_SCRIPT_ACCESS_EVENT | 0x00000400, /* mouse over an object */
-	DBOX_SCRIPT_ACCESS_READ		= DBOX_SCRIPT_ACCESS_EVENT | 0x00000800, /* highlight an object */
-	DBOX_SCRIPT_ACCESS_ENABLE		= DBOX_SCRIPT_ACCESS_EVENT | 0x00001000, /* enable highlight and read ability */
-	DBOX_SCRIPT_ACCESS_DISABLE	= DBOX_SCRIPT_ACCESS_EVENT | 0x00002000, /* disable highlight and read ability */
-
-	DBOX_SCRIPT_MOUSE_DOWN		= DBOX_SCRIPT_MOUSE_EVENT | 0x00001000, /**< Mouse down */
-	DBOX_SCRIPT_MOUSE_MOVE		= DBOX_SCRIPT_MOUSE_EVENT | 0x00002000, /**< Mouse move */
-	DBOX_SCRIPT_MOUSE_UP		= DBOX_SCRIPT_MOUSE_EVENT | 0x00004000, /**< Mouse up */
-	DBOX_SCRIPT_MOUSE_IN		= DBOX_SCRIPT_MOUSE_EVENT | 0x00008000, /**< Mouse in */
-	DBOX_SCRIPT_MOUSE_OUT		= DBOX_SCRIPT_MOUSE_EVENT | 0x00010000, /**< Mouse out */
-
-	DBOX_SCRIPT_MOUSE_ON_SCROLL	= DBOX_SCRIPT_MOUSE_EVENT | 0x00020000, /**< If the box in in scroller and it is scrolled */
-	DBOX_SCRIPT_MOUSE_OFF_SCROLL	= DBOX_SCRIPT_MOUSE_EVENT | 0x00040000, /**< If the box is in scroller but the scroll is stopped */
-	DBOX_SCRIPT_MOUSE_ON_HOLD		= DBOX_SCRIPT_MOUSE_EVENT | 0x00080000, /**< Even though the box gets mouse_up event, the click event will not be generated */
-	DBOX_SCRIPT_MOUSE_OFF_HOLD	= DBOX_SCRIPT_MOUSE_EVENT | 0x00100000, /**< Generate the click event if the mouse_up event occurred as normal */
-
-	DBOX_SCRIPT_KEY_DOWN		= DBOX_SCRIPT_KEY_EVENT | 0x00020000, /**< Key pressed */
-	DBOX_SCRIPT_KEY_UP		= DBOX_SCRIPT_KEY_EVENT | 0x00040000, /**< Key released */
-	DBOX_SCRIPT_KEY_FOCUS_IN		= DBOX_SCRIPT_KEY_EVENT | 0x00080000, /**< Key focus in */
-	DBOX_SCRIPT_KEY_FOCUS_OUT 	= DBOX_SCRIPT_KEY_EVENT | 0x00100000, /**< Key focus out */
-};
-
-/**
  * @brief Enumeration for result of accessibility event processing.
  * @details Reference the libprovider & libdynamicbox-viewer.
  * @since_tizen 2.3
@@ -120,31 +75,68 @@ enum dynamicbox_access_status {
 	DBOX_ACCESS_STATUS_READ			/**< TTS is done */
 };
 
+/**
+ * @brief Key event handling result status.
+ * @since_tizen 2.3
+ */
 enum dynamicbox_key_status {
-	DBOX_KEY_STATUS_ERROR = 0x80000000,	/**< Key operation is failed */
-	DBOX_KEY_STATUS_DONE = 0x00000000,	/**< Key operation is successfully done */
-	DBOX_KEY_STATUS_FIRST,			/**< Focusable object item reaches to the first in it */
-	DBOX_KEY_STATUS_LAST,			/**< Focusable object item reaches to the last in it */
+	DBOX_KEY_STATUS_ERROR = 0x80000000, /**< Key operation is failed */
+	DBOX_KEY_STATUS_DONE = 0x00000000,  /**< Key operation is successfully done */
+	DBOX_KEY_STATUS_FIRST,              /**< Focusable object item reaches to the first in it */
+	DBOX_KEY_STATUS_LAST,               /**< Focusable object item reaches to the last in it */
 };
 
+/**
+ * @brief Delete type for dynamicbox delete operation.
+ * @since_tizen 2.3
+ */
 enum dynamicbox_delete_type {
-	DBOX_DELETE_PERMANENTLY = 0x01,	/**< The dynamicbox is removed from the homescreen temporary */
-	DBOX_DELETE_TEMPORARY = 0x02,	/**< The dynamicbox is removed from the homescreen by user permanently */
-	DBOX_DELETE_INVALID = 0xff,	/**< Unknown event type */
+	DBOX_DELETE_PERMANENTLY = 0x01, /**< The dynamicbox is removed from the homescreen temporary */
+	DBOX_DELETE_TEMPORARY = 0x02,   /**< The dynamicbox is removed from the homescreen by user permanently */
+	DBOX_DELETE_INVALID = 0xff,     /**< Unknown event type */
 };
 
+/**
+ * @brief Request type for closing Glance Bar
+ * @since_tizen 2.3
+ */
 enum dynamicbox_gbar_close_type {
-	DBOX_CLOSE_GBAR_NORMAL = 0x00,	/**< Glance Bar is closed normally */
-	DBOX_CLOSE_GBAR_TIMEOUT = 0x01,	/**< Glance Bar is closed because of timeout, there is no response */
-	DBOX_CLOSE_GBAR_FAULT = 0x02,	/**< Glance Bar is closed because of unrecoverable error */
-	DBOX_CLOSE_GBAR_INVALID = 0xff,	/**< Unknown event type */
+	DBOX_CLOSE_GBAR_NORMAL = 0x00,  /**< Glance Bar is closed normally */
+	DBOX_CLOSE_GBAR_TIMEOUT = 0x01, /**< Glance Bar is closed because of timeout, there is no response */
+	DBOX_CLOSE_GBAR_FAULT = 0x02,   /**< Glance Bar is closed because of unrecoverable error */
+	DBOX_CLOSE_GBAR_INVALID = 0xff, /**< Unknown event type */
+};
+
+/**
+ * @brief Type of dynamicbox content sharing method
+ * @since_tizen 2.3
+ */
+enum dynamicbox_dbox_type {
+	DBOX_TYPE_NONE = 0x0, /**< Undefined */
+	DBOX_TYPE_SCRIPT,     /**< Script base */
+	DBOX_TYPE_FILE,       /**< File base */
+	DBOX_TYPE_TEXT,       /**< Text base */
+	DBOX_TYPE_BUFFER,     /**< Buffer base */
+	DBOX_TYPE_UIFW        /**< UIFW supported type */
+};
+
+/**
+ * @brief Type of glance bar content sharing method
+ * @since_tizen 2.3
+ */
+enum dynamicbox_gbar_type {
+	GBAR_TYPE_NONE = 0x0, /**< Undefined */
+	GBAR_TYPE_SCRIPT,     /**< Script base */
+	GBAR_TYPE_TEXT,       /**< Text base */
+	GBAR_TYPE_BUFFER,     /**< Buffer base */
+	GBAR_TYPE_UIFW        /**< UIFW supported type */
 };
 
 /**
  * @brief Package list handle.
  * @since_tizen 2.3
  */
-struct pkglist_handle;
+typedef struct dynamicbox_pkglist_handle *dynamicbox_pkglist_h;
 
 /**
  * @brief Gets the pixel size of given size type.
@@ -206,7 +198,7 @@ extern int dynamicbox_service_get_size(int type, int *width, int *height);
  * @see dynamicbox_size_type()
  * @see dynamicbox_service_get_size()
  */
-extern int dynamicbox_service_size_type(int width, int height);
+extern enum dynamicbox_size_type dynamicbox_service_size_type(int width, int height);
 
 /**
  * @brief Supports the mouse event of dynamicbox content.
@@ -387,18 +379,18 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
 extern int dynamicbox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *dboxid, void *data), void *data);
 
 /**
- * @brief Gets the dboxid of a primary dynamicbox using given dboxid or pkgid or UI appid.
+ * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id.
  * @since_tizen 2.3
- * @param[in] id Dynamicbox Id or Package Id
+ * @param[in] id Dynamic Box Id or Package Id or UI App Id
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.info
  * @return char * type
  * @retval @c NULL Failed to get primary dboxid
  * @retval dboxid Primary dynamicbox Id. which is allocated in the heap
  * @pre Must be released returned string by manually.
- * @see dynamicbox_service_appid()
+ * @see dynamicbox_service_package_id()
  */
-extern char *dynamicbox_service_pkgname(const char *dboxid);
+extern char *dynamicbox_service_dbox_id(const char *id);
 
 /**
  * @brief Checks the primary flag of given dynamicbox Id.
@@ -474,7 +466,7 @@ extern char *dynamicbox_service_setup_appid(const char *dboxid);
  * @post Returned string must be free'd manually.
  * @see dynamicbox_service_pkgname()
  */
-extern char *dynamicbox_service_appid(const char *dboxid);
+extern char *dynamicbox_service_package_id(const char *dboxid);
 
 /**
  * @brief Gives Internationalized name of dynamicbox package.
@@ -761,7 +753,7 @@ extern int dynamicbox_service_fini(void);
  * @retval handle If it successfully create the package list iterator
  * @see dynamicbox_service_pkglist_destroy()
  */
-extern struct pkglist_handle *dynamicbox_service_pkglist_create(const char *dboxid, struct pkglist_handle *handle);
+extern dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *dboxid, dynamicbox_pkglist_h handle);
 
 /**
  * @brief Gets the dboxid & package name & is_prime flag.
@@ -781,7 +773,7 @@ extern struct pkglist_handle *dynamicbox_service_pkglist_create(const char *dbox
  * @see dynamicbox_service_pkglist_create()
  * @see dynamicbox_service_pkglist_destroy()
  */
-extern int dynamicbox_service_get_pkglist_item(struct pkglist_handle *handle, char **dboxid, char **pkgname, int *is_prime);
+extern int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char **dboxid, char **pkgname, int *is_prime);
 
 /**
  * @brief Destroys the iterator of pkglist.
@@ -796,7 +788,7 @@ extern int dynamicbox_service_get_pkglist_item(struct pkglist_handle *handle, ch
  * @post You have not to use the handle again after destroy it.
  * @see dynamicbox_service_pkglist_create()
  */
-extern int dynamicbox_service_pkglist_destroy(struct pkglist_handle *handle);
+extern int dynamicbox_service_pkglist_destroy(dynamicbox_pkglist_h handle);
 
 /**
  * @brief Getting the activated instance count.
@@ -841,7 +833,7 @@ extern char *dynamicbox_service_libexec(const char *dboxid);
  * @retval address heap address of pkgname
  * @post return'd string should be released by "free()"
  */
-extern char *dynamicbox_service_pkgname_by_libexec(const char *libexec);
+extern char *dynamicbox_service_dbox_id_by_libexec(const char *libexec);
 
 /**
  * @}

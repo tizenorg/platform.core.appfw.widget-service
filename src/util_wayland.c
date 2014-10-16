@@ -7,9 +7,9 @@
 #include <sqlite3.h>
 #include <unicode/uloc.h>
 
-#include "livebox-errno.h"
+#include "dynamicbox_errno.h"
 #include "util.h"
-#include "livebox-service.h"
+#include "dynamicbox_service.h"
 #include "debug.h"
 
 int errno;
@@ -79,7 +79,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 	fp = fopen(info->conf_file, "r");
 	if (!fp) {
 		ErrPrint("Open failed: %s\n", strerror(errno));
-		return LB_STATUS_ERROR_IO;
+		return DBOX_STATUS_ERROR_IO_ERROR;
 	}
 
 	updated = 0;
@@ -205,7 +205,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 		ErrPrint("fclose: %s\n", strerror(errno));
 	}
 
-	return NR_OF_SIZE_LIST - updated;
+	return DBOX_NR_OF_SIZE_LIST - updated;
 }
 
 int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST)
@@ -218,7 +218,7 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	static int res_resolved = 0;
 
 	if (res_resolved) {
-		return LB_STATUS_SUCCESS;
+		return DBOX_STATUS_ERROR_NONE;
 	}
 
 	if (update_from_file(info, SIZE_LIST) == 0) {
@@ -226,7 +226,12 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	}
 
 	res_resolved = 1;
-	return LB_STATUS_SUCCESS;
+	return DBOX_STATUS_ERROR_NONE;
+}
+
+int util_screen_size_get(unsigned int *width, unsigned int *height)
+{
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 /* End of a file */
