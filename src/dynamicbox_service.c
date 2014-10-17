@@ -35,11 +35,11 @@
 #include <ail.h>
 #include <unicode/uloc.h>
 
+#include "dynamicbox_errno.h"
 #include "dlist.h"
 #include "util.h"
 #include "debug.h"
 #include "dynamicbox_service.h"
-#include "dynamicbox_errno.h"
 #include "dynamicbox_cmd_list.h"
 
 #define SAMSUNG_PREFIX	"com.samsung."
@@ -85,6 +85,8 @@ static struct service_info s_info = {
 	.base_h = 1280,
 
 	.base_parse = 0,
+
+	.last_status = DBOX_STATUS_ERROR_NONE,
 };
 
 struct pkgmgr_cbdata {
@@ -2726,6 +2728,16 @@ EAPI dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height)
 	}
 
 	return DBOX_SIZE_TYPE_UNKNOWN;
+}
+
+void dynamicbox_set_last_status(dynamicbox_status_e status)
+{
+	s_info.last_status = status;
+}
+
+dynamicbox_status_e dynamicbox_last_status(void)
+{
+	return s_info.last_status;
 }
 
 /* End of a file */

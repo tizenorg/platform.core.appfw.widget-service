@@ -85,7 +85,6 @@ extern "C" {
 #define CMD_CTRL               0x00001401
 #define CMD_ACQUIRE_XBUFFER    0x00001501 // eXtra Buffer
 #define CMD_RELEASE_XBUFFER    0x00001601 // eXtra Buffer
-#define CMD_RESIZE_XBUFFER     0x00001701 // eXtra Buffer
 
 #define CMD_STR_CALL            "call"
 #define CMD_STR_RET             "ret"
@@ -97,7 +96,6 @@ extern "C" {
 #define CMD_STR_CTRL            "ctrl"
 #define CMD_STR_ACQUIRE_XBUFFER "acquire_xbuffer"
 #define CMD_STR_RELEASE_XBUFFER "release_xbuffer"
-#define CMD_STR_RESIZE_XBUFFER  "resize_xbuffer"
 
 
 /**
@@ -111,6 +109,10 @@ extern "C" {
 #define CMD_SIZE_CHANGED       0x00001201
 #define CMD_RESULT_PINUP       0x00001301   /**< To Viewer */
 #define CMD_RESULT_UPDATE_MODE 0x00001401   /**< To Viewer */
+#define CMD_DBOX_CREATE_XBUF   0x00001501
+#define CMD_GBAR_CREATE_XBUF   0x00001601
+#define CMD_DBOX_DESTROY_XBUF  0x00001701
+#define CMD_GBAR_DESTROY_XBUF  0x00001801
 
 #define CMD_STR_GBAR_CREATED       "gbar_created"
 #define CMD_STR_GBAR_DESTROYED     "gbar_destroyed"
@@ -120,6 +122,10 @@ extern "C" {
 #define CMD_STR_SIZE_CHANGED       "size_changed"
 #define CMD_STR_RESULT_PINUP       "pinup"
 #define CMD_STR_RESULT_UPDATE_MODE "update_mode"
+#define CMD_STR_DBOX_CREATE_XBUF   "dbox_create_xbuf"
+#define CMD_STR_GBAR_CREATE_XBUF   "gbar_create_xbuf"
+#define CMD_STR_DBOX_DESTROY_XBUF  "dbox_destroy_xbuf"
+#define CMD_STR_GBAR_DESTROY_XBUF  "gbar_destroy_xbuf"
 
 /**
  * @brief Following list should be started after the common list of client_cmd_list
@@ -314,6 +320,8 @@ extern "C" {
 #define CMD_GBAR_KEY_UNSET        0x00004F01
 #define CMD_CLIENT_PAUSED         0x00005001
 #define CMD_CLIENT_RESUMED        0x00005101
+#define CMD_DBOX_ACQUIRE_XPIXMAP  0x00005201
+#define CMD_GBAR_ACQUIRE_XPIXMAP  0x00005301
 
 #define CMD_STR_DBOX_MOUSE_SET      "dbox_mouse_set"
 #define CMD_STR_DBOX_MOUSE_UNSET    "dbox_mouse_unset"
@@ -342,7 +350,8 @@ extern "C" {
 #define CMD_STR_GBAR_KEY_UNSET      "gbar_key_unset"
 #define CMD_STR_CLIENT_PAUSED       "client_paused"
 #define CMD_STR_CLIENT_RESUMED      "client_resumed"
-
+#define CMD_STR_DBOX_ACQUIRE_XPIXMAP "dbox_acquire_xpixmap"
+#define CMD_STR_GBAR_ACQUIRE_XPIXMAP "gbar_acquire_xpixmap"
 
 /**
  * @brief Service API to Master

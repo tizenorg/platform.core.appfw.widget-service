@@ -28,9 +28,9 @@
 
 #include <dlog.h>
 
+#include "dynamicbox_errno.h"
 #include "util.h"
 #include "debug.h"
-#include "dynamicbox_errno.h"
 
 int errno;
 #if defined(_USE_ECORE_TIME_GET)

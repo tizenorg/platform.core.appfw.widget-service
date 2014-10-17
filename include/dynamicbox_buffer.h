@@ -165,6 +165,8 @@ typedef struct dynamicbox_buffer {
 	void *user_data;
 	char *lock;
 	int lock_fd;
+
+	unsigned int *extra_buffer;
 } *dynamicbox_buffer_h;
 
 #ifdef __cplusplus

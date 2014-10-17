@@ -59,6 +59,38 @@ typedef enum dynamicbox_status {
 #define DBOX_STATUS_IS_ERROR(s)	(!!((s) & DBOX_STATUS_ERROR))
 
 /**
+ * @brief Set the status for the last operation
+ * @param[in] status dynamicbox_status_e status
+ * @since_tizen 2.3
+ * @return void
+ * @see dynamicbox_last_status()
+ */
+extern void dynamicbox_set_last_status(dynamicbox_status_e status);
+
+/**
+ * @internal
+ * @brief Get the last error status
+ * @since_tizen 2.3
+ * @return int dynamicbox error status
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #DBOX_STATUS_ERROR_NONE successfully operated
+ * @retval #DBOX_STATUS_ERROR_OUT_OF_MEMORY Memory is not enough
+ * @retval #DBOX_STATUS_ERROR_ALREADY Already exists or operated
+ * @retval #DBOX_STATUS_ERROR_BUSY Too busy to handles request, try it again
+ * @retval #DBOX_STATUS_ERROR_FAULT Fault - Unable to recover from the error
+ * @retval #DBOX_STATUS_ERROR_EXIST Already exists
+ * @retval #DBOX_STATUS_ERROR_PERMISSION_DENIED Permission error
+ * @retval #DBOX_STATUS_ERROR_CANCEL Operation is canceled
+ * @retval #DBOX_STATUS_ERROR_IO_ERROR I/O Error
+ * @retval #DBOX_STATUS_ERROR_NOT_EXIST Not exists
+ * @retval #DBOX_STATUS_ERROR_TIMEOUT Timeout
+ * @retval #DBOX_STATUS_ERROR_NOT_IMPLEMENTED Operation is not implemented
+ * @retval #DBOX_STATUS_ERROR_NO_SPACE No space to operate
+ * @retval #DBOX_STATUS_ERROR_DISABLED Disabled
+ */
+extern dynamicbox_status_e dynamicbox_last_status(void);
+
+/**
  * @}
  */
 

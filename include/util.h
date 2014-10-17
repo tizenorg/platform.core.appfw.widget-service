@@ -34,6 +34,7 @@ struct service_info {
 	int base_h;
 
 	int base_parse;
+	dynamicbox_status_e last_status;
 };
 
 extern double util_timestamp(void);
