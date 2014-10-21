@@ -133,6 +133,24 @@ typedef enum dynamicbox_target_type {
 
 /**
  * @internal
+ * @brief Dynamic Box Frame Buffer Info
+ * @since_tizen 2.3
+ */
+struct fb_info {
+	char *id;
+	int w;
+	int h;
+	int bufsz;
+	void *buffer;
+
+	int pixels;
+	int handle;
+
+	void *gem;
+};
+
+/**
+ * @internal
  * @brief Dynamic Box Buffer structure
  * @since_tizen 2.3
  */
