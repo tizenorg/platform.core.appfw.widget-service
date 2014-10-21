@@ -176,7 +176,7 @@ typedef struct dynamicbox_pkglist_handle *dynamicbox_pkglist_h;
  * @see dynamicbox_size_type()
  * @see dynamicbox_service_size_type()
  */
-extern int dynamicbox_service_get_size(int type, int *width, int *height);
+extern int dynamicbox_service_get_size(dynamicbox_size_type_e type, int *width, int *height);
 
 /**
  * @brief Gets the size type for given pixel size.

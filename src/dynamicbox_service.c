@@ -2666,7 +2666,7 @@ EAPI int dynamicbox_service_fini(void)
 	return DBOX_STATUS_ERROR_NONE;
 }
 
-EAPI int dynamicbox_service_get_size(int type, int *width, int *height)
+EAPI int dynamicbox_service_get_size(dynamicbox_size_type_e type, int *width, int *height)
 {
 	int _width;
 	int _height;
