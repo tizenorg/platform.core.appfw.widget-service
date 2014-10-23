@@ -237,6 +237,8 @@ extern const char * const dynamicbox_conf_empty_content(void);
 extern const char * const dynamicbox_conf_empty_title(void);
 extern const int const dynamicbox_conf_extra_buffer_count(void);
 
+extern const int const dynamicbox_conf_use_gettimeofday(void);
+
 #define DYNAMICBOX_CONF_BASE_W               dynamicbox_conf_base_width()
 #define DYNAMICBOX_CONF_BASE_H               dynamicbox_conf_base_height()
 
@@ -312,6 +314,8 @@ extern const int const dynamicbox_conf_extra_buffer_count(void);
 #define DYNAMICBOX_CONF_AUTO_ALIGN           dynamicbox_conf_auto_align()
 #define DYNAMICBOX_CONF_USE_EVENT_TIME       dynamicbox_conf_use_event_time()
 #define DYNAMICBOX_CONF_CHECK_LCD            dynamicbox_conf_check_lcd()
+
+#define DYNAMICBOX_CONF_USE_GETTIMEOFDAY     dynamicbox_conf_use_gettimeofday()
 
 #define DYNAMICBOX_CONF_DELAY_TIME           0.0000001f
 #define DYNAMICBOX_CONF_DEFAULT_CLUSTER      "user,created"

@@ -94,6 +94,7 @@ static const int CONF_DEFAULT_AUTO_ALIGN = 1;
 static const int CONF_DEFAULT_USE_EVENT_TIME = 1;
 static const int CONF_DEFAULT_CHECK_LCD = 1;
 static const int CONF_DEFAULT_EXTRA_BUFFER_COUNT = 1;
+static const int CONF_DEFAULT_USE_GETTIMEOFDAY = 0;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -184,6 +185,7 @@ struct dynamicbox_conf {
 	int use_event_time;
 	int check_lcd;
 	int extra_buffer_count;
+	int use_gettimeofday;
 };
 
 static struct dynamicbox_conf s_conf;
@@ -217,6 +219,11 @@ static void emergency_disk_handler(char *buffer)
 static void check_lcd_handler(char *buffer)
 {
 	s_conf.check_lcd = !strcasecmp(buffer, "true");
+}
+
+static void use_gettimeofday_handler(char *buffer)
+{
+	s_conf.use_gettimeofday = !strcasecmp(buffer, "true");
 }
 
 static void use_event_time_handler(char *buffer)
@@ -578,6 +585,7 @@ EAPI void dynamicbox_conf_init(void)
 	s_conf.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
 	s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
 	s_conf.extra_buffer_count = CONF_DEFAULT_EXTRA_BUFFER_COUNT;
+	s_conf.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
 }
 
 /*
@@ -765,6 +773,10 @@ EAPI int dynamicbox_conf_load(void)
 		{
 			.name = "use_event_time",
 			.handler = use_event_time_handler,
+		},
+		{
+			.name = "use_gettimeofday",
+			.handler = use_gettimeofday_handler,
 		},
 		{
 			.name = "check_lcd",
@@ -1036,6 +1048,7 @@ EAPI void dynamicbox_conf_reset(void)
 	s_conf.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
 	s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
 	s_conf.extra_buffer_count = CONF_DEFAULT_EXTRA_BUFFER_COUNT;
+	s_conf.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
 
 	if (s_conf.default_conf.script != CONF_DEFAULT_SCRIPT_TYPE) {
 		free(s_conf.default_conf.script);
@@ -1428,6 +1441,11 @@ EAPI const char * const dynamicbox_conf_root_path(void)
 EAPI const int const dynamicbox_conf_is_loaded(void)
 {
 	return s_info.conf_loaded;
+}
+
+EAPI const int const dynamicbox_conf_use_gettimeofday(void)
+{
+	return s_conf.use_gettimeofday;
 }
 
 /* End of a file */
