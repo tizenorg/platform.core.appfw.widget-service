@@ -2730,12 +2730,12 @@ EAPI dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height)
 	return DBOX_SIZE_TYPE_UNKNOWN;
 }
 
-void dynamicbox_set_last_status(dynamicbox_status_e status)
+EAPI void dynamicbox_set_last_status(dynamicbox_status_e status)
 {
 	s_info.last_status = status;
 }
 
-dynamicbox_status_e dynamicbox_last_status(void)
+EAPI dynamicbox_status_e dynamicbox_last_status(void)
 {
 	return s_info.last_status;
 }

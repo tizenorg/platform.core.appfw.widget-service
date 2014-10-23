@@ -389,7 +389,7 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
 extern int dynamicbox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *dboxid, void *data), void *data);
 
 /**
- * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id.
+ * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id. If a given id is a dynamicbox id, check its existence. and if it is package or ui-app id, then find the primary dynamicbox in its package.
  * @since_tizen 2.3
  * @param[in] id Dynamic Box Id or Package Id or UI App Id
  * @privlevel public
@@ -432,10 +432,9 @@ extern char *dynamicbox_service_category(const char *dboxid);
 /**
  * @brief Gets the name of a dynamicbox (provider name == dynamicbox appid), you have to release the return value after use it.
  * @details
- *    OSP dynamicbox has provider process for each dynamicbox instances.\n
+ *    Dynamicbox has provider process for each dynamicbox instances.\n
  *    To get the provider's package name, you can use this API.\n
- *    If the given dboxid is inhouse dynamicbox, the return string will be the same with given argument but it is allocated in the heap.\n
- *    So you have to free it if you don't need it anymore.
+ *    If the given dboxid is inhouse dynamicbox, the return string will be the same with given argument but it is allocated in the heap.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Id
  * @privlevel public
