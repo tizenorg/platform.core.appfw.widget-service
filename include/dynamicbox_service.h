@@ -845,6 +845,23 @@ extern char *dynamicbox_service_libexec(const char *dboxid);
 extern char *dynamicbox_service_dbox_id_by_libexec(const char *libexec);
 
 /**
+ * @internal
+ * @brief Set the last status of operation
+ * @since_tizen 2.3
+ * @param[in] status status code
+ * @return void
+ */
+extern void dynamicbox_set_last_status(dynamicbox_status_e status);
+
+/**
+ * @internal
+ * @brief Get the status of last operation
+ * @since_tizen 2.3
+ * @return dynamicbox_status_e Status code
+ */
+extern dynamicbox_status_e dynamicbox_last_status(void);
+
+/**
  * @}
  */
 
