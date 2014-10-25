@@ -151,6 +151,28 @@ struct fb_info {
 
 /**
  * @internal
+ * @brief Locking type - Read/Write
+ * @since_tizen 2.3
+ */
+typedef enum dynamicbox_lock_type {
+	DBOX_LOCK_READ = 0x01,
+	DBOX_LOCK_WRITE = 0x02,
+} dynamicbox_lock_type_e;
+
+/**
+ * @internal
+ * @brief Locking info
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_lock_info {
+	char *filename;
+	int fd;
+	dynamicbox_lock_type_e type;
+} *dynamicbox_lock_info_t;
+
+
+/**
+ * @internal
  * @brief Dynamic Box Buffer structure
  * @since_tizen 2.3
  */
@@ -181,11 +203,57 @@ typedef struct dynamicbox_buffer {
 	void *data;
 
 	void *user_data;
-	char *lock;
-	int lock_fd;
 
 	unsigned int *extra_buffer;
+
+	dynamicbox_lock_info_t lock_info;
 } *dynamicbox_buffer_h;
+
+/**
+ * @internal
+ * @brief Create a lock instance
+ * @param[in] uri Instance URI
+ * @param[in] type dynamicbox_target_type_e, DBOX or GBAR
+ * @param[in] option Read or Write
+ * @return dynamicbox_lock_info_t
+ * @retval NULL if it fails to create a lock, proper error code will be set on last_status
+ * @retval info Lock information handler
+ * @see dynamicbox_service_destroy_lock()
+ * @see dynamicbox_service_acquire_lock()
+ * @see dynamicbox_service_release_lock()
+ */
+extern dynamicbox_lock_info_t dynamicbox_service_create_lock(const char *uri, dynamicbox_target_type_e type, dynamicbox_lock_type_e option);
+
+/**
+ * @internal
+ * @brief Destroy a lock instance
+ * @param[in] info Lock information handler
+ * @return status
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to manage the lock file
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully destroyed
+ */
+extern int dynamicbox_service_destroy_lock(dynamicbox_lock_info_t info);
+
+/**
+ * @internal
+ * @brief Acquire a lock instance
+ * @param[in] info Lock information handler
+ * @return status
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully destroyed
+ */
+extern int dynamicbox_service_acquire_lock(dynamicbox_lock_info_t info);
+
+/**
+ * @internal
+ * @brief Acquire a lock instance
+ * @param[in] info Lock information handler
+ * @return status
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully destroyed
+ */
+extern int dynamicbox_service_release_lock(dynamicbox_lock_info_t info);
 
 #ifdef __cplusplus
 }

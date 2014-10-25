@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <sqlite3.h>
 #include <ctype.h>
+#include <fcntl.h>
 
 #include <com-core_packet.h>
 #include <packet.h>
@@ -41,6 +42,7 @@
 #include "debug.h"
 #include "dynamicbox_service.h"
 #include "dynamicbox_cmd_list.h"
+#include "dynamicbox_buffer.h"
 
 #define SAMSUNG_PREFIX	"com.samsung."
 #define DEFAULT_TIMEOUT 2.0
@@ -2738,6 +2740,138 @@ EAPI void dynamicbox_set_last_status(dynamicbox_status_e status)
 EAPI dynamicbox_status_e dynamicbox_last_status(void)
 {
 	return s_info.last_status;
+}
+
+EAPI dynamicbox_lock_info_t dynamicbox_service_create_lock(const char *uri, dynamicbox_target_type_e type, dynamicbox_lock_type_e option)
+{
+	dynamicbox_lock_info_t info;
+	int len;
+	int flags;
+
+	info = malloc(sizeof(*info));
+	if (!info) {
+		ErrPrint("malloc: %s\n", strerror(errno));
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
+		return NULL;
+	}
+
+	len = strlen(uri);
+	info->filename = malloc(len + 20);
+	if (!info->filename) {
+		ErrPrint("malloc: %s\n", strerror(errno));
+		free(info);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_OUT_OF_MEMORY);
+		return NULL;
+	}
+
+	len = snprintf(info->filename, len + 20, "%s.%s.lck", util_uri_to_path(uri), type == DBOX_TYPE_GBAR ? "gbar" : "dbox");
+	if (len < 0) {
+		ErrPrint("snprintf: %s\n", strerror(errno));
+		free(info->filename);
+		free(info);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_FAULT);
+		return NULL;
+	}
+
+	if (option == DBOX_LOCK_WRITE) {
+		flags = O_WRONLY | O_CREAT;
+	} else if (option == DBOX_LOCK_READ) {
+		flags = O_RDONLY;
+	} else {
+		ErrPrint("Invalid paramter\n");
+		free(info->filename);
+		free(info);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	info->type = option;
+
+	info->fd = open(info->filename, flags, 0644);
+	if (info->fd < 0) {
+		ErrPrint("open: %s\n", strerror(errno));
+		free(info->filename);
+		free(info);
+		dynamicbox_set_last_status(DBOX_STATUS_ERROR_IO_ERROR);
+	}
+
+	return info;
+}
+
+EAPI int dynamicbox_service_destroy_lock(dynamicbox_lock_info_t info)
+{
+	if (!info || !info->filename || info->fd < 0) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (close(info->fd) < 0) {
+		ErrPrint("close: %s\n", strerror(errno));
+		return DBOX_STATUS_ERROR_IO_ERROR;
+	}
+
+	if (unlink(info->filename) < 0) {
+		ErrPrint("unlink: %s\n", strerror(errno));
+	}
+
+	free(info->filename);
+	free(info);
+	return DBOX_STATUS_ERROR_NONE;
+}
+
+EAPI int dynamicbox_service_acquire_lock(dynamicbox_lock_info_t info)
+{
+	struct flock flock;
+	int ret;
+
+	if (!info || info->fd < 0) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	if (info->type == DBOX_LOCK_WRITE) {
+		flock.l_type = F_WRLCK;
+	} else if (info->type == DBOX_LOCK_READ) {
+		flock.l_type = F_RDLCK;
+	}
+	flock.l_whence = SEEK_SET;
+	flock.l_start = 0;
+	flock.l_len = 0;
+	flock.l_pid = getpid();
+
+	do {
+		ret = fcntl(info->fd, F_SETLKW, &flock);
+		if (ret < 0) {
+			ret = errno;
+			ErrPrint("fcntl: %s\n", strerror(errno));
+		}
+	} while (ret == EINTR);
+
+	return DBOX_STATUS_ERROR_NONE;
+}
+
+EAPI int dynamicbox_service_release_lock(dynamicbox_lock_info_t info)
+{
+	struct flock flock;
+	int ret;
+
+	if (info->fd < 0) {
+		return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+	}
+
+	flock.l_type = F_UNLCK;
+	flock.l_whence = SEEK_SET;
+	flock.l_start = 0;
+	flock.l_len = 0;
+	flock.l_pid = getpid();
+
+	do {
+		ret = fcntl(info->fd, F_SETLKW, &flock);
+		if (ret < 0) {
+			ret = errno;
+			ErrPrint("fcntl: %s\n", strerror(errno));
+		}
+	} while (ret == EINTR);
+
+	return DBOX_STATUS_ERROR_NONE;
 }
 
 /* End of a file */
