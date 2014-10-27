@@ -83,18 +83,18 @@ typedef enum dynamicbox_script_event {
  * @since_tizen 2.3
  */
 typedef struct dynamicbox_event_info {
-        struct _pointer {
-                double x; /**< X value of current mouse(touch) position */
-                double y; /**< Y value of current mouse(touch) position */
-                int down; /**< Is it pressed(1) or not(0) */
-        } pointer;
+    struct _pointer {
+	double x; /**< X value of current mouse(touch) position */
+	double y; /**< Y value of current mouse(touch) position */
+	int down; /**< Is it pressed(1) or not(0) */
+    } pointer;
 
-        struct _part {
-                double sx; /**< Pressed object's left top X */
-                double sy; /**< Pressed object's left top Y */
-                double ex; /**< Pressed object's right bottom X */
-                double ey; /**< Pressed object's right bottom Y */
-        } part;
+    struct _part {
+	double sx; /**< Pressed object's left top X */
+	double sy; /**< Pressed object's left top Y */
+	double ex; /**< Pressed object's right bottom X */
+	double ey; /**< Pressed object's right bottom Y */
+    } part;
 } *dynamicbox_event_info_t;
 
 #ifdef __cplusplus
