@@ -31,6 +31,8 @@ extern "C" {
  * @{
  */
 
+#define DBOX_PRIMARY_BUFFER	-1
+
 typedef enum dynamicbox_fb_type { /*!< Must have to be sync with libprovider, liblivebox-viewer */
 	DBOX_FB_TYPE_FILE,
 	DBOX_FB_TYPE_SHM,
