@@ -115,6 +115,7 @@ extern "C" {
 #define CMD_GBAR_CREATE_XBUF   0x00001701
 #define CMD_DBOX_DESTROY_XBUF  0x00001801
 #define CMD_GBAR_DESTROY_XBUF  0x00001901
+#define CMD_UPDATE_ID          0x00001A01
 
 #define CMD_STR_GBAR_CREATED       "gbar_created"
 #define CMD_STR_GBAR_DESTROYED     "gbar_destroyed"
@@ -128,6 +129,7 @@ extern "C" {
 #define CMD_STR_GBAR_CREATE_XBUF   "gbar_create_xbuf"
 #define CMD_STR_DBOX_DESTROY_XBUF  "dbox_destroy_xbuf"
 #define CMD_STR_GBAR_DESTROY_XBUF  "gbar_destroy_xbuf"
+#define CMD_STR_UPDATE_ID          "update_id"
 
 /**
  * @brief Following list should be started after the common list of client_cmd_list
