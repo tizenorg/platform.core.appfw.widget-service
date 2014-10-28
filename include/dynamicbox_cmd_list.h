@@ -41,23 +41,25 @@ extern "C" {
 #define CMD_DBOX_UPDATED       0x00000001   /**< Alias of CMD_UPDATED */
 #define CMD_DESC_UPDATED       0x00000101   /**< GBAR Updated */
 #define CMD_GBAR_UPDATED       0x00000101   /**< Alias of CMD_DESC_UPDATED */
-#define CMD_EXTRA_INFO         0x00000201   /**< Extra information is updated */
-#define CMD_DELETED            0x00000301   /**< DBox is deleted */
-#define CMD_FAULTED            0x00000401   /**< DBox is faulted */
-#define CMD_FAULT_PACKAGE      0x00000401   /**< Faulted package */
-#define CMD_SCROLL             0x00000501
-#define CMD_DBOX_UPDATE_BEGIN  0x00000601
-#define CMD_DBOX_UPDATE_END    0x00000701
-#define CMD_GBAR_UPDATE_BEGIN  0x00000801
-#define CMD_GBAR_UPDATE_END    0x00000901
-#define CMD_ACCESS_STATUS      0x00000A01
-#define CMD_KEY_STATUS         0x00000B01
-#define CMD_CLOSE_GBAR         0x00000C01
+#define CMD_EXTRA_UPDATED      0x00000201
+#define CMD_EXTRA_INFO         0x00000301   /**< Extra information is updated */
+#define CMD_DELETED            0x00000401   /**< DBox is deleted */
+#define CMD_FAULTED            0x00000501   /**< DBox is faulted */
+#define CMD_FAULT_PACKAGE      0x00000501   /**< Faulted package */
+#define CMD_SCROLL             0x00000601
+#define CMD_DBOX_UPDATE_BEGIN  0x00000701
+#define CMD_DBOX_UPDATE_END    0x00000801
+#define CMD_GBAR_UPDATE_BEGIN  0x00000901
+#define CMD_GBAR_UPDATE_END    0x00000A01
+#define CMD_ACCESS_STATUS      0x00000B01
+#define CMD_KEY_STATUS         0x00000C01
+#define CMD_CLOSE_GBAR         0x00000D01
 
 #define CMD_STR_UPDATED           "updated"
 #define CMD_STR_DBOX_UPDATED      "dbox_updated"
 #define CMD_STR_DESC_UPDATED      "desc_updated"
 #define CMD_STR_GBAR_UPDATED      "gbar_updated"
+#define CMD_STR_EXTRA_UPDATED     "extra_updated"
 #define CMD_STR_EXTRA_INFO        "extra_info"
 #define CMD_STR_DELETED           "deleted"
 #define CMD_STR_FAULTED           "faulted"
@@ -75,16 +77,16 @@ extern "C" {
  * @brief Command list for
  *	  Provder to Master.
  */
-#define CMD_CALL               0x00000D01
-#define CMD_RET                0x00000E01
-#define CMD_ACQUIRE_BUFFER     0x00000F01
-#define CMD_RESIZE_BUFFER      0x00001001
-#define CMD_RELEASE_BUFFER     0x00001101
-#define CMD_HELLO              0x00001201
-#define CMD_PING               0x00001301
-#define CMD_CTRL               0x00001401
-#define CMD_ACQUIRE_XBUFFER    0x00001501 // eXtra Buffer
-#define CMD_RELEASE_XBUFFER    0x00001601 // eXtra Buffer
+#define CMD_CALL               0x00000E01
+#define CMD_RET                0x00000F01
+#define CMD_ACQUIRE_BUFFER     0x00001001
+#define CMD_RESIZE_BUFFER      0x00001101
+#define CMD_RELEASE_BUFFER     0x00001201
+#define CMD_HELLO              0x00001301
+#define CMD_PING               0x00001401
+#define CMD_CTRL               0x00001501
+#define CMD_ACQUIRE_XBUFFER    0x00001601 // eXtra Buffer
+#define CMD_RELEASE_XBUFFER    0x00001701 // eXtra Buffer
 
 #define CMD_STR_CALL            "call"
 #define CMD_STR_RET             "ret"
@@ -101,18 +103,18 @@ extern "C" {
 /**
  * @brief Master to Viewer
  */
-#define CMD_GBAR_CREATED       0x00000D01
-#define CMD_GBAR_DESTROYED     0x00000E01
-#define CMD_CREATED            0x00000F01
-#define CMD_GROUP_CHANGED      0x00001001
-#define CMD_PERIOD_CHANGED     0x00001101
-#define CMD_SIZE_CHANGED       0x00001201
-#define CMD_RESULT_PINUP       0x00001301   /**< To Viewer */
-#define CMD_RESULT_UPDATE_MODE 0x00001401   /**< To Viewer */
-#define CMD_DBOX_CREATE_XBUF   0x00001501
-#define CMD_GBAR_CREATE_XBUF   0x00001601
-#define CMD_DBOX_DESTROY_XBUF  0x00001701
-#define CMD_GBAR_DESTROY_XBUF  0x00001801
+#define CMD_GBAR_CREATED       0x00000E01
+#define CMD_GBAR_DESTROYED     0x00000F01
+#define CMD_CREATED            0x00001001
+#define CMD_GROUP_CHANGED      0x00001101
+#define CMD_PERIOD_CHANGED     0x00001201
+#define CMD_SIZE_CHANGED       0x00001301
+#define CMD_RESULT_PINUP       0x00001401   /**< To Viewer */
+#define CMD_RESULT_UPDATE_MODE 0x00001501   /**< To Viewer */
+#define CMD_DBOX_CREATE_XBUF   0x00001601
+#define CMD_GBAR_CREATE_XBUF   0x00001701
+#define CMD_DBOX_DESTROY_XBUF  0x00001801
+#define CMD_GBAR_DESTROY_XBUF  0x00001901
 
 #define CMD_STR_GBAR_CREATED       "gbar_created"
 #define CMD_STR_GBAR_DESTROYED     "gbar_destroyed"
