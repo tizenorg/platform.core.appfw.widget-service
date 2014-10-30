@@ -75,7 +75,7 @@ extern "C" {
 
 /**
  * @brief Command list for
- *	  Provder to Master.
+ *      Provder to Master.
  */
 #define CMD_CALL               0x00000E01
 #define CMD_RET                0x00000F01

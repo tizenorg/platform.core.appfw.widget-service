@@ -17,15 +17,15 @@
 #if !defined(FLOG)
 
 #if defined(SECURE_LOGD)
-#define DbgPrint(format, arg...)	SECURE_LOGD(format, ##arg)
+#define DbgPrint(format, arg...)    SECURE_LOGD(format, ##arg)
 #else
-#define DbgPrint(format, arg...)	LOGD(format, ##arg)
+#define DbgPrint(format, arg...)    LOGD(format, ##arg)
 #endif
 
 #if defined(SECURE_LOGD)
-#define ErrPrint(format, arg...)	SECURE_LOGE(format, ##arg)
+#define ErrPrint(format, arg...)    SECURE_LOGE(format, ##arg)
 #else
-#define ErrPrint(format, arg...)	LOGE(format, ##arg)
+#define ErrPrint(format, arg...)    LOGE(format, ##arg)
 #endif
 
 #else

@@ -179,47 +179,188 @@ extern const char * const dynamicbox_conf_provider_method(void);
  */
 extern const int const dynamicbox_conf_debug_mode(void);
 
+/**
+ * @internal
+ * @brief If the overwrite content is enabled, the provider will not prepare to prevent from output file overwriting.
+ *	  To do it, the provider will renaming the output file right after it is created.
+ * @since_tizen 2.3
+ * @return int bool
+ * @retval 1 Overwrite content
+ * @retval 0 Prevent from overwriting content
+ */
 extern const int const dynamicbox_conf_overwrite_content(void);
+
+/**
+ * @internal
+ */
 extern const int const dynamicbox_conf_com_core_thread(void);
+
+/**
+ * @internal
+ */
 extern const unsigned int const dynamicbox_conf_base_width(void);
+
+/**
+ * @internal
+ */
 extern const unsigned int const dynamicbox_conf_base_height(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_minimum_period(void);
+
+/**
+ * @internal
+ */
 extern const int const dynamicbox_conf_default_pixels(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_default_script(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_default_abi(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_default_gbar_group(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_default_period(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_default_packet_time(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_default_content(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_default_title(void);
+
+/**
+ * @internal
+ */
 extern const unsigned long const dynamicbox_conf_minimum_space(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_replace_tag(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_slave_ttl(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_slave_activate_time(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_slave_relaunch_time(void);
+
+/**
+ * @internal
+ */
 extern const int const dynamicbox_conf_slave_relaunch_count(void);
+
+/**
+ * @internal
+ */
 extern const int const dynamicbox_conf_max_log_line(void);
+
+/**
+ * @internal
+ */
 extern const int const dynamicbox_conf_max_log_file(void);
+
+/**
+ * @internal
+ */
 extern const unsigned long const dynamicbox_conf_sqlite_flush_max(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_db_path(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_reader_path(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_always_path(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_log_path(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_script_path(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_script_port(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_share_path(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_input_path(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_root_path(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_path(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_ping_time(void);
+
+/**
+ * @internal
+ */
 extern const int const dynamicbox_conf_slave_max_load(void);
 
 /**
  * @internal
  * @brief Get the configuration value for premultiplied alpha.
  * @details
- *	If the system uses the premultiplied alpha for content,
- *	This function will returns 1.
+ *    If the system uses the premultiplied alpha for content,
+ *    This function will returns 1.
  * @since_tizen 2.3
  * @remarks This function only works with the inhouse provider.
  * @return status of premultiplied alpha.
@@ -227,16 +368,55 @@ extern const int const dynamicbox_conf_slave_max_load(void);
  * @retval 0 Content doesn't rendered with premultiplied alpha.
  */
 extern const int const dynamicbox_conf_premultiplied_alpha(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_gbar_request_timeout(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_scale_width_factor(void);
+
+/**
+ * @internal
+ */
 extern const double const dynamicbox_conf_scale_height_factor(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_launch_key_name(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_launch_key_secured(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_launch_key_abi(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_empty_content(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_empty_title(void);
+
+/**
+ * @internal
+ */
 extern const int const dynamicbox_conf_extra_buffer_count(void);
 
+/**
+ * @internal
+ */
 extern const int const dynamicbox_conf_use_gettimeofday(void);
 
 #define DYNAMICBOX_CONF_BASE_W               dynamicbox_conf_base_width()
@@ -322,11 +502,11 @@ extern const int const dynamicbox_conf_use_gettimeofday(void);
 #define DYNAMICBOX_CONF_MINIMUM_REACTIVATION_TIME 10
 
 #if !defined(VCONFKEY_MASTER_STARTED)
-#define VCONFKEY_MASTER_STARTED	"memory/data-provider-master/started"
+#define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"
 #endif
 
 #if !defined(VCONFKEY_MASTER_RESTART_COUNT)
-#define VCONFKEY_MASTER_RESTART_COUNT	"memory/private/data-provider-master/restart_count"
+#define VCONFKEY_MASTER_RESTART_COUNT    "memory/private/data-provider-master/restart_count"
 #endif
 
 #ifdef __cplusplus
