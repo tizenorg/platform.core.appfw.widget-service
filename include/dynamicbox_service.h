@@ -39,98 +39,108 @@ extern "C" {
 #define DBOX_NR_OF_SIZE_LIST 13
 
 #define DBOX_CH_IDX(a, idx) (((char *)(a))[(idx)])
-#define DBOX_IS_INHOUSE(abi)	((DBOX_CH_IDX(abi, 0) == 'c' || DBOX_CH_IDX(abi, 0) == 'C') && (DBOX_CH_IDX(abi, 1) == '\0' || ((DBOX_CH_IDX(abi, 1) == 'p' || DBOX_CH_IDX(abi, 1) == 'P') && (DBOX_CH_IDX(abi, 2) == 'p' || DBOX_CH_IDX(abi, 2) == 'P') && DBOX_CH_IDX(abi, 3) == '\0')))
+#define DBOX_IS_INHOUSE(abi)    ((DBOX_CH_IDX(abi, 0) == 'c' || DBOX_CH_IDX(abi, 0) == 'C') && (DBOX_CH_IDX(abi, 1) == '\0' || ((DBOX_CH_IDX(abi, 1) == 'p' || DBOX_CH_IDX(abi, 1) == 'P') && (DBOX_CH_IDX(abi, 2) == 'p' || DBOX_CH_IDX(abi, 2) == 'P') && DBOX_CH_IDX(abi, 3) == '\0')))
 
 /**
  * @brief Enumeration for list of supporting dynamicbox size types.
  * @since_tizen 2.3
  */
-enum dynamicbox_size_type {
-	DBOX_SIZE_TYPE_1x1 = 0x0001, /**< 175x175 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_2x1 = 0x0002, /**< 354x175 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_2x2 = 0x0004, /**< 354x354 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_4x1 = 0x0008, /**< 712x175 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_4x2 = 0x0010, /**< 712x354 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_4x3 = 0x0020, /**< 712x533 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_4x4 = 0x0040, /**< 712x712 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_4x5 = 0x0080, /**< 712x891 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_4x6 = 0x0100, /**< 712x1070 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_EASY_1x1 = 0x1000, /**< 224x215 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_EASY_3x1 = 0x2000, /**< 680x215 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_EASY_3x3 = 0x4000, /**< 680x653 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_0x0 = 0x0800, /**< 720x1280 based on 720x1280 resolution */
-	DBOX_SIZE_TYPE_UNKNOWN = 0xFFFF /**< Error */
-};
+typedef enum dynamicbox_size_type {
+    DBOX_SIZE_TYPE_1x1 = 0x0001,      /**< 175x175 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_2x1 = 0x0002,      /**< 354x175 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_2x2 = 0x0004,      /**< 354x354 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_4x1 = 0x0008,      /**< 712x175 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_4x2 = 0x0010,      /**< 712x354 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_4x3 = 0x0020,      /**< 712x533 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_4x4 = 0x0040,      /**< 712x712 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_4x5 = 0x0080,      /**< 712x891 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_4x6 = 0x0100,      /**< 712x1070 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_EASY_1x1 = 0x1000, /**< 224x215 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_EASY_3x1 = 0x2000, /**< 680x215 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_EASY_3x3 = 0x4000, /**< 680x653 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_0x0 = 0x0800,      /**< 720x1280 based on 720x1280 resolution */
+    DBOX_SIZE_TYPE_UNKNOWN = 0xFFFF   /**< Error */
+} dynamicbox_size_type_e;
 
 /**
  * @brief Enumeration for result of accessibility event processing.
  * @details Reference the libprovider & libdynamicbox-viewer.
  * @since_tizen 2.3
  */
-enum dynamicbox_access_status {
-	DBOX_ACCESS_STATUS_ERROR = 0x80000000,	/**< Mask value */
-	DBOX_ACCESS_STATUS_DONE = 0x00000000,	/**< Successfully finished */
-	DBOX_ACCESS_STATUS_FIRST,			/**< Reach to the first item */
-	DBOX_ACCESS_STATUS_LAST,			/**< Reach to the last item */
-	DBOX_ACCESS_STATUS_READ			/**< TTS is done */
-};
+typedef enum dynamicbox_access_status {
+    DBOX_ACCESS_STATUS_ERROR = 0x80000000,  /**< Mask value */
+    DBOX_ACCESS_STATUS_DONE = 0x00000000,   /**< Successfully finished */
+    DBOX_ACCESS_STATUS_FIRST,               /**< Reach to the first item */
+    DBOX_ACCESS_STATUS_LAST,                /**< Reach to the last item */
+    DBOX_ACCESS_STATUS_READ                 /**< TTS is done */
+} dynamicbox_access_status_e;
 
 /**
  * @brief Key event handling result status.
  * @since_tizen 2.3
  */
-enum dynamicbox_key_status {
-	DBOX_KEY_STATUS_ERROR = 0x80000000, /**< Key operation is failed */
-	DBOX_KEY_STATUS_DONE = 0x00000000,  /**< Key operation is successfully done */
-	DBOX_KEY_STATUS_FIRST,              /**< Focusable object item reaches to the first in it */
-	DBOX_KEY_STATUS_LAST,               /**< Focusable object item reaches to the last in it */
-};
+typedef enum dynamicbox_key_status {
+    DBOX_KEY_STATUS_ERROR = 0x80000000, /**< Key operation is failed */
+    DBOX_KEY_STATUS_DONE = 0x00000000,  /**< Key operation is successfully done */
+    DBOX_KEY_STATUS_FIRST,              /**< Focusable object item reaches to the first in it */
+    DBOX_KEY_STATUS_LAST,               /**< Focusable object item reaches to the last in it */
+} dynamicbox_key_status_e;
 
 /**
  * @brief Delete type for dynamicbox delete operation.
  * @since_tizen 2.3
  */
-enum dynamicbox_delete_type {
-	DBOX_DELETE_PERMANENTLY = 0x01, /**< The dynamicbox is removed from the homescreen temporary */
-	DBOX_DELETE_TEMPORARY = 0x02,   /**< The dynamicbox is removed from the homescreen by user permanently */
-	DBOX_DELETE_INVALID = 0xff,     /**< Unknown event type */
-};
+typedef enum dynamicbox_delete_type {
+    DBOX_DELETE_PERMANENTLY = 0x01, /**< The dynamicbox is removed from the homescreen temporary */
+    DBOX_DELETE_TEMPORARY = 0x02,   /**< The dynamicbox is removed from the homescreen by user permanently */
+    DBOX_DELETE_INVALID = 0xff,     /**< Unknown event type */
+} dynamicbox_delete_type_e;
 
 /**
  * @brief Request type for closing Glance Bar
  * @since_tizen 2.3
  */
-enum dynamicbox_gbar_close_type {
-	DBOX_CLOSE_GBAR_NORMAL = 0x00,  /**< Glance Bar is closed normally */
-	DBOX_CLOSE_GBAR_TIMEOUT = 0x01, /**< Glance Bar is closed because of timeout, there is no response */
-	DBOX_CLOSE_GBAR_FAULT = 0x02,   /**< Glance Bar is closed because of unrecoverable error */
-	DBOX_CLOSE_GBAR_INVALID = 0xff, /**< Unknown event type */
-};
+typedef enum dynamicbox_gbar_close_type {
+    DBOX_CLOSE_GBAR_NORMAL = 0x00,  /**< Glance Bar is closed normally */
+    DBOX_CLOSE_GBAR_TIMEOUT = 0x01, /**< Glance Bar is closed because of timeout, there is no response */
+    DBOX_CLOSE_GBAR_FAULT = 0x02,   /**< Glance Bar is closed because of unrecoverable error */
+    DBOX_CLOSE_GBAR_INVALID = 0xff, /**< Unknown event type */
+} dynamicbox_gbar_close_type_e;
 
 /**
  * @brief Type of dynamicbox content sharing method
  * @since_tizen 2.3
  */
-enum dynamicbox_dbox_type {
-	DBOX_TYPE_NONE = 0x0, /**< Undefined */
-	DBOX_TYPE_SCRIPT,     /**< Script base */
-	DBOX_TYPE_FILE,       /**< File base */
-	DBOX_TYPE_TEXT,       /**< Text base */
-	DBOX_TYPE_BUFFER,     /**< Buffer base */
-	DBOX_TYPE_UIFW        /**< UIFW supported type */
-};
+typedef enum dynamicbox_dbox_type {
+    DBOX_TYPE_NONE = 0x0, /**< Undefined */
+    DBOX_TYPE_SCRIPT,     /**< Script base */
+    DBOX_TYPE_FILE,       /**< File base */
+    DBOX_TYPE_TEXT,       /**< Text base */
+    DBOX_TYPE_BUFFER,     /**< Buffer base */
+    DBOX_TYPE_UIFW        /**< UIFW supported type */
+} dynamicbox_dbox_type_e;
 
 /**
  * @brief Type of glance bar content sharing method
  * @since_tizen 2.3
  */
-enum dynamicbox_gbar_type {
-	GBAR_TYPE_NONE = 0x0, /**< Undefined */
-	GBAR_TYPE_SCRIPT,     /**< Script base */
-	GBAR_TYPE_TEXT,       /**< Text base */
-	GBAR_TYPE_BUFFER,     /**< Buffer base */
-	GBAR_TYPE_UIFW        /**< UIFW supported type */
-};
+typedef enum dynamicbox_gbar_type {
+    GBAR_TYPE_NONE = 0x0, /**< Undefined */
+    GBAR_TYPE_SCRIPT,     /**< Script base */
+    GBAR_TYPE_TEXT,       /**< Text base */
+    GBAR_TYPE_BUFFER,     /**< Buffer base */
+    GBAR_TYPE_UIFW        /**< UIFW supported type */
+} dynamicbox_gbar_type_e;
+
+typedef enum dynamicbox_destroy_type {
+    DBOX_DESTROY_TYPE_DEFAULT = 0x00,   /**< Deleted */
+    DBOX_DESTROY_TYPE_UPGRADE = 0x01,   /**< Deleted for upgrading */
+    DBOX_DESTROY_TYPE_UNINSTALL = 0x02, /**< Deleted by uninstalling */
+    DBOX_DESTROY_TYPE_TERMINATE = 0x03, /**< Deleted for reboot device */
+    DBOX_DESTROY_TYPE_FAULT = 0x04,     /**< Deleted by system-fault */
+    DBOX_DESTROY_TYPE_TEMPORARY = 0x05, /**< Temporarly deleted, will be created again */
+    DBOX_DESTROY_TYPE_UNKNOWN = 0x06    /**< Undefined reason */
+} dynamicbox_destroy_type_e; /**< Delete type */
 
 /**
  * @brief Package list handle.
@@ -160,13 +170,13 @@ typedef struct dynamicbox_pkglist_handle *dynamicbox_pkglist_h;
  * @param[out] width Pixel size width
  * @param[out] height Pixel size height
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @see dynamicbox_size_type()
  * @see dynamicbox_service_size_type()
  */
-extern int dynamicbox_service_get_size(int type, int *width, int *height);
+extern int dynamicbox_service_get_size(dynamicbox_size_type_e type, int *width, int *height);
 
 /**
  * @brief Gets the size type for given pixel size.
@@ -191,21 +201,21 @@ extern int dynamicbox_service_get_size(int type, int *width, int *height);
  * @param[in] width Pixel size width
  * @param[in] height Pixel size height
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_SIZE_TYPE_[EASY_]WxH Size type of given pixel size
  * @retval #DBOX_SIZE_TYPE_UNKNOWN If the given pixel size is not valid
  * @see dynamicbox_size_type()
  * @see dynamicbox_service_get_size()
  */
-extern enum dynamicbox_size_type dynamicbox_service_size_type(int width, int height);
+extern dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height);
 
 /**
  * @brief Supports the mouse event of dynamicbox content.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval 1 If the box requires mouse event, A viewer must has to feed the mouse event to the box instance
  * @retval 0 If the box doesn't requires mouse event
@@ -221,7 +231,7 @@ extern int dynamicbox_service_mouse_event(const char *dboxid, int size_type);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Size type
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval 1 If the box requires touch effect, A viewer should make the touch effect, but it is just recomendation.
  * @retval 0 If the box doesn't requires touch effect, the box will make touch effect itself
@@ -237,7 +247,7 @@ extern int dynamicbox_service_touch_effect(const char *dboxid, int size_type);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Size type
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval 1 If the box requires frame for decorating its contents
  * @retval 0 If the box doesn't requires frame
@@ -256,7 +266,7 @@ extern int dynamicbox_service_need_frame(const char *dboxid, int size_type);
  * @param[in] content New content information, Default @c NULL
  * @param[in] force 1 if you want to update your dynamicbox even if the provider is paused or 0. 0 is default
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.service
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
  * @retval #DBOX_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
@@ -274,7 +284,7 @@ extern int dynamicbox_service_trigger_update(const char *dboxid, const char *ins
  * @param[in] instance_id Dynamicbox instance id
  * @param[in] period New update period in sec
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.service
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully changed(requested)
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
@@ -295,7 +305,7 @@ extern int dynamicbox_service_change_period(const char *dboxid, const char *inst
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_IO Failed to access DB
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
@@ -315,7 +325,7 @@ extern int dynamicbox_service_get_pkglist(int (*cb)(const char *pkgid, const cha
  * @param[in] cb Callback function
  * @param[in] data Callback Data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Status success
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
@@ -330,7 +340,7 @@ extern int dynamicbox_service_get_applist(const char *dboxid, void (*cb)(const c
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Package Id
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval @c NULL If it fails to get main application Id (UI-APPID)
  * @retval appid Main application Id
@@ -340,16 +350,16 @@ extern char *dynamicbox_service_mainappid(const char *dboxid);
 /**
  * @brief Gets synchronous package list.
  * @details
- *	  callback (dboxid, is_prime)\n
- *	  dboxid == Dynamicbox AppId\n
- *	  is_prime = 1 if the dynamicbox is default one for selected package\n
+ *      callback (dboxid, is_prime)\n
+ *      dboxid == Dynamicbox AppId\n
+ *      is_prime = 1 if the dynamicbox is default one for selected package\n
  *      If the callback returns negative value, the list crawling will be stopped.
  * @since_tizen 2.3
  * @param[in] pkgid Package Id (Not the UI App Id)
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval int Count of dynamicbox packages
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
@@ -361,15 +371,15 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
 /**
  * @brief Gets synchronous package list.
  * @details
- *	  callback (dboxid)\n
- *	  dboxid == Dynamicbox AppId\n
+ *      callback (dboxid)\n
+ *      dboxid == Dynamicbox AppId\n
  *        If the callback returns negative value, the list crawling will be stopped
  * @since_tizen 2.3
  * @param[in] category Name of category
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int count
  * @retval Count of dynamicbox packages
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
@@ -379,11 +389,11 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
 extern int dynamicbox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *dboxid, void *data), void *data);
 
 /**
- * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id.
+ * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id. If a given id is a dynamicbox id, check its existence. and if it is package or ui-app id, then find the primary dynamicbox in its package.
  * @since_tizen 2.3
  * @param[in] id Dynamic Box Id or Package Id or UI App Id
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval @c NULL Failed to get primary dboxid
  * @retval dboxid Primary dynamicbox Id. which is allocated in the heap
@@ -397,7 +407,7 @@ extern char *dynamicbox_service_dbox_id(const char *id);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Id
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval 0 If is not a primary
  * @retval 1 If it is a primary dynamicbox
@@ -409,7 +419,7 @@ extern int dynamicbox_service_is_primary(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char *
  * @retval @c NULL Failed to get primary dboxid
  * @retval category Category string which is allocated in the heap.
@@ -422,14 +432,13 @@ extern char *dynamicbox_service_category(const char *dboxid);
 /**
  * @brief Gets the name of a dynamicbox (provider name == dynamicbox appid), you have to release the return value after use it.
  * @details
- *    OSP dynamicbox has provider process for each dynamicbox instances.\n
+ *    Dynamicbox has provider process for each dynamicbox instances.\n
  *    To get the provider's package name, you can use this API.\n
- *    If the given dboxid is inhouse dynamicbox, the return string will be the same with given argument but it is allocated in the heap.\n
- *    So you have to free it if you don't need it anymore.
+ *    If the given dboxid is inhouse dynamicbox, the return string will be the same with given argument but it is allocated in the heap.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Id
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval @c NULL Failed to get provider name
  * @retval dboxid Dynamicbox AppId which is allocated on the heap
@@ -446,7 +455,7 @@ extern char *dynamicbox_service_provider_name(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Id
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval @c NULL There is no setup application
  * @retval appid AppId if exists or @c NULL
@@ -459,7 +468,7 @@ extern char *dynamicbox_service_setup_appid(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval appid String which is allocated in the heap
  * @retval @c NULL Invalid appid
@@ -474,7 +483,7 @@ extern char *dynamicbox_service_package_id(const char *dboxid);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval name If it fails to get name
  * @retval @c NULL Allocated heap address
@@ -491,7 +500,7 @@ extern char *dynamicbox_service_i18n_name(const char *dboxid, const char *lang);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Dynamicbox size type
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval path Preview image path
  * @retval @c NULL There is no preview image file
@@ -509,7 +518,7 @@ extern char *dynamicbox_service_preview(const char *dboxid, int size_type);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval content Content string
  * @retval @c NULL There is no specified content string
@@ -525,7 +534,7 @@ extern char *dynamicbox_service_content(const char *dboxid);
  * @param[in] dboxid Dynamicbox AppId (It must has to be a dynamicbox package ID. not the UI-APP and the PACKAGE)
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval name Allocated heap address
  * @retval @c NULL Fails to get path of an icon
@@ -540,7 +549,7 @@ extern char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval 1 The box should not be listed by the dynamicbox list app
  * @retval 0 Box should be listed
@@ -553,7 +562,7 @@ extern int dynamicbox_service_nodisplay(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval abi String which is allocated in the heap
  * @retval @c NULL Failed to get ABI of given dynamicbox
@@ -568,7 +577,7 @@ extern char *dynamicbox_service_abi(const char *dboxid);
  * @remarks This API is not implemented. It will always return 1.
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval 1 Enabled
  * @retval 0 Disabled
@@ -580,7 +589,7 @@ extern int dynamicbox_service_is_enabled(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval string Script file path
  * @retval @c NULL Not specified script file
@@ -595,7 +604,7 @@ extern char *dynamicbox_service_dbox_script_path(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval Group Name of dynamicbox
  * @retval @c NULL If there is no group defined
@@ -610,7 +619,7 @@ extern char *dynamicbox_service_dbox_script_group(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval string Script file path
  * @retval @c NULL No specified script file for Glance Bar layout
@@ -624,7 +633,7 @@ extern char *dynamicbox_service_gbar_script_path(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval string Script group name
  * @retval @c NULL No script path
@@ -644,7 +653,7 @@ extern char *dynamicbox_service_gbar_script_group(const char *dboxid);
  * @param[out] w Width array
  * @param[out] h Height array
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE If succeed to get supported size list
  * @retval #DBOX_STATUS_ERROR_IO Failed to access DB
@@ -661,7 +670,7 @@ extern int dynamicbox_service_get_supported_sizes(const char *dboxid, int *cnt, 
  * @param[out] cnt Result count of types array
  * @param[out] types Array of types
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
  * @retval #DBOX_STATUS_ERROR_IO Failed to access DB
@@ -677,7 +686,7 @@ extern int dynamicbox_service_get_supported_size_types(const char *dboxid, int *
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @retval #DBOX_STATUS_ERROR_IO Failed to access DB
@@ -692,7 +701,7 @@ extern int dynamicbox_service_enumerate_category_list(const char *cluster, int (
  * @param[in] cb Callback function for retrieving the cluster list
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
  * @retval #DBOX_STATUS_ERROR_IO Failed to access DB
@@ -711,7 +720,7 @@ extern int dynamicbox_service_enumerate_cluster_list(int (*cb)(const char *clust
  *    every API which are related with DB operation will open DB and close it before return from it.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Succeed to initialize
  * @retval #DBOX_STATUS_ERROR_IO Failed to access a DB
@@ -723,7 +732,7 @@ extern int dynamicbox_service_init(void);
  * @brief Finalizes the dynamicbox service API.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Succeed to finalize
  * @retval #DBOX_STATUS_ERROR_IO Failed to close the DB (access failed to DB)
@@ -747,7 +756,7 @@ extern int dynamicbox_service_fini(void);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] handle @c NULL if you call this first, or it will be reset
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return handle
  * @retval @c NULL If it fails
  * @retval handle If it successfully create the package list iterator
@@ -763,7 +772,7 @@ extern dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *dboxid
  * @param[out] pkgname Package Id which includes dynamicboxes
  * @param[out] is_prime If the returned dboxid is primary, this will be 1 or 0
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully get the record
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
@@ -780,7 +789,7 @@ extern int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char
  * @since_tizen 2.3
  * @param[in] handle Package list handle
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid handle
  * @retval #DBOX_STATUS_ERROR_NONE Successfully destroyed
@@ -797,7 +806,7 @@ extern int dynamicbox_service_pkglist_destroy(dynamicbox_pkglist_h handle);
  * @param[in] cluster Cluster name if you don't know what this is, use NULL.
  * @param[in] category Sub-cluster(category) name if you don't know what this is, use NULL.
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.service
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return count of instances
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid parameter
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecorvarable error occurred
@@ -811,7 +820,7 @@ extern int dynamicbox_service_get_instance_count(const char *dboxid, const char 
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char * type
  * @retval path String which is allocated on the heap
  * @retval @c NULL No libexec attribute
@@ -827,7 +836,7 @@ extern char *dynamicbox_service_libexec(const char *dboxid);
  * @remarks Only usable for inhouse dynamicboxes
  * @param[in] libexec so filename
  * @privlevel public
- * @privilege %http://tizen.org/privilege/dynamicbox.info
+ * @privilege %http://tizen.org/privilege/dynamicbox
  * @return char *
  * @retval @c NULL if it fails to get pkgname
  * @retval address heap address of pkgname

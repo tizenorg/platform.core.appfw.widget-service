@@ -41,23 +41,25 @@ extern "C" {
 #define CMD_DBOX_UPDATED       0x00000001   /**< Alias of CMD_UPDATED */
 #define CMD_DESC_UPDATED       0x00000101   /**< GBAR Updated */
 #define CMD_GBAR_UPDATED       0x00000101   /**< Alias of CMD_DESC_UPDATED */
-#define CMD_EXTRA_INFO         0x00000201   /**< Extra information is updated */
-#define CMD_DELETED            0x00000301   /**< DBox is deleted */
-#define CMD_FAULTED            0x00000401   /**< DBox is faulted */
-#define CMD_FAULT_PACKAGE      0x00000401   /**< Faulted package */
-#define CMD_SCROLL             0x00000501
-#define CMD_DBOX_UPDATE_BEGIN  0x00000601
-#define CMD_DBOX_UPDATE_END    0x00000701
-#define CMD_GBAR_UPDATE_BEGIN  0x00000801
-#define CMD_GBAR_UPDATE_END    0x00000901
-#define CMD_ACCESS_STATUS      0x00000A01
-#define CMD_KEY_STATUS         0x00000B01
-#define CMD_CLOSE_GBAR         0x00000C01
+#define CMD_EXTRA_UPDATED      0x00000201
+#define CMD_EXTRA_INFO         0x00000301   /**< Extra information is updated */
+#define CMD_DELETED            0x00000401   /**< DBox is deleted */
+#define CMD_FAULTED            0x00000501   /**< DBox is faulted */
+#define CMD_FAULT_PACKAGE      0x00000501   /**< Faulted package */
+#define CMD_SCROLL             0x00000601
+#define CMD_DBOX_UPDATE_BEGIN  0x00000701
+#define CMD_DBOX_UPDATE_END    0x00000801
+#define CMD_GBAR_UPDATE_BEGIN  0x00000901
+#define CMD_GBAR_UPDATE_END    0x00000A01
+#define CMD_ACCESS_STATUS      0x00000B01
+#define CMD_KEY_STATUS         0x00000C01
+#define CMD_CLOSE_GBAR         0x00000D01
 
 #define CMD_STR_UPDATED           "updated"
 #define CMD_STR_DBOX_UPDATED      "dbox_updated"
 #define CMD_STR_DESC_UPDATED      "desc_updated"
 #define CMD_STR_GBAR_UPDATED      "gbar_updated"
+#define CMD_STR_EXTRA_UPDATED     "extra_updated"
 #define CMD_STR_EXTRA_INFO        "extra_info"
 #define CMD_STR_DELETED           "deleted"
 #define CMD_STR_FAULTED           "faulted"
@@ -73,38 +75,47 @@ extern "C" {
 
 /**
  * @brief Command list for
- *	  Provder to Master.
+ *      Provder to Master.
  */
-#define CMD_CALL               0x00000D01
-#define CMD_RET                0x00000E01
-#define CMD_ACQUIRE_BUFFER     0x00000F01
-#define CMD_RESIZE_BUFFER      0x00001001
-#define CMD_RELEASE_BUFFER     0x00001101
-#define CMD_HELLO              0x00001201
-#define CMD_PING               0x00001301
-#define CMD_CTRL               0x00001401
+#define CMD_CALL               0x00000E01
+#define CMD_RET                0x00000F01
+#define CMD_ACQUIRE_BUFFER     0x00001001
+#define CMD_RESIZE_BUFFER      0x00001101
+#define CMD_RELEASE_BUFFER     0x00001201
+#define CMD_HELLO              0x00001301
+#define CMD_PING               0x00001401
+#define CMD_CTRL               0x00001501
+#define CMD_ACQUIRE_XBUFFER    0x00001601 // eXtra Buffer
+#define CMD_RELEASE_XBUFFER    0x00001701 // eXtra Buffer
 
-#define CMD_STR_CALL           "call"
-#define CMD_STR_RET            "ret"
-#define CMD_STR_ACQUIRE_BUFFER "acquire_buffer"
-#define CMD_STR_RESIZE_BUFFER  "resize_buffer"
-#define CMD_STR_RELEASE_BUFFER "release_buffer"
-#define CMD_STR_HELLO          "hello"
-#define CMD_STR_PING           "ping"
-#define CMD_STR_CTRL           "ctrl"
+#define CMD_STR_CALL            "call"
+#define CMD_STR_RET             "ret"
+#define CMD_STR_ACQUIRE_BUFFER  "acquire_buffer"
+#define CMD_STR_RESIZE_BUFFER   "resize_buffer"
+#define CMD_STR_RELEASE_BUFFER  "release_buffer"
+#define CMD_STR_HELLO           "hello"
+#define CMD_STR_PING            "ping"
+#define CMD_STR_CTRL            "ctrl"
+#define CMD_STR_ACQUIRE_XBUFFER "acquire_xbuffer"
+#define CMD_STR_RELEASE_XBUFFER "release_xbuffer"
 
 
 /**
  * @brief Master to Viewer
  */
-#define CMD_GBAR_CREATED       0x00000D01
-#define CMD_GBAR_DESTROYED     0x00000E01
-#define CMD_CREATED            0x00000F01
-#define CMD_GROUP_CHANGED      0x00001001
-#define CMD_PERIOD_CHANGED     0x00001101
-#define CMD_SIZE_CHANGED       0x00001201
-#define CMD_RESULT_PINUP       0x00001301   /**< To Viewer */
-#define CMD_RESULT_UPDATE_MODE 0x00001401   /**< To Viewer */
+#define CMD_GBAR_CREATED       0x00000E01
+#define CMD_GBAR_DESTROYED     0x00000F01
+#define CMD_CREATED            0x00001001
+#define CMD_GROUP_CHANGED      0x00001101
+#define CMD_PERIOD_CHANGED     0x00001201
+#define CMD_SIZE_CHANGED       0x00001301
+#define CMD_RESULT_PINUP       0x00001401   /**< To Viewer */
+#define CMD_RESULT_UPDATE_MODE 0x00001501   /**< To Viewer */
+#define CMD_DBOX_CREATE_XBUF   0x00001601
+#define CMD_GBAR_CREATE_XBUF   0x00001701
+#define CMD_DBOX_DESTROY_XBUF  0x00001801
+#define CMD_GBAR_DESTROY_XBUF  0x00001901
+#define CMD_UPDATE_ID          0x00001A01
 
 #define CMD_STR_GBAR_CREATED       "gbar_created"
 #define CMD_STR_GBAR_DESTROYED     "gbar_destroyed"
@@ -114,6 +125,11 @@ extern "C" {
 #define CMD_STR_SIZE_CHANGED       "size_changed"
 #define CMD_STR_RESULT_PINUP       "pinup"
 #define CMD_STR_RESULT_UPDATE_MODE "update_mode"
+#define CMD_STR_DBOX_CREATE_XBUF   "dbox_create_xbuf"
+#define CMD_STR_GBAR_CREATE_XBUF   "gbar_create_xbuf"
+#define CMD_STR_DBOX_DESTROY_XBUF  "dbox_destroy_xbuf"
+#define CMD_STR_GBAR_DESTROY_XBUF  "gbar_destroy_xbuf"
+#define CMD_STR_UPDATE_ID          "update_id"
 
 /**
  * @brief Following list should be started after the common list of client_cmd_list
@@ -308,6 +324,8 @@ extern "C" {
 #define CMD_GBAR_KEY_UNSET        0x00004F01
 #define CMD_CLIENT_PAUSED         0x00005001
 #define CMD_CLIENT_RESUMED        0x00005101
+#define CMD_DBOX_ACQUIRE_XPIXMAP  0x00005201
+#define CMD_GBAR_ACQUIRE_XPIXMAP  0x00005301
 
 #define CMD_STR_DBOX_MOUSE_SET      "dbox_mouse_set"
 #define CMD_STR_DBOX_MOUSE_UNSET    "dbox_mouse_unset"
@@ -336,7 +354,8 @@ extern "C" {
 #define CMD_STR_GBAR_KEY_UNSET      "gbar_key_unset"
 #define CMD_STR_CLIENT_PAUSED       "client_paused"
 #define CMD_STR_CLIENT_RESUMED      "client_resumed"
-
+#define CMD_STR_DBOX_ACQUIRE_XPIXMAP "dbox_acquire_xpixmap"
+#define CMD_STR_GBAR_ACQUIRE_XPIXMAP "gbar_acquire_xpixmap"
 
 /**
  * @brief Service API to Master

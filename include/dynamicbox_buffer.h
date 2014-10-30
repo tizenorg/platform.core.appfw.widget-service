@@ -31,54 +31,56 @@ extern "C" {
  * @{
  */
 
-enum dynamicbox_fb_type { /*!< Must have to be sync with libprovider, liblivebox-viewer */
-	DBOX_FB_TYPE_FILE,
-	DBOX_FB_TYPE_SHM,
-	DBOX_FB_TYPE_PIXMAP,
-	DBOX_FB_TYPE_ERROR
-};
+#define DBOX_PRIMARY_BUFFER    -1
+
+typedef enum dynamicbox_fb_type { /*!< Must have to be sync with libprovider, liblivebox-viewer */
+    DBOX_FB_TYPE_FILE,
+    DBOX_FB_TYPE_SHM,
+    DBOX_FB_TYPE_PIXMAP,
+    DBOX_FB_TYPE_ERROR
+} dynamicbox_fb_type_e;
 
 /**
  * @internal
  * @brief This enumeration values should be sync'd with libdynamicbox interface. (only for inhouse dynamicbox)
  * @since_tizen 2.3
  */
-enum dynamicbox_buffer_event {
-	DBOX_BUFFER_EVENT_ENTER, /**< get the focus */
-	DBOX_BUFFER_EVENT_LEAVE, /**< lost the focus */
-	DBOX_BUFFER_EVENT_DOWN, /**< Touch down */
-	DBOX_BUFFER_EVENT_MOVE, /**< Touch move */
-	DBOX_BUFFER_EVENT_UP, /**< Touch up */
+typedef enum dynamicbox_buffer_event {
+    DBOX_BUFFER_EVENT_ENTER, /**< get the focus */
+    DBOX_BUFFER_EVENT_LEAVE, /**< lost the focus */
+    DBOX_BUFFER_EVENT_DOWN, /**< Touch down */
+    DBOX_BUFFER_EVENT_MOVE, /**< Touch move */
+    DBOX_BUFFER_EVENT_UP, /**< Touch up */
 
-	DBOX_BUFFER_EVENT_KEY_DOWN, /**< Key pressed */
-	DBOX_BUFFER_EVENT_KEY_UP, /**< Key release */
-	DBOX_BUFFER_EVENT_KEY_FOCUS_IN, /**< Focus in */
-	DBOX_BUFFER_EVENT_KEY_FOCUS_OUT, /**< Focus out */
+    DBOX_BUFFER_EVENT_KEY_DOWN, /**< Key pressed */
+    DBOX_BUFFER_EVENT_KEY_UP, /**< Key release */
+    DBOX_BUFFER_EVENT_KEY_FOCUS_IN, /**< Focus in */
+    DBOX_BUFFER_EVENT_KEY_FOCUS_OUT, /**< Focus out */
 
-	DBOX_BUFFER_EVENT_ACCESS_HIGHLIGHT, /**< Accessibility Highlight event */
-	DBOX_BUFFER_EVENT_ACCESS_HIGHLIGHT_NEXT, /**< Accessibility Highlight Next event */
-	DBOX_BUFFER_EVENT_ACCESS_HIGHLIGHT_PREV, /**< Accessibility Highlight Prev event */
-	DBOX_BUFFER_EVENT_ACCESS_ACTIVATE, /**< Accessibility Activate event */
-	DBOX_BUFFER_EVENT_ACCESS_ACTION_UP, /**< Accessibility Action Up event */
-	DBOX_BUFFER_EVENT_ACCESS_ACTION_DOWN, /**< Accessibility Action Down event */
-	DBOX_BUFFER_EVENT_ACCESS_SCROLL_UP, /**< Accessibility Scroll Mouse Up event */
-	DBOX_BUFFER_EVENT_ACCESS_SCROLL_MOVE, /**< Accessibility Scroll Mouse Move event */
-	DBOX_BUFFER_EVENT_ACCESS_SCROLL_DOWN, /**< Accessibility Scroll Mouse Down event */
-	DBOX_BUFFER_EVENT_ACCESS_UNHIGHLIGHT, /**< Accessibility Unhighlight event */
+    DBOX_BUFFER_EVENT_ACCESS_HIGHLIGHT, /**< Accessibility Highlight event */
+    DBOX_BUFFER_EVENT_ACCESS_HIGHLIGHT_NEXT, /**< Accessibility Highlight Next event */
+    DBOX_BUFFER_EVENT_ACCESS_HIGHLIGHT_PREV, /**< Accessibility Highlight Prev event */
+    DBOX_BUFFER_EVENT_ACCESS_ACTIVATE, /**< Accessibility Activate event */
+    DBOX_BUFFER_EVENT_ACCESS_ACTION_UP, /**< Accessibility Action Up event */
+    DBOX_BUFFER_EVENT_ACCESS_ACTION_DOWN, /**< Accessibility Action Down event */
+    DBOX_BUFFER_EVENT_ACCESS_SCROLL_UP, /**< Accessibility Scroll Mouse Up event */
+    DBOX_BUFFER_EVENT_ACCESS_SCROLL_MOVE, /**< Accessibility Scroll Mouse Move event */
+    DBOX_BUFFER_EVENT_ACCESS_SCROLL_DOWN, /**< Accessibility Scroll Mouse Down event */
+    DBOX_BUFFER_EVENT_ACCESS_UNHIGHLIGHT, /**< Accessibility Unhighlight event */
 
-	DBOX_BUFFER_EVENT_ON_HOLD,	/**< To prevent from generating mouse clicked event */
-	DBOX_BUFFER_EVENT_OFF_HOLD, /**< Disable the mouse hold event */
-	DBOX_BUFFER_EVENT_ON_SCROLL, /**< Enable the scroll flag */
-	DBOX_BUFFER_EVENT_OFF_SCROLL, /**< Disable the scroll flag */
+    DBOX_BUFFER_EVENT_ON_HOLD,    /**< To prevent from generating mouse clicked event */
+    DBOX_BUFFER_EVENT_OFF_HOLD, /**< Disable the mouse hold event */
+    DBOX_BUFFER_EVENT_ON_SCROLL, /**< Enable the scroll flag */
+    DBOX_BUFFER_EVENT_OFF_SCROLL, /**< Disable the scroll flag */
 
-	DBOX_BUFFER_EVENT_ACCESS_VALUE_CHANGE, /**< */
-	DBOX_BUFFER_EVENT_ACCESS_MOUSE, /**< give mouse event to highlight object */
-	DBOX_BUFFER_EVENT_ACCESS_BACK, /**< go back to a previous view ex: pop naviframe item */
-	DBOX_BUFFER_EVENT_ACCESS_OVER, /**< mouse over an object */
-	DBOX_BUFFER_EVENT_ACCESS_READ, /**< highlight an object */
-	DBOX_BUFFER_EVENT_ACCESS_ENABLE, /**< enable highlight and read ability */
-	DBOX_BUFFER_EVENT_ACCESS_DISABLE /**< disable highlight and read ability */
-};
+    DBOX_BUFFER_EVENT_ACCESS_VALUE_CHANGE, /**< */
+    DBOX_BUFFER_EVENT_ACCESS_MOUSE, /**< give mouse event to highlight object */
+    DBOX_BUFFER_EVENT_ACCESS_BACK, /**< go back to a previous view ex: pop naviframe item */
+    DBOX_BUFFER_EVENT_ACCESS_OVER, /**< mouse over an object */
+    DBOX_BUFFER_EVENT_ACCESS_READ, /**< highlight an object */
+    DBOX_BUFFER_EVENT_ACCESS_ENABLE, /**< enable highlight and read ability */
+    DBOX_BUFFER_EVENT_ACCESS_DISABLE /**< disable highlight and read ability */
+} dynamicbox_buffer_event_e;
 
 /**
  * @internal
@@ -86,38 +88,38 @@ enum dynamicbox_buffer_event {
  * @since_tizen 2.3
  */
 typedef struct dynamicbox_buffer_event_data {
-	enum dynamicbox_buffer_event type; /**< Event type */
-	double timestamp; /**< Timestamp */
+    dynamicbox_buffer_event_e type; /**< Event type */
+    double timestamp; /**< Timestamp */
 
-	union input_data {
-		struct mouse {
-			int x; /**< Touch X coordinate */
-			int y; /**< Touch Y coordinate */
-		} pointer;
+    union input_data {
+        struct mouse {
+            int x; /**< Touch X coordinate */
+            int y; /**< Touch Y coordinate */
+        } pointer;
 
-		struct access {
-			int x; /**< Accessibility event X coordinate */
-			int y; /**< Accessibility event Y coordinate */
-			unsigned int mouse_type; /**< 0: down, 1: move, 2: up | 0: cur, 1: next, 2: prev, 3: off */
-			unsigned int action_type; /**< reserved for protocol */
-			unsigned int action_by; /**< reserved for protocol */
-			int cycle; /**< reserved for protocol */
-		} access;
+        struct access {
+            int x; /**< Accessibility event X coordinate */
+            int y; /**< Accessibility event Y coordinate */
+            unsigned int mouse_type; /**< 0: down, 1: move, 2: up | 0: cur, 1: next, 2: prev, 3: off */
+            unsigned int action_type; /**< reserved for protocol */
+            unsigned int action_by; /**< reserved for protocol */
+            int cycle; /**< reserved for protocol */
+        } access;
 
-		unsigned int keycode; /**< Key code value */
-	} info;
+        unsigned int keycode; /**< Key code value */
+    } info;
 } *dynamicbox_buffer_event_data_t;
 
 
 typedef struct dynamicbox_fb { /*!< Must has to be sync with slave & provider */
-	enum dynamicbox_fb_state {
-		DBOX_FB_STATE_CREATED = 0x00beef00,
-		DBOX_FB_STATE_DESTROYED = 0x00dead00
-	} state;
-	enum dynamicbox_fb_type type;
-	int refcnt;
-	void *info;
-	char data[];
+    enum dynamicbox_fb_state {
+        DBOX_FB_STATE_CREATED = 0x00beef00,
+        DBOX_FB_STATE_DESTROYED = 0x00dead00
+    } state;
+    dynamicbox_fb_type_e type;
+    int refcnt;
+    void *info;
+    char data[];
 } *dynamicbox_fb_t;
 
 /**
@@ -125,11 +127,51 @@ typedef struct dynamicbox_fb { /*!< Must has to be sync with slave & provider */
  * @brief This enumeration value has to be sync'd with the libdynamicbox interface. (only for inhouse dynamicbox)
  * @since_tizen 2.3
  */
-enum dynamicbox_target_type {
-	DBOX_TYPE_DBOX, /**< Dynamicbox */
-	DBOX_TYPE_GBAR, /**< Glance Bar */
-	DBOX_TYPE_ERROR /**< Error */
+typedef enum dynamicbox_target_type {
+    DBOX_TYPE_DBOX, /**< Dynamicbox */
+    DBOX_TYPE_GBAR, /**< Glance Bar */
+    DBOX_TYPE_ERROR /**< Error */
+} dynamicbox_target_type_e;
+
+/**
+ * @internal
+ * @brief Dynamic Box Frame Buffer Info
+ * @since_tizen 2.3
+ */
+struct fb_info {
+    char *id;
+    int w;
+    int h;
+    int bufsz;
+    void *buffer;
+
+    int pixels;
+    int handle;
+
+    void *gem;
 };
+
+/**
+ * @internal
+ * @brief Locking type - Read/Write
+ * @since_tizen 2.3
+ */
+typedef enum dynamicbox_lock_type {
+    DBOX_LOCK_READ = 0x01,
+    DBOX_LOCK_WRITE = 0x02,
+} dynamicbox_lock_type_e;
+
+/**
+ * @internal
+ * @brief Locking info
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_lock_info {
+    char *filename;
+    int fd;
+    dynamicbox_lock_type_e type;
+} *dynamicbox_lock_info_t;
+
 
 /**
  * @internal
@@ -137,35 +179,83 @@ enum dynamicbox_target_type {
  * @since_tizen 2.3
  */
 typedef struct dynamicbox_buffer {
-	enum {
-		BUFFER_INITIALIZED = 0x0b0e0e0f,
-		BUFFER_CREATED = 0x00beef00,
-		BUFFER_DESTROYED = 0x00dead00,
-	} state;
+    enum {
+        BUFFER_INITIALIZED = 0x0b0e0e0f,
+        BUFFER_CREATED = 0x00beef00,
+        BUFFER_DESTROYED = 0x00dead00,
+    } state;
 
-	enum dynamicbox_target_type type;
+    dynamicbox_target_type_e type;
 
-	union {
-		int fd; /* File handle(descriptor) */
-		int id; /* SHM handle(id) */
-	} handle;
+    union {
+        int fd; /* File handle(descriptor) */
+        int id; /* SHM handle(id) */
+    } handle;
 
-	char *pkgname;
-	char *id;
-	int width;
-	int height;
-	int pixel_size;
-	int auto_align;
+    char *pkgname;
+    char *id;
+    int width;
+    int height;
+    int pixel_size;
+    int auto_align;
 
-	struct fb_info *fb;
+    struct fb_info *fb;
 
-	int (*handler)(struct dynamicbox_buffer *info, struct dynamicbox_buffer_event_data *event_info, void *data);
-	void *data;
+    int (*handler)(struct dynamicbox_buffer *info, struct dynamicbox_buffer_event_data *event_info, void *data);
+    void *data;
 
-	void *user_data;
-	char *lock;
-	int lock_fd;
+    void *user_data;
+
+    unsigned int *extra_buffer;
+
+    dynamicbox_lock_info_t lock_info;
 } *dynamicbox_buffer_h;
+
+/**
+ * @internal
+ * @brief Create a lock instance
+ * @param[in] uri Instance URI
+ * @param[in] type dynamicbox_target_type_e, DBOX or GBAR
+ * @param[in] option Read or Write
+ * @return dynamicbox_lock_info_t
+ * @retval NULL if it fails to create a lock, proper error code will be set on last_status
+ * @retval info Lock information handler
+ * @see dynamicbox_service_destroy_lock()
+ * @see dynamicbox_service_acquire_lock()
+ * @see dynamicbox_service_release_lock()
+ */
+extern dynamicbox_lock_info_t dynamicbox_service_create_lock(const char *uri, dynamicbox_target_type_e type, dynamicbox_lock_type_e option);
+
+/**
+ * @internal
+ * @brief Destroy a lock instance
+ * @param[in] info Lock information handler
+ * @return status
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to manage the lock file
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully destroyed
+ */
+extern int dynamicbox_service_destroy_lock(dynamicbox_lock_info_t info);
+
+/**
+ * @internal
+ * @brief Acquire a lock instance
+ * @param[in] info Lock information handler
+ * @return status
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully destroyed
+ */
+extern int dynamicbox_service_acquire_lock(dynamicbox_lock_info_t info);
+
+/**
+ * @internal
+ * @brief Acquire a lock instance
+ * @param[in] info Lock information handler
+ * @return status
+ * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #DBOX_STATUS_ERROR_NONE Successfully destroyed
+ */
+extern int dynamicbox_service_release_lock(dynamicbox_lock_info_t info);
 
 #ifdef __cplusplus
 }
