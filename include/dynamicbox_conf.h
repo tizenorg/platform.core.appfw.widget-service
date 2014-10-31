@@ -419,6 +419,16 @@ extern const int const dynamicbox_conf_extra_buffer_count(void);
  */
 extern const int const dynamicbox_conf_use_gettimeofday(void);
 
+/**
+ * @internal
+ */
+extern const int const dynamicbox_conf_slave_event_boost_off(void);
+
+/**
+ * @internal
+ */
+extern const int const dynamicbox_conf_slave_event_boost_on(void);
+
 #define DYNAMICBOX_CONF_BASE_W               dynamicbox_conf_base_width()
 #define DYNAMICBOX_CONF_BASE_H               dynamicbox_conf_base_height()
 
@@ -500,6 +510,9 @@ extern const int const dynamicbox_conf_use_gettimeofday(void);
 #define DYNAMICBOX_CONF_DELAY_TIME           0.0000001f
 #define DYNAMICBOX_CONF_DEFAULT_CLUSTER      "user,created"
 #define DYNAMICBOX_CONF_MINIMUM_REACTIVATION_TIME 10
+
+#define DYNAMICBOX_CONF_SLAVE_EVENT_BOOST_ON  dynamicbox_conf_slave_event_boost_on()
+#define DYNAMICBOX_CONF_SLAVE_EVENT_BOOST_OFF dynamicbox_conf_slave_event_boost_off()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"
