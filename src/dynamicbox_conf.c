@@ -95,6 +95,8 @@ static const int CONF_DEFAULT_USE_EVENT_TIME = 1;
 static const int CONF_DEFAULT_CHECK_LCD = 1;
 static const int CONF_DEFAULT_EXTRA_BUFFER_COUNT = 1;
 static const int CONF_DEFAULT_USE_GETTIMEOFDAY = 0;
+static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_ON = 0;
+static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF = 0;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -186,6 +188,8 @@ struct dynamicbox_conf {
     int check_lcd;
     int extra_buffer_count;
     int use_gettimeofday;
+    int slave_event_boost_on;
+    int slave_event_boost_off;
 };
 
 static struct dynamicbox_conf s_conf;
@@ -195,6 +199,20 @@ static struct info {
 } s_info = {
     .conf_loaded = 0,
 };
+
+static void slave_event_boost_on_handler(char *buffer)
+{
+    if (sscanf(buffer, "%d", &s_conf.slave_event_boost_on) != 1) {
+	ErrPrint("Unable to get boost on: %d\n", s_conf.slave_event_boost_on);
+    }
+}
+
+static void slave_event_boost_off_handler(char *buffer)
+{
+    if (sscanf(buffer, "%d", &s_conf.slave_event_boost_off) != 1) {
+	ErrPrint("Unable to get boost on: %d\n", s_conf.slave_event_boost_off);
+    }
+}
 
 static void extra_buffer_count_handler(char *buffer)
 {
@@ -586,6 +604,8 @@ EAPI void dynamicbox_conf_init(void)
     s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
     s_conf.extra_buffer_count = CONF_DEFAULT_EXTRA_BUFFER_COUNT;
     s_conf.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
+    s_conf.slave_event_boost_on = CONF_DEFAULT_SLAVE_EVENT_BOOST_ON;
+    s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
 }
 
 /*
@@ -818,6 +838,14 @@ EAPI int dynamicbox_conf_load(void)
             .name = "extra_buffer_count",
             .handler = extra_buffer_count_handler,
         },
+	{
+	    .name = "slave_event_boost_on",
+	    .handler = slave_event_boost_on_handler,
+	},
+	{
+	    .name = "slave_event_boost_off",
+	    .handler = slave_event_boost_off_handler,
+	},
         {
             .name = NULL,
             .handler = NULL,
@@ -1049,6 +1077,8 @@ EAPI void dynamicbox_conf_reset(void)
     s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
     s_conf.extra_buffer_count = CONF_DEFAULT_EXTRA_BUFFER_COUNT;
     s_conf.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
+    s_conf.slave_event_boost_on = CONF_DEFAULT_SLAVE_EVENT_BOOST_ON;
+    s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
 
     if (s_conf.default_conf.script != CONF_DEFAULT_SCRIPT_TYPE) {
         free(s_conf.default_conf.script);
@@ -1446,6 +1476,16 @@ EAPI const int const dynamicbox_conf_is_loaded(void)
 EAPI const int const dynamicbox_conf_use_gettimeofday(void)
 {
     return s_conf.use_gettimeofday;
+}
+
+EAPI const int const dynamicbox_conf_slave_event_boost_on(void)
+{
+    return s_conf.slave_event_boost_on;
+}
+
+EAPI const int const dynamicbox_conf_slave_event_boost_off(void)
+{
+    return s_conf.slave_event_boost_off;
 }
 
 /* End of a file */
