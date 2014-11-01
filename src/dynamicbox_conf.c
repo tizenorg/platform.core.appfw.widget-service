@@ -97,6 +97,7 @@ static const int CONF_DEFAULT_EXTRA_BUFFER_COUNT = 1;
 static const int CONF_DEFAULT_USE_GETTIMEOFDAY = 0;
 static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_ON = 0;
 static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF = 0;
+static const double CONF_DEFAULT_EVENT_FILTER = 0.5f;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -190,6 +191,7 @@ struct dynamicbox_conf {
     int use_gettimeofday;
     int slave_event_boost_on;
     int slave_event_boost_off;
+    double event_filter;
 };
 
 static struct dynamicbox_conf s_conf;
@@ -199,6 +201,13 @@ static struct info {
 } s_info = {
     .conf_loaded = 0,
 };
+
+static void event_filter_handler(char *buffer)
+{
+    if (sscanf(buffer, "%lf", &s_conf.event_filter) != 1) {
+	ErrPrint("Unable to get event filter: %lf\n", s_conf.event_filter);
+    }
+}
 
 static void slave_event_boost_on_handler(char *buffer)
 {
@@ -606,6 +615,7 @@ EAPI void dynamicbox_conf_init(void)
     s_conf.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
     s_conf.slave_event_boost_on = CONF_DEFAULT_SLAVE_EVENT_BOOST_ON;
     s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
+    s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
 }
 
 /*
@@ -846,6 +856,10 @@ EAPI int dynamicbox_conf_load(void)
 	    .name = "slave_event_boost_off",
 	    .handler = slave_event_boost_off_handler,
 	},
+	{
+	    .name = "event_filter",
+	    .handler = event_filter_handler,
+	},
         {
             .name = NULL,
             .handler = NULL,
@@ -1079,6 +1093,7 @@ EAPI void dynamicbox_conf_reset(void)
     s_conf.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
     s_conf.slave_event_boost_on = CONF_DEFAULT_SLAVE_EVENT_BOOST_ON;
     s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
+    s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
 
     if (s_conf.default_conf.script != CONF_DEFAULT_SCRIPT_TYPE) {
         free(s_conf.default_conf.script);
@@ -1488,5 +1503,9 @@ EAPI const int const dynamicbox_conf_slave_event_boost_off(void)
     return s_conf.slave_event_boost_off;
 }
 
-/* End of a file */
+EAPI const double const dynamicbox_conf_event_filter(void)
+{
+    return s_conf.event_filter;
+}
 
+/* End of a file */

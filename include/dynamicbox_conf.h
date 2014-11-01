@@ -429,6 +429,11 @@ extern const int const dynamicbox_conf_slave_event_boost_off(void);
  */
 extern const int const dynamicbox_conf_slave_event_boost_on(void);
 
+/**
+ * @internal
+ */
+extern const double const dynamicbox_conf_event_filter(void);
+
 #define DYNAMICBOX_CONF_BASE_W               dynamicbox_conf_base_width()
 #define DYNAMICBOX_CONF_BASE_H               dynamicbox_conf_base_height()
 
@@ -513,6 +518,7 @@ extern const int const dynamicbox_conf_slave_event_boost_on(void);
 
 #define DYNAMICBOX_CONF_SLAVE_EVENT_BOOST_ON  dynamicbox_conf_slave_event_boost_on()
 #define DYNAMICBOX_CONF_SLAVE_EVENT_BOOST_OFF dynamicbox_conf_slave_event_boost_off()
+#define DYNAMICBOX_CONF_EVENT_FILTER	      dynamicbox_conf_event_filter()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"
