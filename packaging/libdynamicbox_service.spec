@@ -20,6 +20,7 @@ BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(ail)
 BuildRequires: pkgconfig(icu-uc)
+BuildRequires: model-build-features
 
 %if %{with wayland}
 # Nothing provides
@@ -27,7 +28,7 @@ BuildRequires: pkgconfig(icu-uc)
 BuildRequires: pkgconfig(x11)
 %endif
 
-%if "%{sec_product_feature_livebox}" == "0"
+%if "%{model_build_feature_livebox}" == "0"
 ExclusiveArch:
 %endif
 
