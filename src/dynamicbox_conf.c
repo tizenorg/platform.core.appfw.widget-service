@@ -98,6 +98,7 @@ static const int CONF_DEFAULT_USE_GETTIMEOFDAY = 0;
 static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_ON = 0;
 static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF = 0;
 static const double CONF_DEFAULT_EVENT_FILTER = 0.5f;
+static const int CONF_DEFAULT_SLAVE_LIMIT_TO_TTL = 0;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -192,6 +193,7 @@ struct dynamicbox_conf {
     int slave_event_boost_on;
     int slave_event_boost_off;
     double event_filter;
+    int slave_limit_to_ttl;
 };
 
 static struct dynamicbox_conf s_conf;
@@ -201,6 +203,11 @@ static struct info {
 } s_info = {
     .conf_loaded = 0,
 };
+
+static void slave_limit_to_ttl_handler(char *buffer)
+{
+    s_conf.slave_limit_to_ttl = !strcasecmp(buffer, "true");
+}
 
 static void event_filter_handler(char *buffer)
 {
@@ -616,6 +623,7 @@ EAPI void dynamicbox_conf_init(void)
     s_conf.slave_event_boost_on = CONF_DEFAULT_SLAVE_EVENT_BOOST_ON;
     s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
     s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
+    s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
 }
 
 /*
@@ -860,6 +868,10 @@ EAPI int dynamicbox_conf_load(void)
 	    .name = "event_filter",
 	    .handler = event_filter_handler,
 	},
+	{
+	    .name = "slave_limit_to_ttl",
+	    .handler = slave_limit_to_ttl_handler,
+	},
         {
             .name = NULL,
             .handler = NULL,
@@ -1094,6 +1106,7 @@ EAPI void dynamicbox_conf_reset(void)
     s_conf.slave_event_boost_on = CONF_DEFAULT_SLAVE_EVENT_BOOST_ON;
     s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
     s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
+    s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
 
     if (s_conf.default_conf.script != CONF_DEFAULT_SCRIPT_TYPE) {
         free(s_conf.default_conf.script);
@@ -1506,6 +1519,11 @@ EAPI const int const dynamicbox_conf_slave_event_boost_off(void)
 EAPI const double const dynamicbox_conf_event_filter(void)
 {
     return s_conf.event_filter;
+}
+
+EAPI const int const dynamicbox_conf_slave_limit_to_ttl(void)
+{
+    return s_conf.slave_limit_to_ttl;
 }
 
 /* End of a file */
