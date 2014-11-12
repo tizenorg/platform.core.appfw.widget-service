@@ -17,15 +17,15 @@
 #if !defined(FLOG)
 
 #if defined(SECURE_LOGD)
-#define DbgPrint(format, arg...)	SECURE_LOGD(format, ##arg)
+#define DbgPrint(format, arg...)    SECURE_LOGD(format, ##arg)
 #else
-#define DbgPrint(format, arg...)	LOGD(format, ##arg)
+#define DbgPrint(format, arg...)    LOGD(format, ##arg)
 #endif
 
 #if defined(SECURE_LOGD)
-#define ErrPrint(format, arg...)	SECURE_LOGE(format, ##arg)
+#define ErrPrint(format, arg...)    SECURE_LOGE(format, ##arg)
 #else
-#define ErrPrint(format, arg...)	LOGE(format, ##arg)
+#define ErrPrint(format, arg...)    LOGE(format, ##arg)
 #endif
 
 #else
@@ -35,4 +35,5 @@ extern FILE *__file_log_fp;
 #define ErrPrint(format, arg...) do { fprintf(__file_log_fp, "[ERR] [[32m%s/%s[0m:%d] " format, util_basename(__FILE__), __func__, __LINE__, ##arg); fflush(__file_log_fp); } while (0)
 #endif
 
+#define EAPI __attribute__((visibility("default")))
 /* End of a file */
