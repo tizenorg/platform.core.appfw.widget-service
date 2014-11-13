@@ -194,6 +194,7 @@ struct dynamicbox_conf {
     int slave_event_boost_off;
     double event_filter;
     int slave_limit_to_ttl;
+    int frame_skip;
 };
 
 static struct dynamicbox_conf s_conf;
@@ -203,6 +204,13 @@ static struct info {
 } s_info = {
     .conf_loaded = 0,
 };
+
+static void frame_skip_handler(char *buffer)
+{
+    if (sscanf(buffer, "%d", &s_conf.frame_skip) != 1) {
+	ErrPrint("Unable to get frame skip: %d\n", s_conf.frame_skip);
+    }
+}
 
 static void slave_limit_to_ttl_handler(char *buffer)
 {
@@ -872,6 +880,10 @@ EAPI int dynamicbox_conf_load(void)
 	    .name = "slave_limit_to_ttl",
 	    .handler = slave_limit_to_ttl_handler,
 	},
+	{
+	    .name = "frame_skip",
+	    .handler = frame_skip_handler,
+	},
         {
             .name = NULL,
             .handler = NULL,
@@ -1524,6 +1536,11 @@ EAPI const double const dynamicbox_conf_event_filter(void)
 EAPI const int const dynamicbox_conf_slave_limit_to_ttl(void)
 {
     return s_conf.slave_limit_to_ttl;
+}
+
+EAPI const int const dynamicbox_conf_frame_skip(void)
+{
+    return s_conf.frame_skip;
 }
 
 /* End of a file */

@@ -199,6 +199,7 @@ typedef struct dynamicbox_buffer {
     int height;
     int pixel_size;
     int auto_align;
+    int frame_skip; /**< To skip the first few frames to prevent from unexpected buffer clear */
 
     struct fb_info *fb;
 
