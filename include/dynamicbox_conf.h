@@ -434,6 +434,16 @@ extern const int const dynamicbox_conf_slave_event_boost_on(void);
  */
 extern const double const dynamicbox_conf_event_filter(void);
 
+/**
+ * @internal
+ */
+extern const int const dynamicbox_conf_slave_limit_to_ttl(void);
+
+/**
+ * @internal
+ */
+extern const int const dynamicbox_conf_frame_skip(void);
+
 #define DYNAMICBOX_CONF_BASE_W               dynamicbox_conf_base_width()
 #define DYNAMICBOX_CONF_BASE_H               dynamicbox_conf_base_height()
 
@@ -519,6 +529,8 @@ extern const double const dynamicbox_conf_event_filter(void);
 #define DYNAMICBOX_CONF_SLAVE_EVENT_BOOST_ON  dynamicbox_conf_slave_event_boost_on()
 #define DYNAMICBOX_CONF_SLAVE_EVENT_BOOST_OFF dynamicbox_conf_slave_event_boost_off()
 #define DYNAMICBOX_CONF_EVENT_FILTER	      dynamicbox_conf_event_filter()
+#define DYNAMICBOX_CONF_SLAVE_LIMIT_TO_TTL    dynamicbox_conf_slave_limit_to_ttl()
+#define DYNAMICBOX_CONF_FRAME_SKIP	      dynamicbox_conf_frame_skip()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"

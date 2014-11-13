@@ -46,6 +46,7 @@
 
 #define SAMSUNG_PREFIX    "com.samsung."
 #define DEFAULT_TIMEOUT 2.0
+#define RESOURCE_PATH	"/shared/res/"
 
 static struct supported_size_list SIZE_LIST[DBOX_NR_OF_SIZE_LIST] = {
     { 175, 175 }, /*!< 1x1 */
@@ -1436,6 +1437,88 @@ out:
     return ret;
 }
 
+static char *convert_to_abspath(const char *appid, const char *tmp, int *tmp_len)
+{
+    pkgmgrinfo_pkginfo_h handle;
+    const char *path;
+    int abspath_len;
+    char *abspath = NULL;
+    int ret;
+
+    if (!tmp || tmp[0] == '/' || !appid) {
+	return NULL;
+    }
+    
+    ret = pkgmgrinfo_pkginfo_get_pkginfo(appid, &handle);
+    if (ret != PMINFO_R_OK) {
+	ErrPrint("Unable to get package info for %s\n", appid);
+	return NULL;
+    }
+
+    ret = pkgmgrinfo_pkginfo_get_root_path(handle, (char **)&path);
+    if (ret != PMINFO_R_OK) {
+	ErrPrint("Unable to get path for %s\n", appid);
+	goto out;
+    } 
+
+    abspath_len = strlen(tmp) + strlen(path) + strlen(RESOURCE_PATH) + 1;
+    abspath = malloc(abspath_len);
+    if (!abspath) {
+	ErrPrint("malloc: %s\n", strerror(errno));
+	goto out;
+    }
+
+    if (snprintf(abspath, abspath_len, "%s" RESOURCE_PATH "%s", path, tmp) < 0) {
+	ErrPrint("snprintf: %s\n", strerror(errno));
+	free(abspath);
+	abspath = NULL;
+	goto out;
+    }
+
+    if (tmp_len) {
+	*tmp_len = abspath_len;
+    }
+
+    DbgPrint("Converted path: %s (%d)\n", abspath, abspath_len);
+out:
+    pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
+    return abspath;
+}
+
+static char *get_appid(sqlite3 *handle, const char *pkgid)
+{
+    sqlite3_stmt *stmt;
+    int ret;
+    char *appid = NULL;
+
+    ret = sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE pkgid = ?", -1, &stmt, NULL);
+    if (ret != SQLITE_OK) {
+	ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+	return NULL;
+    }
+
+    ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+    if (ret != SQLITE_OK) {
+	ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+	goto out;
+    }
+
+    ret = sqlite3_step(stmt);
+    if (ret == SQLITE_ROW) {
+	const char *tmp;
+
+	tmp = (const char *)sqlite3_column_text(stmt, 0);
+	if (tmp && strlen(tmp)) {
+	    appid = strdup(tmp);
+	}
+    }
+ 
+out:
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return appid;
+}
+
 EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
 {
     sqlite3_stmt *stmt;
@@ -1443,10 +1526,12 @@ EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
     int ret;
     char *preview = NULL;
     const char *tmp;
+    char *appid;
     int tmp_len;
     int buf_len;
     register int i;
     int printed;
+    char *abspath;
 
     handle = open_db();
     if (!handle) {
@@ -1484,8 +1569,19 @@ EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
 	goto out;
     }
 
+    appid = get_appid(handle, pkgid);
+    abspath = convert_to_abspath(appid, tmp, &tmp_len);
+    free(appid);
+    if (!abspath) {
+	abspath = strdup(tmp);
+	if (!abspath) {
+	    ErrPrint("strdup: %s\n", strerror(errno));
+	    goto out;
+	}
+    }
+
     if (update_lang_info() != 0) {
-	preview = strdup(tmp);
+	preview = abspath;
 	if (!preview) {
 	    ErrPrint("Heap: %s\n", strerror(errno));
 	}
@@ -1496,14 +1592,15 @@ EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
     preview = malloc(buf_len + 1);
     if (!preview) {
 	ErrPrint("Heap: %s\n", strerror(errno));
+	free(abspath);
 	goto out;
     }
 
-    for (i = tmp_len; i >= 0 && tmp[i] != '/'; i--);
+    for (i = tmp_len; i >= 0 && abspath[i] != '/'; i--);
     i++; /* Skip '/' */
 
-    strncpy(preview, tmp, i);
-    printed = snprintf(preview + i, buf_len - i, "%s-%s/%s", s_info.iso3lang, s_info.country, tmp + i);
+    strncpy(preview, abspath, i);
+    printed = snprintf(preview + i, buf_len - i, "%s-%s/%s", s_info.iso3lang, s_info.country, abspath + i);
     if (preview[i + printed] != '\0') {
 	ErrPrint("Path is truncated\n");
 	preview[i + printed] = '\0';
@@ -1513,10 +1610,9 @@ EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
 	DbgPrint("Access failed: %s, %s\n", preview, strerror(errno));
 	free(preview);
 
-	preview = strdup(tmp);
-	if (!preview) {
-	    ErrPrint("Heap: %s\n", strerror(errno));
-	}
+	preview = abspath;
+    } else {
+	free(abspath);
     }
 
 out:
@@ -1532,7 +1628,9 @@ EAPI char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang)
     sqlite3 *handle;
     char *language;
     char *icon = NULL;
+    char *appid;
     int ret;
+    char *ret_icon;
 
     if (!pkgid) {
 	return NULL;
@@ -1591,6 +1689,14 @@ EAPI char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang)
 	}
     } else {
 	icon = get_default_icon(pkgid);
+    }
+
+    appid = get_appid(handle, pkgid);
+    ret_icon = convert_to_abspath(appid, icon, NULL);
+    free(appid);
+    if (ret_icon) {
+	free(icon);
+	icon = ret_icon;
     }
 
 out:
