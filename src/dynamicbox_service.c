@@ -1445,7 +1445,7 @@ static char *convert_to_abspath(const char *appid, const char *tmp, int *tmp_len
     char *abspath = NULL;
     int ret;
 
-    if (tmp[0] == '/' || !appid) {
+    if (!tmp || tmp[0] == '/' || !appid) {
 	return NULL;
     }
     
@@ -1485,6 +1485,40 @@ out:
     return abspath;
 }
 
+static char *get_appid(sqlite3 *handle, const char *pkgid)
+{
+    sqlite3_stmt *stmt;
+    int ret;
+    char *appid = NULL;
+
+    ret = sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE pkgid = ?", -1, &stmt, NULL);
+    if (ret != SQLITE_OK) {
+	ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+	return NULL;
+    }
+
+    ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
+    if (ret != SQLITE_OK) {
+	ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+	goto out;
+    }
+
+    ret = sqlite3_step(stmt);
+    if (ret == SQLITE_ROW) {
+	const char *tmp;
+
+	tmp = (const char *)sqlite3_column_text(stmt, 0);
+	if (tmp && strlen(tmp)) {
+	    appid = strdup(tmp);
+	}
+    }
+ 
+out:
+    sqlite3_reset(stmt);
+    sqlite3_finalize(stmt);
+    return appid;
+}
+
 EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
 {
     sqlite3_stmt *stmt;
@@ -1492,7 +1526,7 @@ EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
     int ret;
     char *preview = NULL;
     const char *tmp;
-    const char *appid;
+    char *appid;
     int tmp_len;
     int buf_len;
     register int i;
@@ -1504,7 +1538,7 @@ EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
 	return NULL;
     }
 
-    ret = sqlite3_prepare_v2(handle, "SELECT box_size.preview, pkgmap.appid FROM box_size, pkgmap WHERE box_size.pkgid = ? AND box_size.size_type = ? AND box_size.pkgid = pkgmap.pkgid", -1, &stmt, NULL);
+    ret = sqlite3_prepare_v2(handle, "SELECT preview FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
     if (ret != SQLITE_OK) {
 	ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
 	close_db(handle);
@@ -1535,13 +1569,9 @@ EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
 	goto out;
     }
 
-    appid = (const char *)sqlite3_column_text(stmt, 1);
-    if (!appid) {
-	ErrPrint("Failed to get data (%s)\n", pkgid);
-	goto out;
-    }
-
+    appid = get_appid(handle, pkgid);
     abspath = convert_to_abspath(appid, tmp, &tmp_len);
+    free(appid);
     if (!abspath) {
 	abspath = strdup(tmp);
 	if (!abspath) {
@@ -1598,7 +1628,7 @@ EAPI char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang)
     sqlite3 *handle;
     char *language;
     char *icon = NULL;
-    const char *appid = NULL;
+    char *appid;
     int ret;
     char *ret_icon;
 
@@ -1625,7 +1655,7 @@ EAPI char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang)
 	return NULL;
     }
 
-    ret = sqlite3_prepare_v2(handle, "SELECT i18n.icon, pkgmap.appid FROM i18n, pkgmap WHERE i18n.pkgid = ? AND i18n.lang = ? AND i18n.pkgid = pkgmap.pkgid", -1, &stmt, NULL);
+    ret = sqlite3_prepare_v2(handle, "SELECT icon FROM i18n WHERE pkgid = ? AND lang = ?", -1, &stmt, NULL);
     if (ret != SQLITE_OK) {
 	ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 	close_db(handle);
@@ -1657,20 +1687,13 @@ EAPI char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang)
 		ErrPrint("Heap: %s\n", strerror(errno));
 	    }
 	}
-
-	appid = (const char *)sqlite3_column_text(stmt, 1);
-	if (!appid || !strlen(appid)) {
-	    ErrPrint("Unable to get the appid\n");
-	}
     } else {
 	icon = get_default_icon(pkgid);
     }
 
-    /**
-     * @todo
-     * Replace "icon" with absolute path, if it is relative path
-     */
+    appid = get_appid(handle, pkgid);
     ret_icon = convert_to_abspath(appid, icon, NULL);
+    free(appid);
     if (ret_icon) {
 	free(icon);
 	icon = ret_icon;
