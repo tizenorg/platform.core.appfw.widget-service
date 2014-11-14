@@ -47,6 +47,7 @@
 #define SAMSUNG_PREFIX    "com.samsung."
 #define DEFAULT_TIMEOUT 2.0
 #define RESOURCE_PATH	"/shared/res/"
+#define LIBEXEC_PATH	"/shared/libexec/"
 
 static struct supported_size_list SIZE_LIST[DBOX_NR_OF_SIZE_LIST] = {
     { 175, 175 }, /*!< 1x1 */
@@ -1437,7 +1438,7 @@ out:
     return ret;
 }
 
-static char *convert_to_abspath(const char *appid, const char *tmp, int *tmp_len)
+static char *convert_to_abspath(const char *appid, const char *tmp, const char *mid_path, int *tmp_len)
 {
     pkgmgrinfo_pkginfo_h handle;
     const char *path;
@@ -1461,14 +1462,14 @@ static char *convert_to_abspath(const char *appid, const char *tmp, int *tmp_len
 	goto out;
     } 
 
-    abspath_len = strlen(tmp) + strlen(path) + strlen(RESOURCE_PATH) + 1;
+    abspath_len = strlen(tmp) + strlen(path) + strlen(mid_path) + 1;
     abspath = malloc(abspath_len);
     if (!abspath) {
 	ErrPrint("malloc: %s\n", strerror(errno));
 	goto out;
     }
 
-    if (snprintf(abspath, abspath_len, "%s" RESOURCE_PATH "%s", path, tmp) < 0) {
+    if (snprintf(abspath, abspath_len, "%s%s%s", path, mid_path, tmp) < 0) {
 	ErrPrint("snprintf: %s\n", strerror(errno));
 	free(abspath);
 	abspath = NULL;
@@ -1570,7 +1571,7 @@ EAPI char *dynamicbox_service_preview(const char *pkgid, int size_type)
     }
 
     appid = get_appid(handle, pkgid);
-    abspath = convert_to_abspath(appid, tmp, &tmp_len);
+    abspath = convert_to_abspath(appid, tmp, RESOURCE_PATH, &tmp_len);
     free(appid);
     if (!abspath) {
 	abspath = strdup(tmp);
@@ -1692,7 +1693,7 @@ EAPI char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang)
     }
 
     appid = get_appid(handle, pkgid);
-    ret_icon = convert_to_abspath(appid, icon, NULL);
+    ret_icon = convert_to_abspath(appid, icon, RESOURCE_PATH, NULL);
     free(appid);
     if (ret_icon) {
 	free(icon);
@@ -2036,7 +2037,10 @@ EAPI char *dynamicbox_service_libexec(const char *pkgid)
 	goto out;
     }
 
-    libexec = strdup(path);
+    libexec = convert_to_abspath(appid, path, LIBEXEC_PATH, NULL);
+    if (!libexec) {
+	libexec = strdup(path);
+    }
     if (!libexec) {
 	ErrPrint("Heap: %s\n", strerror(errno));
 	sqlite3_reset(stmt);
@@ -2447,7 +2451,10 @@ EAPI char *dynamicbox_service_dbox_script_path(const char *pkgid)
 	goto out;
     }
 
-    path = strdup(dbox_src);
+    path = convert_to_abspath(appid, dbox_src, RESOURCE_PATH, NULL);
+    if (!path) {
+	path = strdup(dbox_src);
+    }
     if (!path) {
 	ErrPrint("Heap: %s\n", strerror(errno));
 	sqlite3_reset(stmt);
@@ -2580,7 +2587,10 @@ EAPI char *dynamicbox_service_gbar_script_path(const char *pkgid)
 	goto out;
     }
 
-    path = strdup(gbar_src);
+    path = convert_to_abspath(appid, gbar_src, RESOURCE_PATH, NULL);
+    if (!path) {
+	path = strdup(gbar_src);
+    }
     if (!path) {
 	ErrPrint("Heap: %s\n", strerror(errno));
 	sqlite3_reset(stmt);
