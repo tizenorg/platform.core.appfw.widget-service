@@ -34,6 +34,10 @@ extern "C" {
 #define DBOX_PRIMARY_BUFFER -1
 #define DBOX_UNKNOWN_BUFFER -2
 
+/**
+ * @internal
+ * @brief Buffer type of dynamicbox
+ */
 typedef enum dynamicbox_fb_type { /*!< Must have to be sync with libprovider, liblivebox-viewer */
     DBOX_FB_TYPE_FILE,
     DBOX_FB_TYPE_SHM,
@@ -111,7 +115,11 @@ typedef struct dynamicbox_buffer_event_data {
     } info;
 } *dynamicbox_buffer_event_data_t;
 
-
+/**
+ * @internal
+ * @brief ADT for Dynamicbox Buffer
+ * @since_tizen 2.3
+ */
 typedef struct dynamicbox_fb { /*!< Must has to be sync with slave & provider */
     enum dynamicbox_fb_state {
         DBOX_FB_STATE_CREATED = 0x00beef00,

@@ -33,6 +33,7 @@ extern "C" {
  */
 
 /**
+ * @internal
  * @brief Command list for
  *        Provider to Master,
  *        or Master to Viewer
@@ -74,6 +75,7 @@ extern "C" {
 #define CMD_STR_CLOSE_GBAR        "close_gbar"
 
 /**
+ * @internal
  * @brief Command list for
  *      Provder to Master.
  */
@@ -101,6 +103,7 @@ extern "C" {
 
 
 /**
+ * @internal
  * @brief Master to Viewer
  */
 #define CMD_GBAR_CREATED       0x00000E01
@@ -132,6 +135,7 @@ extern "C" {
 #define CMD_STR_UPDATE_ID          "update_id"
 
 /**
+ * @internal
  * @brief Following list should be started after the common list of client_cmd_list
  *        Master to Provider
  */
@@ -179,6 +183,7 @@ extern "C" {
 #define CMD_STR_INFO_MASTER_CTRL "master_ctrl"
 
 /**
+ * @internal
  * @brief Viewer to maser
  *        or Master to provider
  */
@@ -295,6 +300,7 @@ extern "C" {
 #define CMD_STR_UPDATE_MODE              "update_mode"
 
 /**
+ * @internal
  * @brief viewer to master
  */
 #define CMD_DBOX_MOUSE_SET        0x00003701
@@ -358,6 +364,7 @@ extern "C" {
 #define CMD_STR_GBAR_ACQUIRE_XPIXMAP "gbar_acquire_xpixmap"
 
 /**
+ * @internal
  * @brief Service API to Master
  */
 #define CMD_SERVICE_UPDATE        0x00000001
