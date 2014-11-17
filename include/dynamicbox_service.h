@@ -63,6 +63,7 @@ typedef enum dynamicbox_size_type {
 } dynamicbox_size_type_e;
 
 /**
+ * @internal
  * @brief Enumeration for result of accessibility event processing.
  * @details Reference the libprovider & libdynamicbox-viewer.
  * @since_tizen 2.3
@@ -76,6 +77,7 @@ typedef enum dynamicbox_access_status {
 } dynamicbox_access_status_e;
 
 /**
+ * @internal
  * @brief Key event handling result status.
  * @since_tizen 2.3
  */
@@ -108,6 +110,7 @@ typedef enum dynamicbox_gbar_close_type {
 } dynamicbox_gbar_close_type_e;
 
 /**
+ * @internal
  * @brief Type of dynamicbox content sharing method
  * @since_tizen 2.3
  */
@@ -121,6 +124,7 @@ typedef enum dynamicbox_dbox_type {
 } dynamicbox_dbox_type_e;
 
 /**
+ * @internal
  * @brief Type of glance bar content sharing method
  * @since_tizen 2.3
  */
@@ -143,6 +147,7 @@ typedef enum dynamicbox_destroy_type {
 } dynamicbox_destroy_type_e; /**< Delete type */
 
 /**
+ * @internal
  * @brief Package list handle.
  * @since_tizen 2.3
  */
@@ -171,6 +176,8 @@ typedef struct dynamicbox_pkglist_handle *dynamicbox_pkglist_h;
  * @param[out] height Pixel size height
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox
+ * @feature http://developer.samsung.com/tizen/feature/samsung_extension
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @see dynamicbox_size_type()
@@ -202,6 +209,8 @@ extern int dynamicbox_service_get_size(dynamicbox_size_type_e type, int *width, 
  * @param[in] height Pixel size height
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox
+ * @feature http://developer.samsung.com/tizen/feature/samsung_extension
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_SIZE_TYPE_[EASY_]WxH Size type of given pixel size
  * @retval #DBOX_SIZE_TYPE_UNKNOWN If the given pixel size is not valid
@@ -211,6 +220,7 @@ extern int dynamicbox_service_get_size(dynamicbox_size_type_e type, int *width, 
 extern dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height);
 
 /**
+ * @internal
  * @brief Supports the mouse event of dynamicbox content.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -225,6 +235,7 @@ extern dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height
 extern int dynamicbox_service_mouse_event(const char *dboxid, int size_type);
 
 /**
+ * @internal
  * @brief Requires touch effect.
  * @details If this API returns true(1), the viewer should make touch effect when a user click the dynamicbox.
  * @since_tizen 2.3
@@ -241,6 +252,7 @@ extern int dynamicbox_service_mouse_event(const char *dboxid, int size_type);
 extern int dynamicbox_service_touch_effect(const char *dboxid, int size_type);
 
 /**
+ * @internal
  * @brief Requires decoration frame.
  * @details If this API returns true(1), the viewer should make decoration border on the dynamicbox content.
  * @since_tizen 2.3
@@ -267,6 +279,8 @@ extern int dynamicbox_service_need_frame(const char *dboxid, int size_type);
  * @param[in] force 1 if you want to update your dynamicbox even if the provider is paused or 0. 0 is default
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox
+ * @feature http://developer.samsung.com/tizen/feature/samsung_extension
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
  * @retval #DBOX_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
@@ -285,6 +299,8 @@ extern int dynamicbox_service_trigger_update(const char *dboxid, const char *ins
  * @param[in] period New update period in sec
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox
+ * @feature http://developer.samsung.com/tizen/feature/samsung_extension
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully changed(requested)
  * @retval #DBOX_STATUS_ERROR_INVALID Invalid argument
@@ -294,6 +310,7 @@ extern int dynamicbox_service_trigger_update(const char *dboxid, const char *ins
 extern int dynamicbox_service_change_period(const char *dboxid, const char *instance_id, double period);
 
 /**
+ * @internal
  * @brief Gets synchronous package list.
  * @details
  *        callback (appid, dboxid, is_prime)\n
@@ -315,6 +332,7 @@ extern int dynamicbox_service_change_period(const char *dboxid, const char *inst
 extern int dynamicbox_service_get_pkglist(int (*cb)(const char *pkgid, const char *dboxid, int is_prime, void *data), void *data);
 
 /**
+ * @internal
  * @brief Gets synchronous uiapp list.
  * @details
  *        Callback (appid, data)\n
@@ -336,6 +354,7 @@ extern int dynamicbox_service_get_pkglist(int (*cb)(const char *pkgid, const cha
 extern int dynamicbox_service_get_applist(const char *dboxid, void (*cb)(const char *dboxid, const char *appid, void *data), void *data);
 
 /**
+ * @internal
  * @brief Gets the MAIN application Id of given dynamicbox package Id.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Package Id
@@ -348,6 +367,7 @@ extern int dynamicbox_service_get_applist(const char *dboxid, void (*cb)(const c
 extern char *dynamicbox_service_mainappid(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets synchronous package list.
  * @details
  *      callback (dboxid, is_prime)\n
@@ -369,6 +389,7 @@ extern char *dynamicbox_service_mainappid(const char *dboxid);
 extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *dboxid, int is_prime, void *data), void *data);
 
 /**
+ * @internal
  * @brief Gets synchronous package list.
  * @details
  *      callback (dboxid)\n
@@ -389,6 +410,7 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
 extern int dynamicbox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *dboxid, void *data), void *data);
 
 /**
+ * @internal
  * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id. If a given id is a dynamicbox id, check its existence. and if it is package or ui-app id, then find the primary dynamicbox in its package.
  * @since_tizen 2.3
  * @param[in] id Dynamic Box Id or Package Id or UI App Id
@@ -403,6 +425,7 @@ extern int dynamicbox_service_get_pkglist_by_category(const char *category, int 
 extern char *dynamicbox_service_dbox_id(const char *id);
 
 /**
+ * @internal
  * @brief Checks the primary flag of given dynamicbox Id.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Id
@@ -415,6 +438,7 @@ extern char *dynamicbox_service_dbox_id(const char *id);
 extern int dynamicbox_service_is_primary(const char *dboxid);
 
 /**
+ * @internal
  * @brief Get the category using given dboxid.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -430,6 +454,7 @@ extern int dynamicbox_service_is_primary(const char *dboxid);
 extern char *dynamicbox_service_category(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the name of a dynamicbox (provider name == dynamicbox appid), you have to release the return value after use it.
  * @details
  *    Dynamicbox has provider process for each dynamicbox instances.\n
@@ -447,6 +472,7 @@ extern char *dynamicbox_service_category(const char *dboxid);
 extern char *dynamicbox_service_provider_name(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the appId of setup app which is specified by given dynamicbox Id's manifest.
  * @details
  *    This setup app should be launched before adding the dynamicbox to get the content_info.\n
@@ -464,6 +490,7 @@ extern char *dynamicbox_service_provider_name(const char *dboxid);
 extern char *dynamicbox_service_setup_appid(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the Package Id (Not the UI App Id) of given dynamicbox, &lt;manifest package="AAA"&gt; tag.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -478,6 +505,7 @@ extern char *dynamicbox_service_setup_appid(const char *dboxid);
 extern char *dynamicbox_service_package_id(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gives Internationalized name of dynamicbox package.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -494,6 +522,7 @@ extern char *dynamicbox_service_package_id(const char *dboxid);
 extern char *dynamicbox_service_i18n_name(const char *dboxid, const char *lang);
 
 /**
+ * @internal
  * @brief Gets the preview image path of given size type.
  * @details This function will returns i18nized preview image path.
  * @since_tizen 2.3
@@ -511,6 +540,7 @@ extern char *dynamicbox_service_i18n_name(const char *dboxid, const char *lang);
 extern char *dynamicbox_service_preview(const char *dboxid, int size_type);
 
 /**
+ * @internal
  * @brief Gets the default content string of the given dynamicbox.
  * @details
  *    If the user defines the default content string in the manifest file (.xml),\n
@@ -528,6 +558,7 @@ extern char *dynamicbox_service_preview(const char *dboxid, int size_type);
 extern char *dynamicbox_service_content(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gives Internationalized icon path of given dynamicbox package.
  * @details The user should free the returned string with free().
  * @since_tizen 2.3
@@ -545,6 +576,7 @@ extern char *dynamicbox_service_content(const char *dboxid);
 extern char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang);
 
 /**
+ * @internal
  * @brief Gets the "nodisplay" value.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -558,6 +590,7 @@ extern char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang);
 extern int dynamicbox_service_nodisplay(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the "ABI" of given package.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -571,6 +604,7 @@ extern int dynamicbox_service_nodisplay(const char *dboxid);
 extern char *dynamicbox_service_abi(const char *dboxid);
 
 /**
+ * @internal
  * @brief Checks the status of the dynamicbox.
  * @details Currently this API is not implemented. It just returns 1 all the time.
  * @since_tizen 2.3
@@ -585,6 +619,7 @@ extern char *dynamicbox_service_abi(const char *dboxid);
 extern int dynamicbox_service_is_enabled(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the script file of dynamicbox.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -600,6 +635,7 @@ extern int dynamicbox_service_is_enabled(const char *dboxid);
 extern char *dynamicbox_service_dbox_script_path(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the script group of dynamicbox.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -615,6 +651,7 @@ extern char *dynamicbox_service_dbox_script_path(const char *dboxid);
 extern char *dynamicbox_service_dbox_script_group(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the script file path of given dynamicbox package.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -629,6 +666,7 @@ extern char *dynamicbox_service_dbox_script_group(const char *dboxid);
 extern char *dynamicbox_service_gbar_script_path(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the group name for script file to load it.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -643,6 +681,7 @@ extern char *dynamicbox_service_gbar_script_path(const char *dboxid);
 extern char *dynamicbox_service_gbar_script_group(const char *dboxid);
 
 /**
+ * @internal
  * @brief Gets the supported size list.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -663,6 +702,7 @@ extern char *dynamicbox_service_gbar_script_group(const char *dboxid);
 extern int dynamicbox_service_get_supported_sizes(const char *dboxid, int *cnt, int *w, int *h);
 
 /**
+ * @internal
  * @brief Gets the supported size list of given pkgid.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
@@ -680,6 +720,7 @@ extern int dynamicbox_service_get_supported_sizes(const char *dboxid, int *cnt, 
 extern int dynamicbox_service_get_supported_size_types(const char *dboxid, int *cnt, int *types);
 
 /**
+ * @internal
  * @brief Gets the category list of given cluster.
  * @since_tizen 2.3
  * @param[in] cluster Cluster name
@@ -696,6 +737,7 @@ extern int dynamicbox_service_get_supported_size_types(const char *dboxid, int *
 extern int dynamicbox_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data);
 
 /**
+ * @internal
  * @brief Gets the cluster list.
  * @since_tizen 2.3
  * @param[in] cb Callback function for retrieving the cluster list
@@ -711,6 +753,7 @@ extern int dynamicbox_service_enumerate_category_list(const char *cluster, int (
 extern int dynamicbox_service_enumerate_cluster_list(int (*cb)(const char *cluster, void *data), void *data);
 
 /**
+ * @internal
  * @brief Initializes the Dynamicbox service API.
  * @details Open the DB file.\n
  *    You don't need to call this if you are using dynamicbox service API shortly.\n
@@ -729,6 +772,7 @@ extern int dynamicbox_service_enumerate_cluster_list(int (*cb)(const char *clust
 extern int dynamicbox_service_init(void);
 
 /**
+ * @internal
  * @brief Finalizes the dynamicbox service API.
  * @since_tizen 2.3
  * @privlevel public
@@ -742,6 +786,7 @@ extern int dynamicbox_service_init(void);
 extern int dynamicbox_service_fini(void);
 
 /**
+ * @internal
  * @brief Creates a handle for getting the package list.
  * @details
  *    If you want get the record one by one from DB, use this.\n
@@ -765,6 +810,7 @@ extern int dynamicbox_service_fini(void);
 extern dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *dboxid, dynamicbox_pkglist_h handle);
 
 /**
+ * @internal
  * @brief Gets the dboxid & package name & is_prime flag.
  * @since_tizen 2.3
  * @param[in] handle Handle which is created by dynamicbox_service_pkglist_create() function
@@ -785,6 +831,7 @@ extern dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *dboxid
 extern int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char **dboxid, char **pkgname, int *is_prime);
 
 /**
+ * @internal
  * @brief Destroys the iterator of pkglist.
  * @since_tizen 2.3
  * @param[in] handle Package list handle
@@ -800,6 +847,7 @@ extern int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char
 extern int dynamicbox_service_pkglist_destroy(dynamicbox_pkglist_h handle);
 
 /**
+ * @internal
  * @brief Getting the activated instance count.
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Id, if you want to get whole instnaces list, use NULL.

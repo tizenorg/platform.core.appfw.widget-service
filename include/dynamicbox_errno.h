@@ -33,6 +33,7 @@ extern "C" {
 
 /**
  * @brief Enumeration for the result status of dynamicbox operation.
+ * @since_tizen 2.3
  */
 typedef enum dynamicbox_status {
     DBOX_STATUS_ERROR_NONE = 0x00000000, /**< Operation is successfully completed */
@@ -55,10 +56,12 @@ typedef enum dynamicbox_status {
 
 /**
  * @brief Definition for macro function to check whether given code value indicates error or not.
+ * @since_tizen 2.3
  */
 #define DBOX_STATUS_IS_ERROR(s)    (!!((s) & DBOX_STATUS_ERROR))
 
 /**
+ * @internal
  * @brief Set the status for the last operation
  * @param[in] status dynamicbox_status_e status
  * @since_tizen 2.3
@@ -68,7 +71,6 @@ typedef enum dynamicbox_status {
 extern void dynamicbox_set_last_status(dynamicbox_status_e status);
 
 /**
- * @internal
  * @brief Get the last error status
  * @since_tizen 2.3
  * @return int dynamicbox error status
