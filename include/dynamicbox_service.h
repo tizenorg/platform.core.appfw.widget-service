@@ -225,7 +225,7 @@ extern dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -248,7 +248,7 @@ extern int dynamicbox_service_mouse_event(const char *dboxid, int size_type);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Size type
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -271,7 +271,7 @@ extern int dynamicbox_service_touch_effect(const char *dboxid, int size_type);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Size type
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -293,7 +293,7 @@ extern int dynamicbox_service_need_frame(const char *dboxid, int size_type);
  * @param[in] content New content information, Default @c NULL
  * @param[in] force 1 if you want to update your dynamicbox even if the provider is paused or 0. 0 is default
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.service
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.provider
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -314,7 +314,7 @@ extern int dynamicbox_service_trigger_update(const char *dboxid, const char *ins
  * @param[in] instance_id Dynamicbox instance id
  * @param[in] period New update period in sec
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.service
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.provider
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -339,7 +339,7 @@ extern int dynamicbox_service_change_period(const char *dboxid, const char *inst
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -363,7 +363,7 @@ extern int dynamicbox_service_get_pkglist(int (*cb)(const char *pkgid, const cha
  * @param[in] cb Callback function
  * @param[in] data Callback Data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -382,7 +382,7 @@ extern int dynamicbox_service_get_applist(const char *dboxid, void (*cb)(const c
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Package Id
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -405,7 +405,7 @@ extern char *dynamicbox_service_mainappid(const char *dboxid);
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -429,7 +429,7 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int count
@@ -447,7 +447,7 @@ extern int dynamicbox_service_get_pkglist_by_category(const char *category, int 
  * @since_tizen 2.3
  * @param[in] id Dynamic Box Id or Package Id or UI App Id
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -464,7 +464,7 @@ extern char *dynamicbox_service_dbox_id(const char *id);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Id
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -479,7 +479,7 @@ extern int dynamicbox_service_is_primary(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char *
@@ -519,7 +519,7 @@ extern char *dynamicbox_service_provider_name(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox Id
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -536,7 +536,7 @@ extern char *dynamicbox_service_setup_appid(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -554,7 +554,7 @@ extern char *dynamicbox_service_package_id(const char *dboxid);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -574,7 +574,7 @@ extern char *dynamicbox_service_i18n_name(const char *dboxid, const char *lang);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Dynamicbox size type
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -595,7 +595,7 @@ extern char *dynamicbox_service_preview(const char *dboxid, int size_type);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -614,7 +614,7 @@ extern char *dynamicbox_service_content(const char *dboxid);
  * @param[in] dboxid Dynamicbox AppId (It must has to be a dynamicbox package ID. not the UI-APP and the PACKAGE)
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -632,7 +632,7 @@ extern char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -648,7 +648,7 @@ extern int dynamicbox_service_nodisplay(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -666,7 +666,7 @@ extern char *dynamicbox_service_abi(const char *dboxid);
  * @remarks This API is not implemented. It will always return 1.
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -681,7 +681,7 @@ extern int dynamicbox_service_is_enabled(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -699,7 +699,7 @@ extern char *dynamicbox_service_dbox_script_path(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -717,7 +717,7 @@ extern char *dynamicbox_service_dbox_script_group(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -734,7 +734,7 @@ extern char *dynamicbox_service_gbar_script_path(const char *dboxid);
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -757,7 +757,7 @@ extern char *dynamicbox_service_gbar_script_group(const char *dboxid);
  * @param[out] w Width array
  * @param[out] h Height array
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -778,7 +778,7 @@ extern int dynamicbox_service_get_supported_sizes(const char *dboxid, int *cnt, 
  * @param[out] cnt Result count of types array
  * @param[out] types Array of types
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -798,7 +798,7 @@ extern int dynamicbox_service_get_supported_size_types(const char *dboxid, int *
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -817,7 +817,7 @@ extern int dynamicbox_service_enumerate_category_list(const char *cluster, int (
  * @param[in] cb Callback function for retrieving the cluster list
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -840,7 +840,7 @@ extern int dynamicbox_service_enumerate_cluster_list(int (*cb)(const char *clust
  *    every API which are related with DB operation will open DB and close it before return from it.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -856,7 +856,7 @@ extern int dynamicbox_service_init(void);
  * @brief Finalizes the dynamicbox service API.
  * @since_tizen 2.3
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -884,7 +884,7 @@ extern int dynamicbox_service_fini(void);
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] handle @c NULL if you call this first, or it will be reset
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return handle
@@ -903,7 +903,7 @@ extern dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *dboxid
  * @param[out] pkgname Package Id which includes dynamicboxes
  * @param[out] is_prime If the returned dboxid is primary, this will be 1 or 0
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -923,7 +923,7 @@ extern int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char
  * @since_tizen 2.3
  * @param[in] handle Package list handle
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return int type
@@ -943,7 +943,7 @@ extern int dynamicbox_service_pkglist_destroy(dynamicbox_pkglist_h handle);
  * @param[in] cluster Cluster name if you don't know what this is, use NULL.
  * @param[in] category Sub-cluster(category) name if you don't know what this is, use NULL.
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.service
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return count of instances
@@ -959,7 +959,7 @@ extern int dynamicbox_service_get_instance_count(const char *dboxid, const char 
  * @since_tizen 2.3
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char * type
@@ -977,7 +977,7 @@ extern char *dynamicbox_service_libexec(const char *dboxid);
  * @remarks Only usable for inhouse dynamicboxes
  * @param[in] libexec so filename
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/shell.appwidget.info
+ * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
  * @feature http://developer.samsung.com/tizen/feature/samsung_extension
  * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
  * @return char *
