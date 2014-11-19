@@ -136,6 +136,10 @@ typedef enum dynamicbox_gbar_type {
     GBAR_TYPE_UIFW        /**< UIFW supported type */
 } dynamicbox_gbar_type_e;
 
+/**
+ * @brief Destroy type of dynamicbox instance
+ * @since_tizen 2.3
+ */
 typedef enum dynamicbox_destroy_type {
     DBOX_DESTROY_TYPE_DEFAULT = 0x00,   /**< Deleted */
     DBOX_DESTROY_TYPE_UPGRADE = 0x01,   /**< Deleted for upgrading */
@@ -145,6 +149,26 @@ typedef enum dynamicbox_destroy_type {
     DBOX_DESTROY_TYPE_TEMPORARY = 0x05, /**< Temporarly deleted, will be created again */
     DBOX_DESTROY_TYPE_UNKNOWN = 0x06    /**< Undefined reason */
 } dynamicbox_destroy_type_e; /**< Delete type */
+
+/**
+ * @brief
+ * Text signal & Content event uses this data structure.
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_event_info {
+    struct _pointer {
+	double x; /**< X value of current mouse(touch) position */
+	double y; /**< Y value of current mouse(touch) position */
+	int down; /**< Is it pressed(1) or not(0) */
+    } pointer;
+
+    struct _part {
+	double sx; /**< Pressed object's left top X */
+	double sy; /**< Pressed object's left top Y */
+	double ex; /**< Pressed object's right bottom X */
+	double ey; /**< Pressed object's right bottom Y */
+    } part;
+} *dynamicbox_event_info_t;
 
 /**
  * @internal
