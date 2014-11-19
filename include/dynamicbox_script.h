@@ -76,6 +76,12 @@ typedef enum dynamicbox_script_event {
     DBOX_SCRIPT_KEY_FOCUS_OUT         = DBOX_SCRIPT_KEY_EVENT | 0x00100000, /**< Key focus out */
 } dynamicbox_script_event_e;
 
+/**
+ * @brief definition of event info structure
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_event_info *dynamicbox_event_info_t;
+
 #ifdef __cplusplus
 }
 #endif
