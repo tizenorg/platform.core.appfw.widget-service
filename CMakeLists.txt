@@ -102,4 +102,6 @@ INSTALL(FILES ${CMAKE_SOURCE_DIR}/include/dynamicbox_conf.h DESTINATION include/
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "lib${PROJECT_NAME}")
 
+ADD_SUBDIRECTORY(livebox)
+
 # End of a file

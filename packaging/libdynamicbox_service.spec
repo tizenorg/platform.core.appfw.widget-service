@@ -95,4 +95,36 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %{_includedir}/dynamicbox_service/dynamicbox_conf.h
 %{_libdir}/pkgconfig/*.pc
 
+#################################################
+# liblivebox-service (for old version)
+%package -n liblivebox-service
+Summary: Library for developing the dynamicbox app provider (old version)
+Group: HomeTF/Dynamicbox
+License: Flora
+Requires: libdynamicbox_service
+
+%description -n liblivebox-service
+Provider APIs to develop the dynamicbox provider applications. (old version)
+
+%package -n liblivebox-service-devel
+Summary: Header & package configuration files to support development of the dynamicbox provider applications. (old version)
+Group: Development/Libraries
+Requires: liblivebox-service
+
+%description -n liblivebox-service-devel
+Dynamicbox provider application development library (dev) (old version)
+
+%files -n liblivebox-service
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_libdir}/liblivebox-service.so*
+%{_datarootdir}/license/liblivebox-service
+
+%files -n liblivebox-service-devel
+%manifest %{name}.manifest
+%defattr(-,root,root,-)
+%{_includedir}/livebox-service/livebox-service.h
+%{_includedir}/livebox-service/livebox-errno.h
+%{_includedir}/livebox-service/livebox-service_product.h
+%{_libdir}/pkgconfig/livebox-service.pc
 # End of a file
