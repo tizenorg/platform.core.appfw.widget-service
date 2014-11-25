@@ -14,34 +14,22 @@ set(CMAKE_SKIP_BUILD_RPATH true)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 INCLUDE(FindPkgConfig)
-pkg_check_modules(pkgs REQUIRED
-	dlog
-	glib-2.0
-	gio-2.0
-	com-core
-	sqlite3
-	db-util
-	pkgmgr
-	pkgmgr-info
-	vconf
-	ail
-	icu-uc
+pkg_check_modules(old_pkgs REQUIRED
+    dlog
+    glib-2.0
+    gio-2.0
+    com-core
+    sqlite3
+    db-util
+    pkgmgr
+    pkgmgr-info
+    vconf
+    ail
+    icu-uc
+    dynamicbox_service
 )
 
-IF (X11_SUPPORT)
-pkg_check_modules(pkg_extra REQUIRED
-	x11
-)
-ENDIF (X11_SUPPORT)
-
-IF (WAYLAND_SUPPORT)
-# Nothing provided yet.
-ENDIF (WAYLAND_SUPPORT)
-
-FOREACH(flag ${pkgs_CFLAGS})
-	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
-ENDFOREACH(flag)
-FOREACH(flag ${pkg_extra_CFLAGS})
+FOREACH(flag ${old_pkgs_CFLAGS})
 	SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} ${flag}")
 ENDFOREACH(flag)
 
@@ -57,7 +45,7 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED ${BUILD_SOURCE})
 
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES SOVERSION ${VERSION_MAJOR})
 SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES VERSION ${VERSION})
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pkgs_LDFLAGS} ${pkg_extra_LDFLAGS})
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${old_pkgs_LDFLAGS})
 
 CONFIGURE_FILE(${PROJECT_NAME}.pc.in ${PROJECT_NAME}.pc @ONLY)
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${PROJECT_NAME}.pc")

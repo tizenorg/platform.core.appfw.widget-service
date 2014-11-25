@@ -81,8 +81,8 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_libdir}/*.so*
-%{_datarootdir}/license/*
+%{_libdir}/libdynamicbox_service.so*
+%{_datarootdir}/license/libdynamicbox_service
 
 %files devel
 %manifest %{name}.manifest
@@ -93,7 +93,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %{_includedir}/dynamicbox_service/dynamicbox_buffer.h
 %{_includedir}/dynamicbox_service/dynamicbox_script.h
 %{_includedir}/dynamicbox_service/dynamicbox_conf.h
-%{_libdir}/pkgconfig/*.pc
+%{_libdir}/pkgconfig/dynamicbox_service.pc
 
 #################################################
 # liblivebox-service (for old version)
