@@ -57,6 +57,7 @@ static const char *CONF_DEFAULT_GBAR_GROUP = "disclosure";
 static const char *CONF_DEFAULT_LAUNCH_BUNDLE_NAME = "name";
 static const char *CONF_DEFAULT_LAUNCH_BUNDLE_SECURED = "secured";
 static const char *CONF_DEFAULT_LAUNCH_BUNDLE_ABI = "abi";
+static const char *CONF_DEFAULT_LAUNCH_BUNDLE_HW_ACCELERATION = "hw-acceleration";
 static const char *CONF_DEFAULT_CONTENT = "default";
 static const char *CONF_DEFAULT_TITLE = "";
 static const char *CONF_DEFAULT_EMPTY_CONTENT = "";
@@ -99,6 +100,7 @@ static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_ON = 0;
 static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF = 0;
 static const double CONF_DEFAULT_EVENT_FILTER = 0.5f;
 static const int CONF_DEFAULT_SLAVE_LIMIT_TO_TTL = 0;
+static const int CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH = 0;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -124,6 +126,7 @@ struct dynamicbox_conf {
         char *name;
         char *secured;
         char *abi;
+	char *hw_acceleration;
     } launch_key;
 
     double default_packet_time;
@@ -195,6 +198,7 @@ struct dynamicbox_conf {
     double event_filter;
     int slave_limit_to_ttl;
     int frame_skip;
+    int slave_auto_cache_flush;
 };
 
 static struct dynamicbox_conf s_conf;
@@ -204,6 +208,11 @@ static struct info {
 } s_info = {
     .conf_loaded = 0,
 };
+
+static void slave_auto_cache_flush_handler(char *buffer)
+{
+    s_conf.slave_auto_cache_flush = !strcasecmp(buffer, "true");
+}
 
 static void frame_skip_handler(char *buffer)
 {
@@ -605,6 +614,7 @@ EAPI void dynamicbox_conf_init(void)
     s_conf.launch_key.name = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_NAME;
     s_conf.launch_key.secured = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_SECURED;
     s_conf.launch_key.abi = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_ABI;
+    s_conf.launch_key.hw_acceleration = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_HW_ACCELERATION;
     s_conf.empty_content = (char *)CONF_DEFAULT_EMPTY_CONTENT;
     s_conf.empty_title = (char *)CONF_DEFAULT_EMPTY_TITLE;
     s_conf.default_content = (char *)CONF_DEFAULT_CONTENT;
@@ -632,6 +642,7 @@ EAPI void dynamicbox_conf_init(void)
     s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
     s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
     s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
+    s_conf.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
 }
 
 /*
@@ -884,6 +895,10 @@ EAPI int dynamicbox_conf_load(void)
 	    .name = "frame_skip",
 	    .handler = frame_skip_handler,
 	},
+	{
+	    .name = "slave_auto_cache_flush",
+	    .handler = slave_auto_cache_flush_handler,
+	},
         {
             .name = NULL,
             .handler = NULL,
@@ -1119,6 +1134,7 @@ EAPI void dynamicbox_conf_reset(void)
     s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
     s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
     s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
+    s_conf.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
 
     if (s_conf.default_conf.script != CONF_DEFAULT_SCRIPT_TYPE) {
         free(s_conf.default_conf.script);
@@ -1148,6 +1164,11 @@ EAPI void dynamicbox_conf_reset(void)
     if (s_conf.launch_key.abi != CONF_DEFAULT_LAUNCH_BUNDLE_ABI) {
         free(s_conf.launch_key.abi);
         s_conf.launch_key.abi = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_ABI;
+    }
+
+    if (s_conf.launch_key.hw_acceleration != CONF_DEFAULT_LAUNCH_BUNDLE_HW_ACCELERATION) {
+	free(s_conf.launch_key.hw_acceleration);
+	s_conf.launch_key.hw_acceleration = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_HW_ACCELERATION;
     }
 
     if (s_conf.empty_content != CONF_DEFAULT_EMPTY_CONTENT) {
@@ -1488,6 +1509,11 @@ EAPI const char * const dynamicbox_conf_launch_key_abi(void)
     return s_conf.launch_key.abi;
 }
 
+EAPI const char * const dynamicbox_conf_launch_key_hw_acceleration(void)
+{
+    return s_conf.launch_key.hw_acceleration;
+}
+
 EAPI const char * const dynamicbox_conf_empty_content(void)
 {
     return s_conf.empty_content;
@@ -1541,6 +1567,11 @@ EAPI const int const dynamicbox_conf_slave_limit_to_ttl(void)
 EAPI const int const dynamicbox_conf_frame_skip(void)
 {
     return s_conf.frame_skip;
+}
+
+EAPI const int const dynamicbox_conf_slave_auto_cache_flush(void)
+{
+    return s_conf.slave_auto_cache_flush;
 }
 
 /* End of a file */
