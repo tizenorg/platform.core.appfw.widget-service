@@ -402,6 +402,11 @@ extern const char * const dynamicbox_conf_launch_key_abi(void);
 /**
  * @internal
  */
+extern const char * const dynamicbox_conf_launch_key_hw_acceleration(void);
+
+/**
+ * @internal
+ */
 extern const char * const dynamicbox_conf_empty_content(void);
 
 /**
@@ -444,6 +449,11 @@ extern const int const dynamicbox_conf_slave_limit_to_ttl(void);
  */
 extern const int const dynamicbox_conf_frame_skip(void);
 
+/**
+ * @internal
+ */
+extern const int const dynamicbox_conf_slave_auto_cache_flush(void);
+
 #define DYNAMICBOX_CONF_BASE_W               dynamicbox_conf_base_width()
 #define DYNAMICBOX_CONF_BASE_H               dynamicbox_conf_base_height()
 
@@ -469,6 +479,7 @@ extern const int const dynamicbox_conf_frame_skip(void);
 #define DYNAMICBOX_CONF_BUNDLE_SLAVE_NAME    dynamicbox_conf_launch_key_name()
 #define DYNAMICBOX_CONF_BUNDLE_SLAVE_SECURED dynamicbox_conf_launch_key_secured()
 #define DYNAMICBOX_CONF_BUNDLE_SLAVE_ABI     dynamicbox_conf_launch_key_abi()
+#define DYNAMICBOX_CONF_BUNDLE_SLAVE_HW_ACCELERATION dynamicbox_conf_launch_key_hw_acceleration()
 #define DYNAMICBOX_CONF_PACKET_TIME          dynamicbox_conf_default_packet_time()
 #define DYNAMICBOX_CONF_CONTENT_NO_CHANGE    dynamicbox_conf_empty_content()
 #define DYNAMICBOX_CONF_TITLE_NO_CHANGE      dynamicbox_conf_empty_title()
@@ -531,6 +542,7 @@ extern const int const dynamicbox_conf_frame_skip(void);
 #define DYNAMICBOX_CONF_EVENT_FILTER	      dynamicbox_conf_event_filter()
 #define DYNAMICBOX_CONF_SLAVE_LIMIT_TO_TTL    dynamicbox_conf_slave_limit_to_ttl()
 #define DYNAMICBOX_CONF_FRAME_SKIP	      dynamicbox_conf_frame_skip()
+#define DYNAMICBOX_CONF_SLAVE_AUTO_CACHE_FLUSH dynamicbox_conf_slave_auto_cache_flush()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"

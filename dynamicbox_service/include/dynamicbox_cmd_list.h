@@ -139,17 +139,17 @@ extern "C" {
  * @brief Following list should be started after the common list of client_cmd_list
  *        Master to Provider
  */
-#define CMD_GBAR_SHOW      0x00003701
-#define CMD_GBAR_HIDE      0x00003801
-#define CMD_DBOX_PAUSE     0x00003901
-#define CMD_DBOX_RESUME    0x00003A01
-#define CMD_SCRIPT         0x00003B01
-#define CMD_RENEW          0x00003C01
-#define CMD_PINUP          0x00003D01
-#define CMD_UPDATE_CONTENT 0x00003E01
-#define CMD_PAUSE          0x00003F01
-#define CMD_RESUME         0x00004001
-#define CMD_DISCONNECT     0x00004101
+#define CMD_GBAR_SHOW      0x00003B01
+#define CMD_GBAR_HIDE      0x00003C01
+#define CMD_DBOX_PAUSE     0x00003D01
+#define CMD_DBOX_RESUME    0x00003E01
+#define CMD_SCRIPT         0x00003F01
+#define CMD_RENEW          0x00004001
+#define CMD_PINUP          0x00004101
+#define CMD_UPDATE_CONTENT 0x00004201
+#define CMD_PAUSE          0x00004301
+#define CMD_RESUME         0x00004401
+#define CMD_DISCONNECT     0x00004501
 
 #define CMD_STR_GBAR_SHOW      "gbar_show"
 #define CMD_STR_GBAR_HIDE      "gbar_hide"
@@ -242,6 +242,10 @@ extern "C" {
 #define CMD_GBAR_KEY_FOCUS_IN     0x00003401
 #define CMD_GBAR_KEY_FOCUS_OUT    0x00003501
 #define CMD_UPDATE_MODE           0x00003601
+#define CMD_DBOX_MOUSE_SET        0x00003701
+#define CMD_DBOX_MOUSE_UNSET      0x00003801
+#define CMD_GBAR_MOUSE_SET        0x00003901
+#define CMD_GBAR_MOUSE_UNSET      0x00003A01
 
 #define CMD_STR_GBAR_MOUSE_MOVE          "gbar_mouse_move"
 #define CMD_STR_DBOX_MOUSE_MOVE          "dbox_mouse_move"
@@ -298,15 +302,15 @@ extern "C" {
 #define CMD_STR_GBAR_KEY_FOCUS_IN        "gbar_key_focus_in"
 #define CMD_STR_GBAR_KEY_FOCUS_OUT       "gbar_key_focus_out"
 #define CMD_STR_UPDATE_MODE              "update_mode"
+#define CMD_STR_DBOX_MOUSE_SET		 "dbox_mouse_set"
+#define CMD_STR_DBOX_MOUSE_UNSET	 "dbox_mouse_unset"
+#define CMD_STR_GBAR_MOUSE_SET		 "gbar_mouse_set"
+#define CMD_STR_GBAR_MOUSE_UNSET	 "gbar_mouse_unset"
 
 /**
  * @internal
  * @brief viewer to master
  */
-#define CMD_DBOX_MOUSE_SET        0x00003701
-#define CMD_DBOX_MOUSE_UNSET      0x00003801
-#define CMD_GBAR_MOUSE_SET        0x00003901
-#define CMD_GBAR_MOUSE_UNSET      0x00003A01
 #define CMD_CHANGE_VISIBILITY     0x00003B01
 #define CMD_DBOX_ACQUIRE_PIXMAP   0x00003C01
 #define CMD_DBOX_RELEASE_PIXMAP   0x00003D01
@@ -333,10 +337,6 @@ extern "C" {
 #define CMD_DBOX_ACQUIRE_XPIXMAP  0x00005201
 #define CMD_GBAR_ACQUIRE_XPIXMAP  0x00005301
 
-#define CMD_STR_DBOX_MOUSE_SET      "dbox_mouse_set"
-#define CMD_STR_DBOX_MOUSE_UNSET    "dbox_mouse_unset"
-#define CMD_STR_GBAR_MOUSE_SET      "gbar_mouse_set"
-#define CMD_STR_GBAR_MOUSE_UNSET    "gbar_mouse_unset"
 #define CMD_STR_CHANGE_VISIBILITY   "change,visibility"
 #define CMD_STR_DBOX_ACQUIRE_PIXMAP "dbox_acquire_pixmap"
 #define CMD_STR_DBOX_RELEASE_PIXMAP "dbox_release_pixmap"
