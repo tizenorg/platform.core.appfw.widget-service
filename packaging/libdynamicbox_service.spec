@@ -101,7 +101,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 Summary: Library for developing the dynamicbox app provider (old version)
 Group: HomeTF/Dynamicbox
 License: Flora
-Requires: libdynamicbox_service
+Requires: %{name}
 
 %description -n liblivebox-service
 Provider APIs to develop the dynamicbox provider applications. (old version)
@@ -127,4 +127,5 @@ Dynamicbox provider application development library (dev) (old version)
 %{_includedir}/livebox-service/livebox-errno.h
 %{_includedir}/livebox-service/livebox-service_product.h
 %{_libdir}/pkgconfig/livebox-service.pc
+
 # End of a file
