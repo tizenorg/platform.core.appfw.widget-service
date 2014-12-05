@@ -171,6 +171,18 @@ typedef struct dynamicbox_event_info {
 } *dynamicbox_event_info_t;
 
 /**
+ * @brief Dynamicbox Buffer Handler
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_buffer *dynamicbox_buffer_h;
+
+/**
+ * @brief Dynamicbox Buffer Event information
+ * @since_tizen 2.3
+ */
+typedef struct dynamicbox_buffer_event_data *dynamicbox_buffer_event_data_t;
+
+/**
  * @internal
  * @brief Package list handle.
  * @since_tizen 2.3
