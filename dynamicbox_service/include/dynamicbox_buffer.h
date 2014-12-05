@@ -31,9 +31,6 @@ extern "C" {
  * @{
  */
 
-#define DBOX_PRIMARY_BUFFER -1
-#define DBOX_UNKNOWN_BUFFER -2
-
 /**
  * @internal
  * @brief Buffer type of dynamicbox

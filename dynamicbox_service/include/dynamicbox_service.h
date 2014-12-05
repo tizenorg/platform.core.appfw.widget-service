@@ -33,6 +33,13 @@ extern "C" {
  */
 
 /**
+ * @brief Index of buffer
+ * @since_tizen 2.3
+ */
+#define DBOX_PRIMARY_BUFFER -1
+#define DBOX_UNKNOWN_BUFFER -2
+
+/**
  * @brief Definition for maximum number of supported dynamicbox size type.
  * @since_tizen 2.3
  */
