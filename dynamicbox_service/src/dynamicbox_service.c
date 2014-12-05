@@ -46,8 +46,12 @@
 
 #define SAMSUNG_PREFIX    "com.samsung."
 #define DEFAULT_TIMEOUT 2.0
-#define RESOURCE_PATH	"/shared/res/"
-#define LIBEXEC_PATH	"/shared/libexec/"
+
+/* "/shared/res/" */
+#define RESOURCE_PATH	"/"
+
+/* "/shared/libexec/" */
+#define LIBEXEC_PATH	"/"
 
 static struct supported_size_list SIZE_LIST[DBOX_NR_OF_SIZE_LIST] = {
     { 175, 175 }, /*!< 1x1 */
