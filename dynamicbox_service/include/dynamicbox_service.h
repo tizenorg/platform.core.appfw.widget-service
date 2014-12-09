@@ -606,7 +606,7 @@ extern int dynamicbox_service_is_primary(const char *dboxid);
  * @retval category Category string which is allocated in the heap.
  * @pre Must be released returned string by manually
  * @post N/A
- * @see dynamicbox_service_pkgname()
+ * @see dynamicbox_service_dbox_id()
  */
 extern char *dynamicbox_service_category(const char *dboxid);
 
@@ -662,7 +662,7 @@ extern char *dynamicbox_service_setup_appid(const char *dboxid);
  * @retval appid String which is allocated in the heap
  * @retval @c NULL Invalid appid, dynamicbox_last_status() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
- * @see dynamicbox_service_pkgname()
+ * @see dynamicbox_service_dbox_id()
  */
 extern char *dynamicbox_service_package_id(const char *dboxid);
 
