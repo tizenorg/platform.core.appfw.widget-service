@@ -248,6 +248,11 @@ static char *conf_path(void)
         return NULL;
     }
 
+    if (s_info.w == 0 || s_info.h == 0) {
+	/* Try to update resolution first if it is not initialized */
+	util_screen_size_get(NULL, NULL);
+    }
+
     snprintf(path, length, CONF_PATH_FORMAT, s_info.w, s_info.h);
     DbgPrint("Selected conf file: %s\n", path);
     if (access(path, F_OK) != 0) {
