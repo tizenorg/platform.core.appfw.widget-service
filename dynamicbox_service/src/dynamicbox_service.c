@@ -567,6 +567,10 @@ EAPI int dynamicbox_service_get_instance_count(const char *pkgname, const char *
     unsigned int cmd = CMD_SERVICE_INST_CNT;
     int ret;
 
+    if (!pkgname) {
+	return DBOX_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
     packet = packet_create((const char *)&cmd, "sssd", pkgname, cluster, category, util_timestamp());
     if (!packet) {
 	ErrPrint("Failed to create a packet for period changing\n");
