@@ -21,6 +21,9 @@
 #include <stdlib.h>
 #include <unistd.h> // access
 #include <sqlite3.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <dlog.h>
 #include <dynamicbox_errno.h>
@@ -32,6 +35,10 @@
 
 #define BASE_SHARE_DIR "/opt/usr/share/live_magazine/"
 #define DEFAULT_INPUT_NODE "/dev/input/event2"
+#define DEV_PATH "/dev/input/"
+#define PROC_INPUT_DEVICES "/proc/bus/input/devices"
+#define MAX_LINE_BUFFER 256
+#define NODE_PREFIX "event"
 
 #define CR 13
 #define LF 10
@@ -534,12 +541,221 @@ static void share_path_handler(char *buffer)
     }
 }
 
+static char *parse_handler(const char *buffer)
+{
+	const char *node_prefix = NODE_PREFIX;
+	int idx = 0;
+	const char *ptr;
+	int node_idx = 0;
+	char *node = NULL;
+
+	ptr = buffer;
+	while (*ptr) {
+		if (ptr[idx] == node_prefix[idx]) {
+			idx++;
+		} else if (idx > 0 && node_prefix[idx] == '\0') {
+			if (sscanf(ptr + idx, "%d", &node_idx) == 1) {
+				int node_len;
+				node_len = idx + strlen(DEV_PATH) + 10;
+				/* Gotcha */
+				node = malloc(node_len);
+				if (node) {
+					int len;
+
+					len = snprintf(node, node_len - 1, DEV_PATH "%s%d", node_prefix, node_idx);
+					if (len < 0) {
+						ErrPrint("snprintf: %s\n", strerror(errno));
+						free(node);
+						node = NULL;
+					} else {
+						node[len] = '\0';
+						DbgPrint("NODE FOUND: %s\n", node);
+					}
+				} else {
+					ErrPrint("malloc: %s\n", strerror(errno));
+				}
+
+				break;
+			} else {
+				DbgPrint("Invalid format: [%s] / [%s]\n", ptr, ptr + idx);
+				ptr++;
+				idx = 0;
+			}
+		} else {
+			ptr++;
+			idx = 0;
+		}
+	}
+
+	return node;
+}
+
+static char *find_input_device(const char *name)
+{
+	int fd;
+	char *node = NULL;
+	char ch;
+	int row;
+	int col;
+	int idx;
+	enum state {
+		STATE_BEGIN,
+		STATE_ID,
+		STATE_NAME,
+		STATE_PHYSICAL,
+		STATE_SYSFS,
+		STATE_UNIQ,
+		STATE_HANDLER,
+		STATE_BITMAPS,
+		STATE_ERROR,
+	} state;
+	char name_buffer[MAX_LINE_BUFFER] = { 0, };
+	char handler_buffer[MAX_LINE_BUFFER] = { 0, };
+
+	fd = open(PROC_INPUT_DEVICES, O_RDONLY);
+	if (fd < 0) {
+		ErrPrint("open: %s\n", strerror(errno));
+		return NULL;
+	}
+
+	state = STATE_BEGIN;
+	row = 1;
+	col = 1;
+	idx = -1;
+	while (state != STATE_ERROR && node == NULL && read(fd, &ch, sizeof(ch)) == sizeof(ch)) {
+		if (ch == LF) {
+			row++;
+			col = 1;
+
+			switch (state) {
+			case STATE_NAME:
+				state = STATE_BEGIN;
+				if (idx > 0) {
+					/* Remove last double-quotes */
+					if (name_buffer[idx - 1] == '"') {
+						idx--;
+					}
+					name_buffer[idx] = '\0';
+					idx = -1;
+					DbgPrint("Name: [%s]\n", name_buffer);
+				}
+				break;
+			case STATE_HANDLER:
+				state = STATE_BEGIN;
+				if (idx > 0) {
+					handler_buffer[idx] = '\0';
+					idx = -1;
+					DbgPrint("Handler: [%s]\n", handler_buffer);
+				}
+				break;
+			case STATE_BEGIN:
+				DbgPrint("name: [%s], name_buffer[%s]\n", name, name_buffer);
+				if (!strcasecmp(name, name_buffer)) {
+					node = parse_handler(handler_buffer);
+				}
+				break;
+			default:
+				/* Ignore other attributes */
+				state = STATE_BEGIN;
+				idx = -1;
+				break;
+			}
+
+			continue;
+		}
+
+		col++;
+		switch (state) {
+		case STATE_BEGIN:
+			switch (ch) {
+			case 'I':
+				state = STATE_ID;
+				break;
+			case 'N':
+				state = STATE_NAME;
+				break;
+			case 'P':
+				state = STATE_PHYSICAL;
+				break;
+			case 'S':
+				state = STATE_SYSFS;
+				break;
+			case 'U':
+				state = STATE_UNIQ;
+				break;
+			case 'H':
+				state = STATE_HANDLER;
+				break;
+			case 'B':
+				state = STATE_BITMAPS;
+				break;
+			default:
+				state = STATE_ERROR;
+				break;
+			}
+			break;
+		case STATE_NAME:
+			if (ch == '=') {
+				idx = 0;
+			} else if (idx == MAX_LINE_BUFFER - 1) {
+				ErrPrint("Out of buffer\n");
+			} else if (idx == 0 && ch == '"') {
+				/* Ignore the first quotes */
+			} else if (idx >= 0) {
+				name_buffer[idx++] = ch;
+			}
+			break;
+		case STATE_HANDLER:
+			if (ch == '=') {
+				idx = 0;
+			} else if (idx == MAX_LINE_BUFFER - 1) {
+				ErrPrint("Out of buffer\n");
+			} else if (idx >= 0) {
+				handler_buffer[idx++] = ch;
+			}
+			break;
+		case STATE_ID:
+		case STATE_PHYSICAL:
+		case STATE_SYSFS:
+		case STATE_UNIQ:
+		case STATE_BITMAPS:
+			/* Ignore other attributes */
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (state == STATE_ERROR) {
+		ErrPrint("Invalid state: ROW[%d] COL[%d]\n", row, col);
+	}
+
+	if (close(fd) < 0) {
+		ErrPrint("close: %s\n", strerror(errno));
+	}
+
+	return node;
+}
+
 static void input_path_handler(char *buffer)
 {
-    s_conf.path.input = strdup(buffer);
-    if (!s_conf.path.input) {
-        ErrPrint("Heap: %s\n", strerror(errno));
-    }
+	if (buffer[0] == '/') {
+		DbgPrint("Specifying the input device\n");
+		s_conf.path.input = strdup(buffer);
+		if (!s_conf.path.input) {
+			ErrPrint("Heap: %s\n", strerror(errno));
+		}
+	} else {
+		DbgPrint("Find the input device\n");
+		s_conf.path.input = find_input_device(buffer);
+		if (s_conf.path.input == NULL) {
+			ErrPrint("Fallback to raw string\n");
+			s_conf.path.input = strdup(buffer);
+			if (!s_conf.path.input) {
+				ErrPrint("Heap: %s\n", strerror(errno));
+			}
+		}
+	}
 }
 
 static void ping_time_handler(char *buffer)
