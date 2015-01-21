@@ -150,6 +150,8 @@ extern "C" {
 #define CMD_PAUSE          0x00004301
 #define CMD_RESUME         0x00004401
 #define CMD_DISCONNECT     0x00004501
+#define CMD_VIEWER_CONNECTED 0x00004601
+#define CMD_VIEWER_DISCONNECTED 0x00004701
 
 #define CMD_STR_GBAR_SHOW      "gbar_show"
 #define CMD_STR_GBAR_HIDE      "gbar_hide"
@@ -162,6 +164,8 @@ extern "C" {
 #define CMD_STR_PAUSE          "pause"
 #define CMD_STR_RESUME         "resume"
 #define CMD_STR_DISCONNECT     "disconnect"
+#define CMD_STR_VIEWER_CONNECTED "v_connected"
+#define CMD_STR_VIEWER_DISCONNECTED "v_disconnected"
 
 /**
  * @brief liveinfo to master
