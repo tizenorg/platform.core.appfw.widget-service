@@ -336,6 +336,8 @@ extern "C" {
 #define CMD_CLIENT_RESUMED        0x00005101
 #define CMD_DBOX_ACQUIRE_XPIXMAP  0x00005201
 #define CMD_GBAR_ACQUIRE_XPIXMAP  0x00005301
+#define CMD_SUBSCRIBE_CATEGORY    0x00005401
+#define CMD_UNSUBSCRIBE_CATEGORY  0x00005501
 
 #define CMD_STR_CHANGE_VISIBILITY   "change,visibility"
 #define CMD_STR_DBOX_ACQUIRE_PIXMAP "dbox_acquire_pixmap"
@@ -362,6 +364,8 @@ extern "C" {
 #define CMD_STR_CLIENT_RESUMED      "client_resumed"
 #define CMD_STR_DBOX_ACQUIRE_XPIXMAP "dbox_acquire_xpixmap"
 #define CMD_STR_GBAR_ACQUIRE_XPIXMAP "gbar_acquire_xpixmap"
+#define CMD_STR_SUBSCRIBE_CATEGORY   "subscribe,category"
+#define CMD_STR_UNSUBSCRIBE_CATEGORY "unsubscribe,category"
 
 /**
  * @internal
