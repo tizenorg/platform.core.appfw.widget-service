@@ -44,7 +44,7 @@
 #include "dynamicbox_cmd_list.h"
 #include "dynamicbox_buffer.h"
 
-#define SAMSUNG_PREFIX    "com.samsung."
+#define DBOX_ID_PREFIX    "org.tizen."
 #define DEFAULT_TIMEOUT 2.0
 
 /* "/shared/res/" */
@@ -2377,7 +2377,7 @@ EAPI char *dynamicbox_service_provider_name(const char *dboxid)
 	int stage = 0;
 	int seq = 0;
 	int idx = 0;
-	char *str = SAMSUNG_PREFIX;
+	char *str = DBOX_ID_PREFIX;
 
 	if (!dboxid) {
 		dynamicbox_set_last_status(DBOX_STATUS_ERROR_INVALID_PARAMETER);
