@@ -126,7 +126,6 @@ Dynamicbox provider application development library (dev) (old version)
 %defattr(-,root,root,-)
 %{_includedir}/livebox-service/livebox-service.h
 %{_includedir}/livebox-service/livebox-errno.h
-%{_includedir}/livebox-service/livebox-service_product.h
 %{_libdir}/pkgconfig/livebox-service.pc
 
 # End of a file
