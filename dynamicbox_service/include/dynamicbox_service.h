@@ -24,7 +24,7 @@ extern "C" {
 /**
  * @file dynamic-service.h
  * @brief  This file declares API of libdynamic-service library
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 
 /**
@@ -34,14 +34,14 @@ extern "C" {
 
 /**
  * @brief Index of buffer
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 #define DBOX_PRIMARY_BUFFER -1
 #define DBOX_UNKNOWN_BUFFER -2
 
 /**
  * @brief Definition for maximum number of supported dynamicbox size type.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 #define DBOX_NR_OF_SIZE_LIST 13
 
@@ -50,7 +50,7 @@ extern "C" {
 
 /**
  * @brief Enumeration for list of supporting dynamicbox size types.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_size_type {
 	DBOX_SIZE_TYPE_1x1 = 0x0001,      /**< 175x175 based on 720x1280 resolution */
@@ -73,7 +73,7 @@ typedef enum dynamicbox_size_type {
  * @internal
  * @brief Enumeration for result of accessibility event processing.
  * @details Reference the libprovider & libdynamicbox-viewer.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_access_status {
 	DBOX_ACCESS_STATUS_ERROR = 0x80000000,  /**< Mask value */
@@ -86,7 +86,7 @@ typedef enum dynamicbox_access_status {
 /**
  * @internal
  * @brief Key event handling result status.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_key_status {
 	DBOX_KEY_STATUS_ERROR = 0x80000000, /**< Key operation is failed */
@@ -97,7 +97,7 @@ typedef enum dynamicbox_key_status {
 
 /**
  * @brief Delete type for dynamicbox delete operation.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_delete_type {
 	DBOX_DELETE_PERMANENTLY = 0x01, /**< The dynamicbox is removed from the homescreen temporary */
@@ -107,7 +107,7 @@ typedef enum dynamicbox_delete_type {
 
 /**
  * @brief Request type for closing Glance Bar
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_gbar_close_type {
 	DBOX_CLOSE_GBAR_NORMAL = 0x00,  /**< Glance Bar is closed normally */
@@ -119,7 +119,7 @@ typedef enum dynamicbox_gbar_close_type {
 /**
  * @internal
  * @brief Type of dynamicbox content sharing method
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_dbox_type {
 	DBOX_TYPE_NONE = 0x0, /**< Undefined */
@@ -133,7 +133,7 @@ typedef enum dynamicbox_dbox_type {
 /**
  * @internal
  * @brief Type of glance bar content sharing method
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_gbar_type {
 	GBAR_TYPE_NONE = 0x0, /**< Undefined */
@@ -145,7 +145,7 @@ typedef enum dynamicbox_gbar_type {
 
 /**
  * @brief Destroy type of dynamicbox instance
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_destroy_type {
 	DBOX_DESTROY_TYPE_DEFAULT = 0x00,   /**< Deleted */
@@ -160,7 +160,7 @@ typedef enum dynamicbox_destroy_type {
 /**
  * @brief
  * Text signal & Content event uses this data structure.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef struct dynamicbox_event_info {
 	struct _pointer {
@@ -179,26 +179,26 @@ typedef struct dynamicbox_event_info {
 
 /**
  * @brief Dynamicbox Buffer Handler
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef struct dynamicbox_buffer *dynamicbox_buffer_h;
 
 /**
  * @brief Dynamicbox Buffer Event information
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef struct dynamicbox_buffer_event_data *dynamicbox_buffer_event_data_t;
 
 /**
  * @brief Dynamicbox Buffer Handler
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef struct dynamicbox_buffer *dynamicbox_buffer_h;
 
 /**
  * @internal
  * @brief This enumeration values should be sync'd with libdynamicbox interface. (only for inhouse dynamicbox)
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef enum dynamicbox_buffer_event {
 	DBOX_BUFFER_EVENT_ENTER, /**< get the focus */
@@ -240,7 +240,7 @@ typedef enum dynamicbox_buffer_event {
 /**
  * @internal
  * @brief Dynamic Box Buffer Event Data
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef struct dynamicbox_buffer_event_data {
 	dynamicbox_buffer_event_e type; /**< Event type */
@@ -268,7 +268,7 @@ typedef struct dynamicbox_buffer_event_data {
 /**
  * @internal
  * @brief Package list handle.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  */
 typedef struct dynamicbox_pkglist_handle *dynamicbox_pkglist_h;
 
@@ -289,12 +289,11 @@ typedef struct dynamicbox_pkglist_handle *dynamicbox_pkglist_h;
  *  #DBOX_SIZE_TYPE_EASY_1x1\n
  *  #DBOX_SIZE_TYPE_EASY_3x1\n
  *  #DBOX_SIZE_TYPE_EASY_3x3.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] type Size type
  * @param[out] width Pixel size width
  * @param[out] height Pixel size height
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_PERMISSION_DENIED Permission denied
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
@@ -322,11 +321,10 @@ extern int dynamicbox_service_get_size(dynamicbox_size_type_e type, int *width, 
  *  #DBOX_SIZE_TYPE_EASY_3x3\n
  *  or\n
  *  #DBOX_SIZE_TYPE_UNKNOWN for error.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] width Pixel size width
  * @param[in] height Pixel size height
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_SIZE_TYPE_[EASY_]WxH Size type of given pixel size
  * @retval #DBOX_SIZE_TYPE_UNKNOWN If the given pixel size is not valid, dynamicbox_last_status() will returns reason of failure.
@@ -341,12 +339,11 @@ extern dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height
  * @details This function will returns true/false, but even if this fails to access database to retrieve information,
  *          This will returns 0. in that case, you can check it using dynamicbox_last_status() function.
  *	    If there is an error, it will returns proper error code.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval 1 If the box requires mouse event, A viewer must has to feed the mouse event to the box instance
  * @retval 0 If the box doesn't requires mouse event, In this case, you can check whether it is error or not using dynamicbox_last_status() function.
@@ -363,13 +360,12 @@ extern int dynamicbox_service_mouse_event(const char *dboxid, int size_type);
  *          This function returns 1 even if it fails to retrieve information from Database.
  *	    So if you need validate the information whether it is correct or not, you can use dynamicbox_last_status() function.
  *          Even if this function returns 1, It is recommended to check last status of this function call.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Size type
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval 1 If the box requires touch effect, A viewer should make the touch effect, but it is just recomendation.
  * @retval 0 If the box doesn't requires touch effect, the box will make touch effect itself
@@ -386,13 +382,12 @@ extern int dynamicbox_service_touch_effect(const char *dboxid, int size_type);
  *          If this function returns 0, you can validate it using dynamicbox_last_status() function.
  *          If something goes wrong, so this fails to retrieve information, you can check reason why it fails to get it
  *          using dynamicbox_last_status() function.        
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Size type
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval 1 If the box requires frame for decorating its contents
  * @retval 0 If the box doesn't requires frame
@@ -404,7 +399,7 @@ extern int dynamicbox_service_need_frame(const char *dboxid, int size_type);
 
 /**
  * @brief Triggers the update event for given dynamicbox instance.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] instance_id Set @c NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
  * @param[in] cluster Cluster name. Default @c NULL
@@ -412,9 +407,8 @@ extern int dynamicbox_service_need_frame(const char *dboxid, int size_type);
  * @param[in] content New content information, Default @c NULL
  * @param[in] force 1 if you want to update your dynamicbox even if the provider is paused or 0. 0 is default
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.provider
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.provider
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
@@ -428,14 +422,13 @@ extern int dynamicbox_service_trigger_update(const char *dboxid, const char *ins
 
 /**
  * @brief Changes the update period of given dynamicbox instance.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] instance_id Dynamicbox instance id
  * @param[in] period New update period in sec
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.provider
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.provider
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully changed(requested)
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -454,13 +447,12 @@ extern int dynamicbox_service_change_period(const char *dboxid, const char *inst
  *        dboxid = Dynamicbox AppId\n
  *        is_prime = 1 if the dynamicbox is default one for associated application package\n
  *        If the callback returns negative value, the list crawling will be stopped.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to access DB
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -477,14 +469,13 @@ extern int dynamicbox_service_get_pkglist(int (*cb)(const char *pkgid, const cha
  *        Callback (appid, data)\n
  *        This function will retrieve all UI Apps in a package which has given dynamicbox appid(dboxid).\n
  *        If you need to get all ui-app list, using a dynamicbox appid, this function is able to help you.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox App Id
  * @param[in] cb Callback function
  * @param[in] data Callback Data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Status success
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -498,12 +489,11 @@ extern int dynamicbox_service_get_applist(const char *dboxid, void (*cb)(const c
 /**
  * @internal
  * @brief Gets the MAIN application Id of given dynamicbox package Id.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox Package Id
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval @c NULL If it fails to get main application Id (UI-APPID), dynamicbox_last_status() will returns reason of failure.
  * @retval appid Main application Id
@@ -519,14 +509,13 @@ extern char *dynamicbox_service_mainappid(const char *dboxid);
  *      dboxid == Dynamicbox AppId\n
  *      is_prime = 1 if the dynamicbox is default one for selected package\n
  *      If the callback returns negative value, the list crawling will be stopped.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] pkgid Package Id (Not the UI App Id)
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval int Count of dynamicbox packages
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -543,14 +532,13 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
  *      callback (dboxid)\n
  *      dboxid == Dynamicbox AppId\n
  *        If the callback returns negative value, the list crawling will be stopped
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] category Name of category
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int count
  * @retval Count of dynamicbox packages
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -563,12 +551,11 @@ extern int dynamicbox_service_get_pkglist_by_category(const char *category, int 
 /**
  * @internal
  * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id. If a given id is a dynamicbox id, check its existence. and if it is package or ui-app id, then find the primary dynamicbox in its package.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] id Dynamic Box Id or Package Id or UI App Id
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval @c NULL Failed to get primary dboxid, dynamicbox_last_status() will returns reason of failure.
  * @retval dboxid Primary dynamicbox Id. which is allocated in the heap
@@ -580,12 +567,11 @@ extern char *dynamicbox_service_dbox_id(const char *id);
 /**
  * @internal
  * @brief Checks the primary flag of given dynamicbox Id.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox Id
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval 0 If is not a primary, dynamicbox_last_status() will returns reason of failure if it fails.
  * @retval 1 If it is a primary dynamicbox
@@ -595,12 +581,11 @@ extern int dynamicbox_service_is_primary(const char *dboxid);
 /**
  * @internal
  * @brief Get the category using given dboxid.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char *
  * @retval @c NULL Failed to get primary dboxid, dynamicbox_last_status() will returns reason of failure if it fails.
  * @retval category Category string which is allocated in the heap.
@@ -617,10 +602,9 @@ extern char *dynamicbox_service_category(const char *dboxid);
  *    Dynamicbox has provider process for each dynamicbox instances.\n
  *    To get the provider's package name, you can use this API.\n
  *    If the given dboxid is inhouse dynamicbox, the return string will be the same with given argument but it is allocated in the heap.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox Id
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval @c NULL Failed to get provider name, dynamicbox_last_status() will returns reason of failure if it fails.
  * @retval dboxid Dynamicbox AppId which is allocated on the heap
@@ -635,12 +619,11 @@ extern char *dynamicbox_service_provider_name(const char *dboxid);
  *    This setup app should be launched before adding the dynamicbox to get the content_info.\n
  *    This function should be called before add a dynamicbox.\n
  *    To determine the content information string.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox Id
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval @c NULL There is no setup application or error occurred, you can check it using dynamicbox_last_status()
  * @retval appid AppId if exists or @c NULL
@@ -652,12 +635,11 @@ extern char *dynamicbox_service_setup_appid(const char *dboxid);
 /**
  * @internal
  * @brief Gets the Package Id (Not the UI App Id) of given dynamicbox, &lt;manifest package="AAA"&gt; tag.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval appid String which is allocated in the heap
  * @retval @c NULL Invalid appid, dynamicbox_last_status() will returns reason of failure if it fails.
@@ -669,13 +651,12 @@ extern char *dynamicbox_service_package_id(const char *dboxid);
 /**
  * @internal
  * @brief Gives Internationalized name of dynamicbox package.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval name If it fails to get name
  * @retval @c NULL Allocated heap address, dynamicbox_last_status() will returns reason of failure if it fails.
@@ -689,13 +670,12 @@ extern char *dynamicbox_service_i18n_name(const char *dboxid, const char *lang);
  * @internal
  * @brief Gets the preview image path of given size type.
  * @details This function will returns i18nized preview image path.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] size_type Dynamicbox size type
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval path Preview image path
  * @retval @c NULL There is no preview image file, dynamicbox_last_status() will returns reason of failure if it fails.
@@ -711,12 +691,11 @@ extern char *dynamicbox_service_preview(const char *dboxid, int size_type);
  * @details
  *    If the user defines the default content string in the manifest file (.xml),\n
  *    this API will return it.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval content Content string
  * @retval @c NULL There is no specified content string, or dynamicbox_last_status() will returns reason of failure if it fails.
@@ -729,13 +708,12 @@ extern char *dynamicbox_service_content(const char *dboxid);
  * @internal
  * @brief Gives Internationalized icon path of given dynamicbox package.
  * @details The user should free the returned string with free().
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId (It must has to be a dynamicbox package ID. not the UI-APP and the PACKAGE)
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval name Allocated heap address
  * @retval @c NULL Fails to get path of an icon, dynamicbox_last_status() will returns reason of failure if it fails.
@@ -748,12 +726,11 @@ extern char *dynamicbox_service_i18n_icon(const char *pkgid, const char *lang);
 /**
  * @internal
  * @brief Gets the "nodisplay" value.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval 1 The box should not be listed by the dynamicbox list app
  * @retval 0 Box should be listed, dynamicbox_last_status() will returns reason of failure if it fails.
@@ -764,12 +741,11 @@ extern int dynamicbox_service_nodisplay(const char *dboxid);
 /**
  * @internal
  * @brief Gets the "ABI" of given package.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval abi String which is allocated in the heap
  * @retval @c NULL Failed to get ABI of given dynamicbox, dynamicbox_last_status() will returns reason of failure if it fails.
@@ -781,13 +757,12 @@ extern char *dynamicbox_service_abi(const char *dboxid);
  * @internal
  * @brief Checks the status of the dynamicbox.
  * @details Currently this API is not implemented. It just returns 1 all the time.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @remarks This API is not implemented. It will always return 1.
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval 1 Enabled
  * @retval 0 Disabled
@@ -797,12 +772,11 @@ extern int dynamicbox_service_is_enabled(const char *dboxid);
 /**
  * @internal
  * @brief Gets the script file of dynamicbox.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval string Script file path
  * @retval @c NULL Not specified script file, dynamicbox_last_status() will returns reason of failure if it fails.
@@ -815,12 +789,11 @@ extern char *dynamicbox_service_dbox_script_path(const char *dboxid);
 /**
  * @internal
  * @brief Gets the script group of dynamicbox.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval Group Name of dynamicbox
  * @retval @c NULL If there is no group defined, or dynamicbox_last_status() will returns reason of failure if it fails.
@@ -833,12 +806,11 @@ extern char *dynamicbox_service_dbox_script_group(const char *dboxid);
 /**
  * @internal
  * @brief Gets the script file path of given dynamicbox package.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval string Script file path
  * @retval @c NULL No specified script file for Glance Bar layout, or dynamicbox_last_status() will returns reason of failure if it fails.
@@ -850,12 +822,11 @@ extern char *dynamicbox_service_gbar_script_path(const char *dboxid);
 /**
  * @internal
  * @brief Gets the group name for script file to load it.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval string Script group name
  * @retval @c NULL No script path, or dynamicbox_last_status() will returns reason of failure if it fails.
@@ -867,7 +838,7 @@ extern char *dynamicbox_service_gbar_script_group(const char *dboxid);
 /**
  * @internal
  * @brief Gets the supported size list.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] cnt Count of array w and h
  * @param[in] w Width array
@@ -876,9 +847,8 @@ extern char *dynamicbox_service_gbar_script_group(const char *dboxid);
  * @param[out] w Width array
  * @param[out] h Height array
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE If succeed to get supported size list
  * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to access DB
@@ -891,15 +861,14 @@ extern int dynamicbox_service_get_supported_sizes(const char *dboxid, int *cnt, 
 /**
  * @internal
  * @brief Gets the supported size list of given pkgid.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] cnt Size of types array
  * @param[out] cnt Result count of types array
  * @param[out] types Array of types
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to access DB
@@ -912,14 +881,13 @@ extern int dynamicbox_service_get_supported_size_types(const char *dboxid, int *
 /**
  * @internal
  * @brief Gets the category list of given cluster.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] cluster Cluster name
  * @param[in] cb Callback function
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
  * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to access DB
@@ -932,13 +900,12 @@ extern int dynamicbox_service_enumerate_category_list(const char *cluster, int (
 /**
  * @internal
  * @brief Gets the cluster list.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] cb Callback function for retrieving the cluster list
  * @param[in] data Callback data
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to access DB
@@ -957,11 +924,10 @@ extern int dynamicbox_service_enumerate_cluster_list(int (*cb)(const char *clust
  *    using this, initate the dynamicbox service is more benefical to you.\n
  *    This API will prepare the DB operation, if you don't initiate the dynamicbox service,
  *    every API which are related with DB operation will open DB and close it before return from it.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Succeed to initialize
  * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to access a DB
@@ -973,11 +939,10 @@ extern int dynamicbox_service_init(void);
 /**
  * @internal
  * @brief Finalizes the dynamicbox service API.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Succeed to finalize
  * @retval #DBOX_STATUS_ERROR_IO_ERROR Failed to close the DB (access failed to DB)
@@ -996,16 +961,15 @@ extern int dynamicbox_service_fini(void);
  *    Then you can get the records one by one, but there is no backward iterator.\n
  *    You can only get a forward iterator.\n
  *    After calling this function the iterator will be moved to the next record automatically.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @remarks
  *    If you call this function again using created pkglist handle, it will be reset.
  *    So you can get records from the first one again.
  * @param[in] dboxid Dynamicbox AppId
  * @param[in] handle @c NULL if you call this first, or it will be reset
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return handle
  * @retval @c NULL If it fails, dynamicbox_last_status() will returns reason of failure if it fails.
  * @retval handle If it successfully create the package list iterator
@@ -1016,15 +980,14 @@ extern dynamicbox_pkglist_h dynamicbox_service_pkglist_create(const char *dboxid
 /**
  * @internal
  * @brief Gets the dboxid & package name & is_prime flag.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] handle Handle which is created by dynamicbox_service_pkglist_create() function
  * @param[out] dboxid  Dynamicbox Id
  * @param[out] pkgname Package Id which includes dynamicboxes
  * @param[out] is_prime If the returned dboxid is primary, this will be 1 or 0
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_NONE Successfully get the record
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid argument
@@ -1039,12 +1002,11 @@ extern int dynamicbox_service_get_pkglist_item(dynamicbox_pkglist_h handle, char
 /**
  * @internal
  * @brief Destroys the iterator of pkglist.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] handle Package list handle
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid handle
  * @retval #DBOX_STATUS_ERROR_NONE Successfully destroyed
@@ -1057,14 +1019,13 @@ extern int dynamicbox_service_pkglist_destroy(dynamicbox_pkglist_h handle);
 /**
  * @internal
  * @brief Getting the activated instance count.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox Id, if you want to get whole instnaces list, use NULL.
  * @param[in] cluster Cluster name if you don't know what this is, use NULL.
  * @param[in] category Sub-cluster(category) name if you don't know what this is, use NULL.
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return count of instances
  * @retval #DBOX_STATUS_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #DBOX_STATUS_ERROR_FAULT Unrecorvarable error occurred
@@ -1075,12 +1036,11 @@ extern int dynamicbox_service_get_instance_count(const char *dboxid, const char 
 /**
  * @internal
  * @brief Gets the path of the plug-in module.
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval path String which is allocated on the heap
  * @retval @c NULL No libexec attribute, or dynamicbox_last_status() will returns reason of failure if it fails.
@@ -1092,13 +1052,12 @@ extern char *dynamicbox_service_libexec(const char *dboxid);
  * @internal
  * @brief Find the lbid using its libexec
  * @details only if the dynamicbox should use the "libexec" attribute in its "<dynamicbox>" tag
- * @since_tizen 2.3
+ * @since_tizen 2.4
  * @remarks Only usable for inhouse dynamicboxes
  * @param[in] libexec so filename
  * @privlevel public
- * @privilege %http://developer.samsung.com/tizen/privilege/dynamicbox.viewer
- * @feature http://developer.samsung.com/tizen/feature/samsung_extension
- * @feature http://developer.samsung.com/tizen/feature/in_house/shell.appwidget
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @return char *
  * @retval @c NULL if it fails to get pkgname, dynamicbox_last_status() will returns reason of failure.
  * @retval address heap address of pkgname
