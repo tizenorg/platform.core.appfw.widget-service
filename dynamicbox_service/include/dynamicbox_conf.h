@@ -454,6 +454,11 @@ extern const int const dynamicbox_conf_frame_skip(void);
  */
 extern const int const dynamicbox_conf_slave_auto_cache_flush(void);
 
+/**
+ * @internal
+ */
+extern const char * const dynamicbox_conf_category_list(void);
+
 #define DYNAMICBOX_CONF_BASE_W               dynamicbox_conf_base_width()
 #define DYNAMICBOX_CONF_BASE_H               dynamicbox_conf_base_height()
 
@@ -505,6 +510,7 @@ extern const int const dynamicbox_conf_slave_auto_cache_flush(void);
 
 #define DYNAMICBOX_CONF_MAX_LOG_LINE         dynamicbox_conf_max_log_line()
 #define DYNAMICBOX_CONF_MAX_LOG_FILE         dynamicbox_conf_max_log_file()
+#define DYNAMICBOX_CONF_CATEGORY_LIST        dynamicbox_conf_category_list()
 
 #define DYNAMICBOX_CONF_SQLITE_FLUSH_MAX     dynamicbox_conf_sqlite_flush_max()
 #define DYNAMICBOX_CONF_DBFILE               dynamicbox_conf_db_path()

@@ -71,6 +71,7 @@ static const char *CONF_DEFAULT_EMPTY_CONTENT = "";
 static const char *CONF_DEFAULT_EMPTY_TITLE = "";
 static const char *CONF_DEFAULT_REPLACE_TAG = "/APPID/";
 static const char *CONF_DEFAULT_PROVIDER_METHOD = "pixmap";
+static const char *CONF_DEFAULT_CATEGORY_LIST = "com.samsung.wmanager.WATCH_CLOCK";
 static const int CONF_DEFAULT_WIDTH = 0;
 static const int CONF_DEFAULT_HEIGHT = 0;
 static const int CONF_DEFAULT_BASE_WIDTH = 720;
@@ -206,6 +207,7 @@ struct dynamicbox_conf {
 	int slave_limit_to_ttl;
 	int frame_skip;
 	int slave_auto_cache_flush;
+	char *category_list;
 };
 
 static struct dynamicbox_conf s_conf;
@@ -215,6 +217,15 @@ static struct info {
 } s_info = {
 	.conf_loaded = 0,
 };
+
+static void category_list_handler(char *buffer)
+{
+	s_conf.category_list = strdup(buffer);
+	if (!s_conf.category_list) {
+		ErrPrint("strdup: %s\n", strerror(errno));
+		s_conf.category_list = (char *)CONF_DEFAULT_CATEGORY_LIST;
+	}
+}
 
 static void slave_auto_cache_flush_handler(char *buffer)
 {
@@ -849,6 +860,7 @@ EAPI void dynamicbox_conf_init(void)
 	s_conf.provider_method = (char *)CONF_DEFAULT_PROVIDER_METHOD;
 	s_conf.emergency_disk = (char *)CONF_DEFAULT_EMERGENCY_DISK;
 	s_conf.services = (char *)CONF_DEFAULT_SERVICES;
+	s_conf.category_list = (char *)CONF_DEFAULT_CATEGORY_LIST;
 	s_conf.auto_align = CONF_DEFAULT_AUTO_ALIGN;
 	s_conf.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
 	s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
@@ -1116,6 +1128,10 @@ EAPI int dynamicbox_conf_load(void)
 			.handler = slave_auto_cache_flush_handler,
 		},
 		{
+			.name = "category_list",
+			.handler = category_list_handler,
+		},
+		{
 			.name = NULL,
 			.handler = NULL,
 		},
@@ -1351,6 +1367,11 @@ EAPI void dynamicbox_conf_reset(void)
 	s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
 	s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
 	s_conf.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
+
+	if (s_conf.category_list != CONF_DEFAULT_CATEGORY_LIST) {
+		free(s_conf.category_list);
+		s_conf.category_list = (char *)CONF_DEFAULT_CATEGORY_LIST;
+	}
 
 	if (s_conf.default_conf.script != CONF_DEFAULT_SCRIPT_TYPE) {
 		free(s_conf.default_conf.script);
@@ -1788,6 +1809,11 @@ EAPI const int const dynamicbox_conf_frame_skip(void)
 EAPI const int const dynamicbox_conf_slave_auto_cache_flush(void)
 {
 	return s_conf.slave_auto_cache_flush;
+}
+
+EAPI const char * const dynamicbox_conf_category_list(void)
+{
+	return s_conf.category_list;
 }
 
 /* End of a file */
