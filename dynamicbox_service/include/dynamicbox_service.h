@@ -290,10 +290,12 @@ typedef struct dynamicbox_pkglist_handle *dynamicbox_pkglist_h;
  *  #DBOX_SIZE_TYPE_EASY_3x1\n
  *  #DBOX_SIZE_TYPE_EASY_3x3.
  * @since_tizen 2.4
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/dynamicbox.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
  * @param[in] type Size type
  * @param[out] width Pixel size width
  * @param[out] height Pixel size height
- * @feature http://tizen.org/feature/shell.appwidget
  * @return int type
  * @retval #DBOX_STATUS_ERROR_PERMISSION_DENIED Permission denied
  * @retval #DBOX_STATUS_ERROR_NONE Successfully done
@@ -334,16 +336,15 @@ extern int dynamicbox_service_get_size(dynamicbox_size_type_e type, int *width, 
 extern dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height);
 
 /**
- * @internal
  * @brief Supports the mouse event of dynamicbox content.
  * @details This function will returns true/false, but even if this fails to access database to retrieve information,
  *          This will returns 0. in that case, you can check it using dynamicbox_last_status() function.
  *	    If there is an error, it will returns proper error code.
  * @since_tizen 2.4
- * @param[in] dboxid Dynamicbox AppId
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @feature http://tizen.org/feature/shell.appwidget
+ * @param[in] dboxid Dynamicbox AppId
  * @return int type
  * @retval 1 If the box requires mouse event, A viewer must has to feed the mouse event to the box instance
  * @retval 0 If the box doesn't requires mouse event, In this case, you can check whether it is error or not using dynamicbox_last_status() function.
@@ -354,18 +355,17 @@ extern dynamicbox_size_type_e dynamicbox_service_size_type(int width, int height
 extern int dynamicbox_service_mouse_event(const char *dboxid, int size_type);
 
 /**
- * @internal
  * @brief Requires touch effect.
  * @details If this API returns true(1), the viewer should make touch effect when a user click the dynamicbox.
  *          This function returns 1 even if it fails to retrieve information from Database.
  *	    So if you need validate the information whether it is correct or not, you can use dynamicbox_last_status() function.
  *          Even if this function returns 1, It is recommended to check last status of this function call.
  * @since_tizen 2.4
- * @param[in] dboxid Dynamicbox AppId
- * @param[in] size_type Size type
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @feature http://tizen.org/feature/shell.appwidget
+ * @param[in] dboxid Dynamicbox AppId
+ * @param[in] size_type Size type
  * @return int type
  * @retval 1 If the box requires touch effect, A viewer should make the touch effect, but it is just recomendation.
  * @retval 0 If the box doesn't requires touch effect, the box will make touch effect itself
@@ -376,18 +376,17 @@ extern int dynamicbox_service_mouse_event(const char *dboxid, int size_type);
 extern int dynamicbox_service_touch_effect(const char *dboxid, int size_type);
 
 /**
- * @internal
  * @brief Requires decoration frame.
  * @details If this API returns true(1), the viewer should make decoration border on the dynamicbox content.
  *          If this function returns 0, you can validate it using dynamicbox_last_status() function.
  *          If something goes wrong, so this fails to retrieve information, you can check reason why it fails to get it
  *          using dynamicbox_last_status() function.        
  * @since_tizen 2.4
- * @param[in] dboxid Dynamicbox AppId
- * @param[in] size_type Size type
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @feature http://tizen.org/feature/shell.appwidget
+ * @param[in] dboxid Dynamicbox AppId
+ * @param[in] size_type Size type
  * @return int type
  * @retval 1 If the box requires frame for decorating its contents
  * @retval 0 If the box doesn't requires frame
@@ -487,13 +486,12 @@ extern int dynamicbox_service_get_pkglist(int (*cb)(const char *pkgid, const cha
 extern int dynamicbox_service_get_applist(const char *dboxid, void (*cb)(const char *dboxid, const char *appid, void *data), void *data);
 
 /**
- * @internal
  * @brief Gets the MAIN application Id of given dynamicbox package Id.
  * @since_tizen 2.4
- * @param[in] dboxid Dynamicbox Package Id
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @feature http://tizen.org/feature/shell.appwidget
+ * @param[in] dboxid Dynamicbox Package Id
  * @return char * type
  * @retval @c NULL If it fails to get main application Id (UI-APPID), dynamicbox_last_status() will returns reason of failure.
  * @retval appid Main application Id
@@ -549,13 +547,12 @@ extern int dynamicbox_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(
 extern int dynamicbox_service_get_pkglist_by_category(const char *category, int (*cb)(const char *dboxid, void *data), void *data);
 
 /**
- * @internal
  * @brief Gets the id of a primary dynamicbox using given (dbox or package or UI app) Id. If a given id is a dynamicbox id, check its existence. and if it is package or ui-app id, then find the primary dynamicbox in its package.
  * @since_tizen 2.4
- * @param[in] id Dynamic Box Id or Package Id or UI App Id
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @feature http://tizen.org/feature/shell.appwidget
+ * @param[in] id Dynamic Box Id or Package Id or UI App Id
  * @return char * type
  * @retval @c NULL Failed to get primary dboxid, dynamicbox_last_status() will returns reason of failure.
  * @retval dboxid Primary dynamicbox Id. which is allocated in the heap
@@ -596,16 +593,16 @@ extern int dynamicbox_service_is_primary(const char *dboxid);
 extern char *dynamicbox_service_category(const char *dboxid);
 
 /**
- * @internal
  * @brief Gets the name of a dynamicbox (provider name == dynamicbox appid), you have to release the return value after use it.
  * @details
  *    Dynamicbox has provider process for each dynamicbox instances.\n
  *    To get the provider's package name, you can use this API.\n
  *    If the given dboxid is inhouse dynamicbox, the return string will be the same with given argument but it is allocated in the heap.
  * @since_tizen 2.4
- * @param[in] dboxid Dynamicbox Id
+ * @privlevel N/P
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
+ * @param[in] dboxid Dynamicbox Id
  * @retval @c NULL Failed to get provider name, dynamicbox_last_status() will returns reason of failure if it fails.
  * @retval dboxid Dynamicbox AppId which is allocated on the heap
  * @post Returned string must be free'd manually.
@@ -613,17 +610,16 @@ extern char *dynamicbox_service_category(const char *dboxid);
 extern char *dynamicbox_service_provider_name(const char *dboxid);
 
 /**
- * @internal
  * @brief Gets the appId of setup app which is specified by given dynamicbox Id's manifest.
  * @details
  *    This setup app should be launched before adding the dynamicbox to get the content_info.\n
  *    This function should be called before add a dynamicbox.\n
  *    To determine the content information string.
  * @since_tizen 2.4
- * @param[in] dboxid Dynamicbox Id
  * @privlevel public
  * @privilege %http://tizen.org/privilege/dynamicbox.viewer
  * @feature http://tizen.org/feature/shell.appwidget
+ * @param[in] dboxid Dynamicbox Id
  * @return char * type
  * @retval @c NULL There is no setup application or error occurred, you can check it using dynamicbox_last_status()
  * @retval appid AppId if exists or @c NULL
@@ -705,7 +701,6 @@ extern char *dynamicbox_service_preview(const char *dboxid, int size_type);
 extern char *dynamicbox_service_content(const char *dboxid);
 
 /**
- * @internal
  * @brief Gives Internationalized icon path of given dynamicbox package.
  * @details The user should free the returned string with free().
  * @since_tizen 2.4
