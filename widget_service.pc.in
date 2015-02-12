@@ -3,9 +3,9 @@ exec_prefix=@EXEC_PREFIX@
 libdir=@LIBDIR@
 includedir=@INCLUDEDIR@
 
-Name: livebox-service
-Description: livebox service library
+Name: widget_service
+Description: widget service library
 Version: @VERSION@
-Libs: -L${libdir} -llivebox-service -ldynamicbox_service
+Libs: -L${libdir} -lwidget_service
 Cflags: -I${includedir}
 cppflags: -I${includedir}

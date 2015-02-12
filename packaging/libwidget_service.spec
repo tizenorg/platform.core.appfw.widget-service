@@ -1,7 +1,7 @@
 %bcond_with wayland
 
-Name: libdynamicbox_service
-Summary: Service API for gathering installed dynamicbox information
+Name: libwidget_service
+Summary: Service API for gathering installed widget information
 Version: 1.0.0
 Release: 1
 Group: HomeTF/DynamicBox
@@ -33,15 +33,15 @@ ExclusiveArch:
 %endif
 
 %description
-Service API for gathering information of installed dynamicboxes
+Service API for gathering information of installed widgetes
 
 %package devel
-Summary: Files for dynamicbox service
+Summary: Files for widget service
 Group: Development/Libraries
 Requires: %{name} = %{version}-%{release}
 
 %description devel
-Gathering the installed dynamicbox information.
+Gathering the installed widget information.
 
 %prep
 %setup -q
@@ -82,50 +82,18 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_libdir}/libdynamicbox_service.so*
-%{_datarootdir}/license/libdynamicbox_service
+%{_libdir}/libwidget_service.so*
+%{_datarootdir}/license/libwidget_service
 
 %files devel
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_includedir}/dynamicbox_service/dynamicbox_service.h
-%{_includedir}/dynamicbox_service/dynamicbox_errno.h
-%{_includedir}/dynamicbox_service/dynamicbox_cmd_list.h
-%{_includedir}/dynamicbox_service/dynamicbox_buffer.h
-%{_includedir}/dynamicbox_service/dynamicbox_script.h
-%{_includedir}/dynamicbox_service/dynamicbox_conf.h
-%{_libdir}/pkgconfig/dynamicbox_service.pc
-
-#################################################
-# liblivebox-service (for old version)
-%package -n liblivebox-service
-Summary: Library for developing the dynamicbox app provider (old version)
-Group: HomeTF/Dynamicbox
-License: Flora
-Requires: %{name}
-
-%description -n liblivebox-service
-Provider APIs to develop the dynamicbox provider applications. (old version)
-
-%package -n liblivebox-service-devel
-Summary: Header & package configuration files to support development of the dynamicbox provider applications. (old version)
-Group: Development/Libraries
-Requires: liblivebox-service
-
-%description -n liblivebox-service-devel
-Dynamicbox provider application development library (dev) (old version)
-
-%files -n liblivebox-service
-%manifest %{name}.manifest
-%defattr(-,root,root,-)
-%{_libdir}/liblivebox-service.so*
-%{_datarootdir}/license/liblivebox-service
-
-%files -n liblivebox-service-devel
-%manifest %{name}.manifest
-%defattr(-,root,root,-)
-%{_includedir}/livebox-service/livebox-service.h
-%{_includedir}/livebox-service/livebox-errno.h
-%{_libdir}/pkgconfig/livebox-service.pc
+%{_includedir}/widget_service/widget_service.h
+%{_includedir}/widget_service/widget_errno.h
+%{_includedir}/widget_service/widget_cmd_list.h
+%{_includedir}/widget_service/widget_buffer.h
+%{_includedir}/widget_service/widget_script.h
+%{_includedir}/widget_service/widget_conf.h
+%{_libdir}/pkgconfig/widget_service.pc
 
 # End of a file

@@ -26,10 +26,10 @@
 #include <sys/stat.h>
 
 #include <dlog.h>
-#include <dynamicbox_errno.h>
+#include <widget_errno.h>
 #include <unicode/uloc.h>
 
-#include "dynamicbox_conf.h"
+#include "widget_conf.h"
 #include "util.h"
 #include "debug.h"
 
@@ -46,7 +46,7 @@
 #define MAX_ABI        256
 #define MAX_PKGNAME    512
 
-static const char *CONF_DEFAULT_SERVICES = "[dynamicbox],[shortcut],[notification],[badge],[utility],[file]";
+static const char *CONF_DEFAULT_SERVICES = "[widget],[shortcut],[notification],[badge],[utility],[file]";
 static const char *CONF_DEFAULT_EMERGENCY_DISK = "source=tmpfs;type=tmpfs;option=size=6M";
 static const char *CONF_DEFAULT_PATH_CONF = "/opt/usr/live/%s/etc/%s.conf";
 static const char *CONF_DEFAULT_PATH_IMAGE = BASE_SHARE_DIR;
@@ -56,7 +56,7 @@ static const char *CONF_DEFAULT_PATH_ALWAYS = BASE_SHARE_DIR"always";
 static const char *CONF_DEFAULT_PATH_SCRIPT = "/opt/usr/live/%s/res/script/%s.edj";
 static const char *CONF_DEFAULT_PATH_ROOT = "/opt/usr/live/";
 static const char *CONF_DEFAULT_PATH_SCRIPT_PORT = "/usr/share/data-provider-master/plugin-script/";
-static const char *CONF_DEFAULT_PATH_DB = "/opt/dbspace/.dynamicbox.db";
+static const char *CONF_DEFAULT_PATH_DB = "/opt/dbspace/.widget.db";
 static const char *CONF_DEFAULT_PATH_INPUT = DEFAULT_INPUT_NODE;
 static const char *CONF_DEFAULT_SCRIPT_TYPE = "edje";
 static const char *CONF_DEFAULT_ABI = "c";
@@ -114,7 +114,7 @@ static const int CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH = 0;
 
 int errno;
 
-struct dynamicbox_conf {
+struct widget_conf {
 	unsigned int width;
 	unsigned int height;
 
@@ -210,7 +210,7 @@ struct dynamicbox_conf {
 	char *category_list;
 };
 
-static struct dynamicbox_conf s_conf;
+static struct widget_conf s_conf;
 
 static struct info {
 	int conf_loaded;
@@ -801,7 +801,7 @@ static void gbar_request_timeout_handler(char *buffer)
 	DbgPrint("Default GBAR request timeout: %lf\n", s_conf.gbar_request_timeout);
 }
 
-EAPI void dynamicbox_conf_init(void)
+EAPI void widget_conf_init(void)
 {
 	if (s_info.conf_loaded) {
 		DbgPrint("Already initialized.\n");
@@ -903,7 +903,7 @@ static char *conf_path(void)
 	return path;
 }
 
-EAPI int dynamicbox_conf_load(void)
+EAPI int widget_conf_load(void)
 {
 	char *conf_file;
 	FILE *fp;
@@ -1139,21 +1139,21 @@ EAPI int dynamicbox_conf_load(void)
 
 	if (s_info.conf_loaded) {
 		ErrPrint("Already loaded\n");
-		return DBOX_STATUS_ERROR_ALREADY;
+		return WIDGET_STATUS_ERROR_ALREADY;
 	}
 
 	util_screen_size_get(&s_conf.width, &s_conf.height);
 
 	conf_file = conf_path();
 	if (!conf_file) {
-		return DBOX_STATUS_ERROR_IO_ERROR;
+		return WIDGET_STATUS_ERROR_IO_ERROR;
 	}
 
 	fp = fopen(conf_file, "rt");
 	free(conf_file);
 	if (!fp) {
 		ErrPrint("Error: %s\n", strerror(errno));
-		return DBOX_STATUS_ERROR_IO_ERROR;
+		return WIDGET_STATUS_ERROR_IO_ERROR;
 	}
 
 	state = START;
@@ -1321,14 +1321,14 @@ EAPI int dynamicbox_conf_load(void)
 		ErrPrint("fclose: %s\n", strerror(errno));
 	}
 
-	s_conf.scale_width_factor = (double)s_conf.width / (double)DYNAMICBOX_CONF_BASE_W;
-	s_conf.scale_height_factor = (double)s_conf.height / (double)DYNAMICBOX_CONF_BASE_H;
+	s_conf.scale_width_factor = (double)s_conf.width / (double)WIDGET_CONF_BASE_W;
+	s_conf.scale_height_factor = (double)s_conf.height / (double)WIDGET_CONF_BASE_H;
 	s_info.conf_loaded = 1;
 
-	return DBOX_STATUS_ERROR_NONE;
+	return WIDGET_STATUS_ERROR_NONE;
 }
 
-EAPI void dynamicbox_conf_reset(void)
+EAPI void widget_conf_reset(void)
 {
 	s_conf.width = CONF_DEFAULT_WIDTH;
 	s_conf.height = CONF_DEFAULT_HEIGHT;
@@ -1501,317 +1501,317 @@ EAPI void dynamicbox_conf_reset(void)
 	s_info.conf_loaded = 0;
 }
 
-EAPI const int const dynamicbox_conf_extra_buffer_count(void)
+EAPI const int const widget_conf_extra_buffer_count(void)
 {
 	return s_conf.extra_buffer_count;
 }
 
-EAPI const int const dynamicbox_conf_use_xmonitor(void)
+EAPI const int const widget_conf_use_xmonitor(void)
 {
 	return s_conf.use_xmonitor;
 }
 
-EAPI const char * const dynamicbox_conf_emergency_disk(void)
+EAPI const char * const widget_conf_emergency_disk(void)
 {
 	return s_conf.emergency_disk;
 }
 
-EAPI const int const dynamicbox_conf_check_lcd(void)
+EAPI const int const widget_conf_check_lcd(void)
 {
 	return s_conf.check_lcd;
 }
 
-EAPI const int const dynamicbox_conf_use_event_time(void)
+EAPI const int const widget_conf_use_event_time(void)
 {
 	return s_conf.use_event_time;
 }
 
-EAPI const int const dynamicbox_conf_auto_align(void)
+EAPI const int const widget_conf_auto_align(void)
 {
 	return s_conf.auto_align;
 }
 
-EAPI const char * const dynamicbox_conf_services(void)
+EAPI const char * const widget_conf_services(void)
 {
 	return s_conf.services;
 }
 
-EAPI const int const dynamicbox_conf_use_sw_backend(void)
+EAPI const int const widget_conf_use_sw_backend(void)
 {
 	return s_conf.use_sw_backend;
 }
 
-EAPI const char * const dynamicbox_conf_provider_method(void)
+EAPI const char * const widget_conf_provider_method(void)
 {
 	return s_conf.provider_method;
 }
 
-EAPI const int const dynamicbox_conf_debug_mode(void)
+EAPI const int const widget_conf_debug_mode(void)
 {
 	return s_conf.debug_mode;
 }
 
-EAPI const int const dynamicbox_conf_overwrite_content(void)
+EAPI const int const widget_conf_overwrite_content(void)
 {
 	return s_conf.overwrite_content;
 }
 
-EAPI const int const dynamicbox_conf_com_core_thread(void)
+EAPI const int const widget_conf_com_core_thread(void)
 {
 	return s_conf.com_core_thread;
 }
 
-EAPI const unsigned int const dynamicbox_conf_base_width(void)
+EAPI const unsigned int const widget_conf_base_width(void)
 {
 	return s_conf.base_width;
 }
 
-EAPI const unsigned int const dynamicbox_conf_base_height(void)
+EAPI const unsigned int const widget_conf_base_height(void)
 {
 	return s_conf.base_height;
 }
 
-EAPI const double const dynamicbox_conf_minimum_period(void)
+EAPI const double const widget_conf_minimum_period(void)
 {
 	return s_conf.minimum_period;
 }
 
-EAPI const int const dynamicbox_conf_default_pixels(void)
+EAPI const int const widget_conf_default_pixels(void)
 {
 	return s_conf.default_conf.pixels;
 }
 
-EAPI const char * const dynamicbox_conf_default_script(void)
+EAPI const char * const widget_conf_default_script(void)
 {
 	return s_conf.default_conf.script;
 }
 
-EAPI const char * const dynamicbox_conf_default_abi(void)
+EAPI const char * const widget_conf_default_abi(void)
 {
 	return s_conf.default_conf.abi;
 }
 
-EAPI const char * const dynamicbox_conf_default_gbar_group(void)
+EAPI const char * const widget_conf_default_gbar_group(void)
 {
 	return s_conf.default_conf.gbar_group;
 }
 
-EAPI const double const dynamicbox_conf_default_period(void)
+EAPI const double const widget_conf_default_period(void)
 {
 	return s_conf.default_conf.period;
 }
 
-EAPI const double const dynamicbox_conf_default_packet_time(void)
+EAPI const double const widget_conf_default_packet_time(void)
 {
 	return s_conf.default_packet_time;
 }
 
-EAPI const char * const dynamicbox_conf_default_content(void)
+EAPI const char * const widget_conf_default_content(void)
 {
 	return s_conf.default_content;
 }
 
-EAPI const char * const dynamicbox_conf_default_title(void)
+EAPI const char * const widget_conf_default_title(void)
 {
 	return s_conf.default_title;
 }
 
-EAPI const unsigned long const dynamicbox_conf_minimum_space(void)
+EAPI const unsigned long const widget_conf_minimum_space(void)
 {
 	return s_conf.minimum_space;
 }
 
-EAPI const char * const dynamicbox_conf_replace_tag(void)
+EAPI const char * const widget_conf_replace_tag(void)
 {
 	return s_conf.replace_tag;
 }
 
-EAPI const double const dynamicbox_conf_slave_ttl(void)
+EAPI const double const widget_conf_slave_ttl(void)
 {
 	return s_conf.slave_ttl;
 }
 
-EAPI const double const dynamicbox_conf_slave_activate_time(void)
+EAPI const double const widget_conf_slave_activate_time(void)
 {
 	return s_conf.slave_activate_time;
 }
 
-EAPI const double const dynamicbox_conf_slave_relaunch_time(void)
+EAPI const double const widget_conf_slave_relaunch_time(void)
 {
 	return s_conf.slave_relaunch_time;
 }
 
-EAPI const int const dynamicbox_conf_slave_relaunch_count(void)
+EAPI const int const widget_conf_slave_relaunch_count(void)
 {
 	return s_conf.slave_relaunch_count;
 }
 
-EAPI const int const dynamicbox_conf_max_log_line(void)
+EAPI const int const widget_conf_max_log_line(void)
 {
 	return s_conf.max_log_line;
 }
 
-EAPI const int const dynamicbox_conf_max_log_file(void)
+EAPI const int const widget_conf_max_log_file(void)
 {
 	return s_conf.max_log_file;
 }
 
-EAPI const unsigned long const dynamicbox_conf_sqlite_flush_max(void)
+EAPI const unsigned long const widget_conf_sqlite_flush_max(void)
 {
 	return s_conf.sqlite_flush_max;
 }
 
-EAPI const char * const dynamicbox_conf_db_path(void)
+EAPI const char * const widget_conf_db_path(void)
 {
 	return s_conf.path.db;
 }
 
-EAPI const char * const dynamicbox_conf_reader_path(void)
+EAPI const char * const widget_conf_reader_path(void)
 {
 	return s_conf.path.reader;
 }
 
-EAPI const char * const dynamicbox_conf_always_path(void)
+EAPI const char * const widget_conf_always_path(void)
 {
 	return s_conf.path.always;
 }
 
-EAPI const char * const dynamicbox_conf_log_path(void)
+EAPI const char * const widget_conf_log_path(void)
 {
 	return s_conf.path.slave_log;
 }
 
-EAPI const char * const dynamicbox_conf_script_port(void)
+EAPI const char * const widget_conf_script_port(void)
 {
 	return s_conf.path.script_port;
 }
 
-EAPI const char * const dynamicbox_conf_script_path(void)
+EAPI const char * const widget_conf_script_path(void)
 {
 	return s_conf.path.script;
 }
 
-EAPI const char * const dynamicbox_conf_share_path(void)
+EAPI const char * const widget_conf_share_path(void)
 {
 	return s_conf.path.image;
 }
 
-EAPI const char * const dynamicbox_conf_input_path(void)
+EAPI const char * const widget_conf_input_path(void)
 {
 	return s_conf.path.input;
 }
 
-EAPI const double const dynamicbox_conf_ping_time(void)
+EAPI const double const widget_conf_ping_time(void)
 {
 	return s_conf.ping_time;
 }
 
-EAPI const int const dynamicbox_conf_slave_max_load(void)
+EAPI const int const widget_conf_slave_max_load(void)
 {
 	return s_conf.slave_max_load;
 }
 
-EAPI const int const dynamicbox_conf_premultiplied_alpha(void)
+EAPI const int const widget_conf_premultiplied_alpha(void)
 {
 	return s_conf.premultiplied;
 }
 
-EAPI const double const dynamicbox_conf_gbar_request_timeout(void)
+EAPI const double const widget_conf_gbar_request_timeout(void)
 {
 	return s_conf.gbar_request_timeout;
 }
 
-EAPI const double const dynamicbox_conf_scale_width_factor(void)
+EAPI const double const widget_conf_scale_width_factor(void)
 {
 	return s_conf.scale_width_factor;
 }
 
-EAPI const double const dynamicbox_conf_scale_height_factor(void)
+EAPI const double const widget_conf_scale_height_factor(void)
 {
 	return s_conf.scale_height_factor;
 }
 
-EAPI const char * const dynamicbox_conf_launch_key_name(void)
+EAPI const char * const widget_conf_launch_key_name(void)
 {
 	return s_conf.launch_key.name;
 }
 
-EAPI const char * const dynamicbox_conf_launch_key_secured(void)
+EAPI const char * const widget_conf_launch_key_secured(void)
 {
 	return s_conf.launch_key.secured;
 }
 
-EAPI const char * const dynamicbox_conf_launch_key_abi(void)
+EAPI const char * const widget_conf_launch_key_abi(void)
 {
 	return s_conf.launch_key.abi;
 }
 
-EAPI const char * const dynamicbox_conf_launch_key_hw_acceleration(void)
+EAPI const char * const widget_conf_launch_key_hw_acceleration(void)
 {
 	return s_conf.launch_key.hw_acceleration;
 }
 
-EAPI const char * const dynamicbox_conf_empty_content(void)
+EAPI const char * const widget_conf_empty_content(void)
 {
 	return s_conf.empty_content;
 }
 
-EAPI const char * const dynamicbox_conf_empty_title(void)
+EAPI const char * const widget_conf_empty_title(void)
 {
 	return s_conf.empty_title;
 }
 
-EAPI const char * const dynamicbox_conf_path(void)
+EAPI const char * const widget_conf_path(void)
 {
 	return s_conf.path.conf;
 }
 
-EAPI const char * const dynamicbox_conf_root_path(void)
+EAPI const char * const widget_conf_root_path(void)
 {
 	return s_conf.path.root;
 }
 
-EAPI const int const dynamicbox_conf_is_loaded(void)
+EAPI const int const widget_conf_is_loaded(void)
 {
 	return s_info.conf_loaded;
 }
 
-EAPI const int const dynamicbox_conf_use_gettimeofday(void)
+EAPI const int const widget_conf_use_gettimeofday(void)
 {
 	return s_conf.use_gettimeofday;
 }
 
-EAPI const int const dynamicbox_conf_slave_event_boost_on(void)
+EAPI const int const widget_conf_slave_event_boost_on(void)
 {
 	return s_conf.slave_event_boost_on;
 }
 
-EAPI const int const dynamicbox_conf_slave_event_boost_off(void)
+EAPI const int const widget_conf_slave_event_boost_off(void)
 {
 	return s_conf.slave_event_boost_off;
 }
 
-EAPI const double const dynamicbox_conf_event_filter(void)
+EAPI const double const widget_conf_event_filter(void)
 {
 	return s_conf.event_filter;
 }
 
-EAPI const int const dynamicbox_conf_slave_limit_to_ttl(void)
+EAPI const int const widget_conf_slave_limit_to_ttl(void)
 {
 	return s_conf.slave_limit_to_ttl;
 }
 
-EAPI const int const dynamicbox_conf_frame_skip(void)
+EAPI const int const widget_conf_frame_skip(void)
 {
 	return s_conf.frame_skip;
 }
 
-EAPI const int const dynamicbox_conf_slave_auto_cache_flush(void)
+EAPI const int const widget_conf_slave_auto_cache_flush(void)
 {
 	return s_conf.slave_auto_cache_flush;
 }
 
-EAPI const char * const dynamicbox_conf_category_list(void)
+EAPI const char * const widget_conf_category_list(void)
 {
 	return s_conf.category_list;
 }

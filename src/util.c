@@ -28,7 +28,7 @@
 
 #include <dlog.h>
 
-#include "dynamicbox_errno.h"
+#include "widget_errno.h"
 #include "util.h"
 #include "debug.h"
 

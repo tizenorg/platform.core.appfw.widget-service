@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef __DYNAMICBOX_SERVICE_DOC_H__
-#define __DYNAMICBOX_SERVICE_DOC_H__
+#ifndef __WIDGET_SERVICE_DOC_H__
+#define __WIDGET_SERVICE_DOC_H__
 
 /**
- * @defgroup DYNAMICBOX_SERVICE_MODULE Dynamic Box
+ * @defgroup WIDGET_SERVICE_MODULE Dynamic Box
  * @brief To get the information of installed Dynamic Boxes
- * @ingroup CAPI_DYNAMICBOX_FRAMEWORK 
- * @section DYNAMICBOX_SERVICE_MODULE_HEADER Required Header
- *   \#include <dynamicbox_service.h>
- *   \#include <dynamicbox_errno.h>
- * @section DYNAMICBOX_SERVICE_MODULE_OVERVIEW Overview
+ * @ingroup CAPI_WIDGET_FRAMEWORK 
+ * @section WIDGET_SERVICE_MODULE_HEADER Required Header
+ *   \#include <widget_service.h>
+ *   \#include <widget_errno.h>
+ * @section WIDGET_SERVICE_MODULE_OVERVIEW Overview
 <H1>1. Dynamic Box Service API</H1>
 Tizen supports various kinds of API set for retrieving information of Dynamic Boxes.
 Every Dynamic Boxes are installed via package manager utilities.
@@ -55,50 +55,50 @@ Dynamic Box has predefined size types.
 <TD>Size Type</TD><TD>Size in pixels</TD><TD>Supported profile</TD>
 </TH>
 <TR>
-<TD>DBOX_SIZE_TYPE_1x1</TD><TD> - </TD><TD>Mobile, Wearable - Mandatory size</TD>
+<TD>WIDGET_SIZE_TYPE_1x1</TD><TD> - </TD><TD>Mobile, Wearable - Mandatory size</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_2x1</TD><TD> - </TD><TD>Mobile</TD>
+<TD>WIDGET_SIZE_TYPE_2x1</TD><TD> - </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_2x2</TD><TD> - </TD><TD>Mobile, Wearable</TD>
+<TD>WIDGET_SIZE_TYPE_2x2</TD><TD> - </TD><TD>Mobile, Wearable</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_4x1</TD><TD> - </TD><TD>Mobile - Extension</TD>
+<TD>WIDGET_SIZE_TYPE_4x1</TD><TD> - </TD><TD>Mobile - Extension</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_4x2</TD><TD> - </TD><TD>Mobile - Since 2.3</TD>
+<TD>WIDGET_SIZE_TYPE_4x2</TD><TD> - </TD><TD>Mobile - Since 2.3</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_4x3</TD><TD> - </TD><TD>Mobile - Extension</TD>
+<TD>WIDGET_SIZE_TYPE_4x3</TD><TD> - </TD><TD>Mobile - Extension</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_4x4</TD><TD> - </TD><TD>Mobile, Kiran - Since 2.3</TD>
+<TD>WIDGET_SIZE_TYPE_4x4</TD><TD> - </TD><TD>Mobile, Kiran - Since 2.3</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_4x5</TD><TD> - </TD><TD>Mobile - Extension</TD>
+<TD>WIDGET_SIZE_TYPE_4x5</TD><TD> - </TD><TD>Mobile - Extension</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_4x6</TD><TD> - </TD><TD>Mobile - Extension</TD>
+<TD>WIDGET_SIZE_TYPE_4x6</TD><TD> - </TD><TD>Mobile - Extension</TD>
 </TR>
 </TABLE>
 
 Dynamic Box also handles Easy Mode.
 For the easy mode, there are different size types.
-Called DBOX_SIZE_TYPE_EASY_NxM
+Called WIDGET_SIZE_TYPE_EASY_NxM
 
 <TABLE>
 <TH>
 <TD>Size Type</TD><TD>Size in pixels</TD><TD>Supported profile</TD>
 </TH>
 <TR>
-<TD>DBOX_SIZE_TYPE_EASY_1x1</TD><TD> - </TD><TD>Mobile</TD>
+<TD>WIDGET_SIZE_TYPE_EASY_1x1</TD><TD> - </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_EASY_3x1</TD><TD> - </TD><TD>Mobile</TD>
+<TD>WIDGET_SIZE_TYPE_EASY_3x1</TD><TD> - </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>DBOX_SIZE_TYPE_EASY_3x3</TD><TD> - </TD><TD>Mobile</TD>
+<TD>WIDGET_SIZE_TYPE_EASY_3x3</TD><TD> - </TD><TD>Mobile</TD>
 </TR>
 </TABLE>
 
