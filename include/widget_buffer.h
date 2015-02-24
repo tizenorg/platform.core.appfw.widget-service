@@ -71,7 +71,7 @@ typedef enum widget_target_type {
 
 /**
  * @internal
- * @brief Dynamic Box Frame Buffer Info
+ * @brief widget Frame Buffer Info
  * @since_tizen 2.3
  */
 struct fb_info {
@@ -111,7 +111,7 @@ typedef struct widget_lock_info {
 
 /**
  * @internal
- * @brief Dynamic Box Buffer structure
+ * @brief widget Buffer structure
  * @since_tizen 2.3
  */
 typedef struct widget_buffer {

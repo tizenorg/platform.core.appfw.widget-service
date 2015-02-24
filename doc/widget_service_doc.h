@@ -18,37 +18,37 @@
 #define __WIDGET_SERVICE_DOC_H__
 
 /**
- * @defgroup WIDGET_SERVICE_MODULE Dynamic Box
+ * @defgroup WIDGET_SERVICE_MODULE widget
  * @brief To get the information of installed Dynamic Boxes
  * @ingroup CAPI_WIDGET_FRAMEWORK 
  * @section WIDGET_SERVICE_MODULE_HEADER Required Header
  *   \#include <widget_service.h>
  *   \#include <widget_errno.h>
  * @section WIDGET_SERVICE_MODULE_OVERVIEW Overview
-<H1>1. Dynamic Box Service API</H1>
+<H1>1. widget Service API</H1>
 Tizen supports various kinds of API set for retrieving information of Dynamic Boxes.
 Every Dynamic Boxes are installed via package manager utilities.
 The information of installed Dynamic Boxes are stored in the system DB.
 
-In some cases, application developer needs to send update request to its Dynamic Box.
+In some cases, application developer needs to send update request to its widget.
 To make it possible, this module providers such kinds of API set.
 
 Those APIs are for communicating with master service provider called data-provider-master.
-When it receives request from applications, it will find the proper service provider called data-provider-slave or application Dynamic Box Provider.
+When it receives request from applications, it will find the proper service provider called data-provider-slave or application widget Provider.
 If master finds proper service provider, it will forward the requests to them.
-Then each Dynamic Box application can get update request.
+Then each widget application can get update request.
 
 <H2>1.1 APIs for retrieving information of Dynamic Boxes</H2>
 
 To get the information for installed dynamic boxes.
 
-<H2>1.2 APIs for communicating with running Dynamic Box instances</H2>
+<H2>1.2 APIs for communicating with running widget instances</H2>
 
-To trigger the update event or send the updated content string to the dynamic box.
+To trigger the update event or send the updated content string to the widget.
 
-<H1>2. Size of Dynamic Box</H1>
+<H1>2. Size of widget</H1>
 
-Dynamic Box has predefined size types.
+widget has predefined size types.
 
 <TABLE>
 <TH>
@@ -83,7 +83,7 @@ Dynamic Box has predefined size types.
 </TR>
 </TABLE>
 
-Dynamic Box also handles Easy Mode.
+widget also handles Easy Mode.
 For the easy mode, there are different size types.
 Called WIDGET_SIZE_TYPE_EASY_NxM
 

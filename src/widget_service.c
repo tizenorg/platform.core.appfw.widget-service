@@ -658,7 +658,7 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 	return ret;
 }
 
-EAPI widget_pkglist_h widget_service_pkglist_create(const char *pkgid, widget_pkglist_h handle)
+EAPI widget_pkglist_h widget_service_create_pkglist(const char *pkgid, widget_pkglist_h handle)
 {
 	int ret;
 
@@ -779,7 +779,7 @@ EAPI int widget_service_get_pkglist_item(widget_pkglist_h handle, char **appid, 
 	return WIDGET_STATUS_ERROR_NONE;
 }
 
-EAPI int widget_service_pkglist_destroy(widget_pkglist_h handle)
+EAPI int widget_service_destroy_pkglist(widget_pkglist_h handle)
 {
 	if (!handle || handle->type != PKGLIST_TYPE_WIDGET_LIST) {
 		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
@@ -1052,7 +1052,7 @@ out:
 	return ret;
 }
 
-EAPI char *widget_service_mainappid(const char *widgetid)
+EAPI char *widget_service_get_main_app_id(const char *widgetid)
 {
 	sqlite3_stmt *stmt;
 	const char *tmp;
@@ -1172,7 +1172,7 @@ out:
 	return ret;
 }
 
-EAPI char *widget_service_content(const char *pkgid)
+EAPI char *widget_service_get_content_string(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1227,7 +1227,7 @@ out:
 	return content;
 }
 
-EAPI char *widget_service_setup_appid(const char *widgetid)
+EAPI char *widget_service_get_app_id_of_setup_app(const char *widgetid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1287,7 +1287,7 @@ out:
 	return appid;
 }
 
-EAPI int widget_service_nodisplay(const char *pkgid)
+EAPI int widget_service_get_nodisplay(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1335,87 +1335,112 @@ out:
 	return ret;
 }
 
-EAPI int widget_service_need_frame(const char *pkgid, int size_type)
+EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e size_type, int *need_of_frame)
 {
-	char *widgetid;
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int ret;
+	char *widgetid = NULL;
+	sqlite3_stmt *stmt = NULL;
+	sqlite3 *handle = NULL;
+	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret_sqlite = 0;
+	int result_need_of_frame = 0;
+
+	if (pkgid == NULL || need_of_frame == NULL) {
+		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		goto out;
+	}
 
 	handle = open_db();
 	if (!handle) {
 		ErrPrint("Unable to open a DB\n");
-		return 0;
+		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		goto out;
 	}
 
-	ret = sqlite3_prepare_v2(handle, "SELECT need_frame FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+	ret_sqlite = sqlite3_prepare_v2(handle, "SELECT need_frame FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
+	if (ret_sqlite != SQLITE_OK) {
+		ret = WIDGET_STATUS_ERROR_FAULT;
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		close_db(handle);
-		return 0;
+		goto out;
 	}
 
-	/*!
-	 */
-	widgetid = widget_service_widget_id(pkgid);
+	widgetid = widget_service_get_widget_id(pkgid);
 	if (!widgetid) {
 		ErrPrint("Invalid appid (%s)\n", pkgid);
-		ret = 0;
+		result_need_of_frame = 0;
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
+	ret_sqlite = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
 	free(widgetid);
-	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
+		ret = WIDGET_STATUS_ERROR_FAULT;
+		result_need_of_frame = 0;
 		goto out;
 	}
 
-	ret = sqlite3_bind_int(stmt, 2, size_type);
-	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+	ret_sqlite = sqlite3_bind_int(stmt, 2, size_type);
+	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
+		ret = WIDGET_STATUS_ERROR_FAULT;
+		result_need_of_frame = 0;
 		goto out;
 	}
 
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		ret = !!sqlite3_column_int(stmt, 0);
-	} else {
-		ret = 0;
+	ret_sqlite = sqlite3_step(stmt);
+	if (ret_sqlite != SQLITE_ROW) {
+		result_need_of_frame = 0;
 		ErrPrint("There is no such result\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		ret = WIDGET_STATUS_ERROR_NOT_EXIST;
+		goto out;
 	}
+
+	result_need_of_frame = !!sqlite3_column_int(stmt, 0);
+
 out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
+	if(need_of_frame)
+		*need_of_frame = result_need_of_frame;
+
+	if (stmt) {
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+	}
+
+	if (handle)
+		close_db(handle);
+
+	if (ret != WIDGET_STATUS_ERROR_NONE)
+		ErrPrint("Error: %d\n", ret);
+
 	return ret;
 }
 
-EAPI int widget_service_touch_effect(const char *pkgid, int size_type)
+EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_type_e size_type, int *need_of_touch_event)
 {
-	char *widgetid;
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	int ret;
+	char *widgetid = NULL;
+	sqlite3_stmt *stmt = NULL;
+	sqlite3 *handle = NULL;
+	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret_sqlite;
+	int result_need_of_touch_event = 0;
+
+	if (pkgid == NULL || need_of_touch_event == NULL) {
+		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		goto out;
+	}
 
 	handle = open_db();
 	if (!handle) {
 		ErrPrint("Unable to open a DB\n");
-		return 1;
+		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		goto out;
 	}
 
-	ret = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
+	ret_sqlite = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
+	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
-		close_db(handle);
-		return 1;
+		ret = WIDGET_STATUS_ERROR_FAULT;
+		goto out;
 	}
 
 	/**
@@ -1424,104 +1449,136 @@ EAPI int widget_service_touch_effect(const char *pkgid, int size_type)
 	 * call the exported API in the exported API is not recomended
 	 * but... I used.
 	 */
-	widgetid = widget_service_widget_id(pkgid);
+	widgetid = widget_service_get_widget_id(pkgid);
 	if (!widgetid) {
 		ErrPrint("Invalid appid (%s)\n", pkgid);
-		ret = 1;
+		ret = widget_last_status();
+		result_need_of_touch_event = 1;
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
+	ret_sqlite = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
 	free(widgetid);
-	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 1;
+		ret = WIDGET_STATUS_ERROR_FAULT;
+		result_need_of_touch_event = 1;
 		goto out;
 	}
 
-	ret = sqlite3_bind_int(stmt, 2, size_type);
-	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+	ret_sqlite = sqlite3_bind_int(stmt, 2, size_type);
+	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 1;
+		ret = WIDGET_STATUS_ERROR_FAULT;
+		result_need_of_touch_event = 1;
 		goto out;
 	}
 
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		ret = !!sqlite3_column_int(stmt, 0);
-	} else {
-		ret = 1; /**< Default true: In this case the DB is corrupted. */
+	ret_sqlite = sqlite3_step(stmt);
+	if (ret_sqlite != SQLITE_ROW) {
+		result_need_of_touch_event = 1; /**< Default true: In this case the DB is corrupted. */
 		ErrPrint("There is no result\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		ret = WIDGET_STATUS_ERROR_NOT_EXIST;
+		goto out;
 	}
+
+	result_need_of_touch_event = !!sqlite3_column_int(stmt, 0);
 
 out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
+	if (need_of_touch_event)
+		*need_of_touch_event = result_need_of_touch_event;
+
+	if (stmt) {
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+	}
+
+	if (handle)
+		close_db(handle);
+
+	if (ret != WIDGET_STATUS_ERROR_NONE)
+		ErrPrint("Error: %d\n", ret);
+
 	return ret;
 }
 
-EAPI int widget_service_mouse_event(const char *pkgid, int size_type)
+EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_type_e size_type, int *need_of_mouse_event)
 {
-	sqlite3_stmt *stmt;
-	sqlite3 *handle;
-	char *widgetid;
-	int ret;
+	sqlite3_stmt *stmt = NULL;
+	sqlite3 *handle = NULL;
+	char *widgetid = NULL;
+	int ret_sqlite = 0;
+	int ret = WIDGET_STATUS_ERROR_NONE;
+	int result_need_of_mouse_event = 0;
 
-	handle = open_db();
-	if (!handle) {
-		return 0;
+	if (pkgid == NULL || need_of_mouse_event == NULL) {
+		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		goto out;
 	}
 
-	ret = sqlite3_prepare_v2(handle, "SELECT mouse_event FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
-		close_db(handle);
-		return 0;
+	if (!(handle = open_db())) {
+		ErrPrint("open_db failed : %s\n", sqlite3_errmsg(handle));
+		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		goto out;
 	}
 
-	widgetid = widget_service_widget_id(pkgid);
+	ret_sqlite = sqlite3_prepare_v2(handle, "SELECT mouse_event FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
+
+	if (ret_sqlite != SQLITE_OK) {
+		ErrPrint("sqlite3_prepare_v2 failed : %s\n", sqlite3_errmsg(handle));
+		ret = WIDGET_STATUS_ERROR_FAULT;
+		goto out;
+	}
+
+	widgetid = widget_service_get_widget_id(pkgid);
 	if (!widgetid) {
 		ErrPrint("Failed to get widgetid: %s\n", pkgid);
-		ret = 0;
+		ret = widget_last_status();
 		goto out;
 	}
 
-	ret = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
+	ret_sqlite = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
 	free(widgetid);
-	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+
+	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
+		ret = WIDGET_STATUS_ERROR_FAULT;
 		goto out;
 	}
 
-	ret = sqlite3_bind_int(stmt, 2, size_type);
-	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+	ret_sqlite = sqlite3_bind_int(stmt, 2, size_type);
+	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = 0;
+		ret = WIDGET_STATUS_ERROR_FAULT;
 		goto out;
 	}
 
-	ret = sqlite3_step(stmt);
-	if (ret == SQLITE_ROW) {
-		ret = !!sqlite3_column_int(stmt, 0);
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	ret_sqlite = sqlite3_step(stmt);
+
+	if (ret_sqlite == SQLITE_ROW) {
+		result_need_of_mouse_event = !!sqlite3_column_int(stmt, 0);
+		ret = WIDGET_STATUS_ERROR_NONE;
 	} else {
-		ret = 0; /**< Default is false, In this case the DB is corrupted */
 		ErrPrint("There is no result.\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		result_need_of_mouse_event = 0; /**< Default is false, In this case the DB is corrupted */
+		ret = WIDGET_STATUS_ERROR_NOT_EXIST;
 	}
 
 out:
-	sqlite3_reset(stmt);
-	sqlite3_finalize(stmt);
-	close_db(handle);
+	if (need_of_mouse_event)
+		*need_of_mouse_event = result_need_of_mouse_event;
+
+	if (stmt) {
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+	}
+
+	if (handle)
+		close_db(handle);
+
+	if (ret != WIDGET_STATUS_ERROR_NONE)
+		ErrPrint("Error: %d\n", ret);
+
 	return ret;
 }
 
@@ -1617,7 +1674,7 @@ out:
 	return appid;
 }
 
-EAPI char *widget_service_preview(const char *pkgid, int size_type)
+EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_type)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1731,7 +1788,7 @@ out:
 	return preview;
 }
 
-EAPI char *widget_service_i18n_icon(const char *pkgid, const char *lang)
+EAPI char *widget_service_get_i18n_icon(const char *pkgid, const char *lang)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1822,7 +1879,7 @@ out:
 	return icon;
 }
 
-EAPI char *widget_service_i18n_name(const char *pkgid, const char *lang)
+EAPI char *widget_service_get_i18n_name(const char *pkgid, const char *lang)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1954,7 +2011,7 @@ out:
 	return ret;
 }
 
-EAPI char *widget_service_abi(const char *widgetid)
+EAPI char *widget_service_get_abi(const char *widgetid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2031,7 +2088,7 @@ out:
 	return abi;
 }
 
-EAPI char *widget_service_widget_id_by_libexec(const char *libexec)
+EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2118,7 +2175,7 @@ out:
 	return pkgid;
 }
 
-EAPI char *widget_service_libexec(const char *pkgid)
+EAPI char *widget_service_get_libexec(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2211,7 +2268,7 @@ out:
 	return libexec;
 }
 
-EAPI char *widget_service_widget_id(const char *appid)
+EAPI char *widget_service_get_widget_id(const char *appid)
 {
 	char *widget_pkgname;
 	pkgmgrinfo_appinfo_h handle;
@@ -2260,7 +2317,7 @@ EAPI char *widget_service_widget_id(const char *appid)
 	return widget_pkgname;
 }
 
-EAPI char *widget_service_package_id(const char *pkgname)
+EAPI char *widget_service_get_package_id(const char *pkgname)
 {
 	sqlite3_stmt *stmt;
 	char *appid;
@@ -2371,7 +2428,7 @@ out:
 	return appid;
 }
 
-EAPI char *widget_service_provider_name(const char *widgetid)
+EAPI char *widget_service_get_provider_name(const char *widgetid)
 {
 	char *ret;
 	int stage = 0;
@@ -2508,7 +2565,7 @@ out:
 	return ret;
 }
 
-EAPI char *widget_service_category(const char *widgetid)
+EAPI char *widget_service_get_category(const char *widgetid)
 {
 	sqlite3_stmt *stmt;
 	char *category = NULL;
@@ -2591,7 +2648,7 @@ out:
 	return category;
 }
 
-EAPI char *widget_service_widget_script_path(const char *pkgid)
+EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2681,7 +2738,7 @@ out:
 	return path;
 }
 
-EAPI char *widget_service_widget_script_group(const char *pkgid)
+EAPI char *widget_service_get_widget_script_group(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2745,7 +2802,7 @@ out:
 	return group;
 }
 
-EAPI char *widget_service_gbar_script_path(const char *pkgid)
+EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -2836,7 +2893,7 @@ out:
 	return path;
 }
 
-EAPI char *widget_service_gbar_script_group(const char *pkgid)
+EAPI char *widget_service_get_gbar_script_group(const char *pkgid)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -3036,9 +3093,17 @@ EAPI int widget_service_get_size(widget_size_type_e type, int *width, int *heigh
 	return convert_size_from_type(type, width, height);
 }
 
-EAPI widget_size_type_e widget_service_size_type(int width, int height)
+EAPI int widget_service_get_size_type(int width, int height, widget_size_type_e *size_type)
 {
 	int idx;
+	int output_size_type = WIDGET_SIZE_TYPE_UNKNOWN;
+	int ret = WIDGET_STATUS_ERROR_NONE;
+
+	if (size_type == NULL) {
+		ErrPrint("WIDGET_STATUS_ERROR_INVALID_PARAMETER\n");
+		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		goto out;
+	}
 
 	if (util_update_resolution(&s_info, SIZE_LIST) < 0) {
 		ErrPrint("Failed to update the size list\n");
@@ -3052,36 +3117,54 @@ EAPI widget_size_type_e widget_service_size_type(int width, int height)
 
 	switch (idx) {
 	case 0:
-		return WIDGET_SIZE_TYPE_1x1;
+		output_size_type = WIDGET_SIZE_TYPE_1x1;
+		break;
 	case 1:
-		return WIDGET_SIZE_TYPE_2x1;
+		output_size_type =  WIDGET_SIZE_TYPE_2x1;
+		break;
 	case 2:
-		return WIDGET_SIZE_TYPE_2x2;
+		output_size_type =  WIDGET_SIZE_TYPE_2x2;
+		break;
 	case 3:
-		return WIDGET_SIZE_TYPE_4x1;
+		output_size_type =  WIDGET_SIZE_TYPE_4x1;
+		break;
 	case 4:
-		return WIDGET_SIZE_TYPE_4x2;
+		output_size_type =  WIDGET_SIZE_TYPE_4x2;
+		break;
 	case 5:
-		return WIDGET_SIZE_TYPE_4x3;
+		output_size_type =  WIDGET_SIZE_TYPE_4x3;
+		break;
 	case 6:
-		return WIDGET_SIZE_TYPE_4x4;
+		output_size_type =  WIDGET_SIZE_TYPE_4x4;
+		break;
 	case 7:
-		return WIDGET_SIZE_TYPE_4x5;
+		output_size_type =  WIDGET_SIZE_TYPE_4x5;
+		break;
 	case 8:
-		return WIDGET_SIZE_TYPE_4x6;
+		output_size_type =  WIDGET_SIZE_TYPE_4x6;
+		break;
 	case 9:
-		return WIDGET_SIZE_TYPE_EASY_1x1;
+		output_size_type =  WIDGET_SIZE_TYPE_EASY_1x1;
+		break;
 	case 10:
-		return WIDGET_SIZE_TYPE_EASY_3x1;
+		output_size_type =  WIDGET_SIZE_TYPE_EASY_3x1;
+		break;
 	case 11:
-		return WIDGET_SIZE_TYPE_EASY_3x3;
+		output_size_type =  WIDGET_SIZE_TYPE_EASY_3x3;
+		break;
 	case 12:
-		return WIDGET_SIZE_TYPE_0x0;
+		output_size_type =  WIDGET_SIZE_TYPE_0x0;
+		break;
 	default:
+		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
-	return WIDGET_SIZE_TYPE_UNKNOWN;
+out:
+	if (size_type)
+		*size_type = output_size_type;
+
+	return ret;
 }
 
 EAPI void widget_set_last_status(widget_status_e status)

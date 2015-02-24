@@ -17,6 +17,8 @@
 #ifndef __WIDGET_ERRNO_H
 #define __WIDGET_ERRNO_H
 
+#include <tizen_error.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,13 +33,16 @@ extern "C" {
  * @{
  */
 
+
+#define TIZEN_ERROR_WIDGET -0x02FE0000
+
 /**
  * @brief Enumeration for the result status of widget operation.
  * @since_tizen 2.3
  */
 typedef enum widget_status {
-    WIDGET_STATUS_ERROR_NONE = 0x00000000, /**< Operation is successfully completed */
-    WIDGET_STATUS_ERROR = 0x80000000, /**< This will be OR'd with other specific error value */
+    WIDGET_STATUS_ERROR_NONE = TIZEN_ERROR_NONE, /**< Operation is successfully completed */
+    WIDGET_STATUS_ERROR = TIZEN_ERROR_WIDGET, /**< This will be OR'd with other specific error value */
     WIDGET_STATUS_ERROR_INVALID_PARAMETER = WIDGET_STATUS_ERROR | 0x0001, /**< Invalid request */
     WIDGET_STATUS_ERROR_FAULT = WIDGET_STATUS_ERROR | 0x0002, /**< Fault - Unable to recover from the error */
     WIDGET_STATUS_ERROR_OUT_OF_MEMORY = WIDGET_STATUS_ERROR | 0x0004, /**< Memory is not enough to do this operation */

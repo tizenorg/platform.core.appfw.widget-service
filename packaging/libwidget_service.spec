@@ -4,7 +4,7 @@ Name: libwidget_service
 Summary: Service API for gathering installed widget information
 Version: 1.0.0
 Release: 1
-Group: HomeTF/DynamicBox
+Group: HomeTF/widget
 License: Flora
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
