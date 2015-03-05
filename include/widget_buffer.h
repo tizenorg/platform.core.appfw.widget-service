@@ -35,7 +35,7 @@ extern "C" {
  * @internal
  * @brief Buffer type of widget
  */
-typedef enum widget_fb_type { /*!< Must have to be sync with libprovider, liblivebox-viewer */
+typedef enum widget_fb_type { /*!< Must have to be sync with libwidget-provider, libwidget-viewer */
     WIDGET_FB_TYPE_FILE,
     WIDGET_FB_TYPE_SHM,
     WIDGET_FB_TYPE_PIXMAP,

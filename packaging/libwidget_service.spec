@@ -28,7 +28,7 @@ BuildRequires: model-build-features
 BuildRequires: pkgconfig(x11)
 %endif
 
-%if "%{model_build_feature_livebox}" == "0"
+%if "%{model_build_feature_widget}" == "0"
 ExclusiveArch:
 %endif
 
