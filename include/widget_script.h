@@ -76,11 +76,6 @@ typedef enum widget_script_event {
     WIDGET_SCRIPT_KEY_FOCUS_OUT         = WIDGET_SCRIPT_KEY_EVENT | 0x00100000, /**< Key focus out */
 } widget_script_event_e;
 
-/**
- * @brief definition of event info structure
- * @since_tizen 2.3
- */
-typedef struct widget_event_info *widget_event_info_t;
 
 #ifdef __cplusplus
 }

@@ -168,9 +168,9 @@ extern widget_lock_info_t widget_service_create_lock(const char *uri, widget_tar
  * @brief Destroy a lock instance
  * @param[in] info Lock information handler
  * @return status
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER invalid paramter
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to manage the lock file
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully destroyed
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to manage the lock file
+ * @retval #WIDGET_ERROR_NONE Successfully destroyed
  */
 extern int widget_service_destroy_lock(widget_lock_info_t info);
 
@@ -179,8 +179,8 @@ extern int widget_service_destroy_lock(widget_lock_info_t info);
  * @brief Acquire a lock instance
  * @param[in] info Lock information handler
  * @return status
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER invalid paramter
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully destroyed
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #WIDGET_ERROR_NONE Successfully destroyed
  */
 extern int widget_service_acquire_lock(widget_lock_info_t info);
 
@@ -189,8 +189,8 @@ extern int widget_service_acquire_lock(widget_lock_info_t info);
  * @brief Acquire a lock instance
  * @param[in] info Lock information handler
  * @return status
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER invalid paramter
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully destroyed
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #WIDGET_ERROR_NONE Successfully destroyed
  */
 extern int widget_service_release_lock(widget_lock_info_t info);
 

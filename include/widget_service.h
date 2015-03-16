@@ -17,13 +17,15 @@
 #ifndef __WIDGET_SERVICE_H
 #define __WIDGET_SERVICE_H
 
+#include <tizen_type.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @file dynamic-service.h
- * @brief  This file declares API of libdynamic-service library
+ * @file widget-service.h
+ * @brief  This file declares API of libwidget-service library
  * @since_tizen 2.4
  */
 
@@ -32,21 +34,6 @@ extern "C" {
  * @{
  */
 
-/**
- * @brief Index of buffer
- * @since_tizen 2.4
- */
-#define WIDGET_PRIMARY_BUFFER -1
-#define WIDGET_UNKNOWN_BUFFER -2
-
-/**
- * @brief Definition for maximum number of supported widget size type.
- * @since_tizen 2.4
- */
-#define WIDGET_NR_OF_SIZE_LIST 13
-
-#define WIDGET_CH_IDX(a, idx) (((char *)(a))[(idx)])
-#define WIDGET_IS_INHOUSE(abi)    ((WIDGET_CH_IDX(abi, 0) == 'c' || WIDGET_CH_IDX(abi, 0) == 'C') && (WIDGET_CH_IDX(abi, 1) == '\0' || ((WIDGET_CH_IDX(abi, 1) == 'p' || WIDGET_CH_IDX(abi, 1) == 'P') && (WIDGET_CH_IDX(abi, 2) == 'p' || WIDGET_CH_IDX(abi, 2) == 'P') && WIDGET_CH_IDX(abi, 3) == '\0')))
 
 /**
  * @brief Enumeration for list of supporting widget size types.
@@ -65,8 +52,8 @@ typedef enum widget_size_type {
 	WIDGET_SIZE_TYPE_EASY_1x1 = 0x1000, /**< 224x215 based on 720x1280 resolution */
 	WIDGET_SIZE_TYPE_EASY_3x1 = 0x2000, /**< 680x215 based on 720x1280 resolution */
 	WIDGET_SIZE_TYPE_EASY_3x3 = 0x4000, /**< 680x653 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_0x0 = 0x0800,      /**< 720x1280 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_UNKNOWN = 0xFFFF   /**< Error */
+	WIDGET_SIZE_TYPE_FULL = 0x0800,      /**< 720x1280 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_UNKNOWN = 0xFFFF
 } widget_size_type_e;
 
 /**
@@ -94,27 +81,6 @@ typedef enum widget_key_status {
 	WIDGET_KEY_STATUS_FIRST,              /**< Focusable object item reaches to the first in it */
 	WIDGET_KEY_STATUS_LAST,               /**< Focusable object item reaches to the last in it */
 } widget_key_status_e;
-
-/**
- * @brief Delete type for widget delete operation.
- * @since_tizen 2.4
- */
-typedef enum widget_delete_type {
-	WIDGET_DELETE_PERMANENTLY = 0x01, /**< The widget is removed from the homescreen temporary */
-	WIDGET_DELETE_TEMPORARY = 0x02,   /**< The widget is removed from the homescreen by user permanently */
-	WIDGET_DELETE_INVALID = 0xff,     /**< Unknown event type */
-} widget_delete_type_e;
-
-/**
- * @brief Request type for closing Glance Bar
- * @since_tizen 2.4
- */
-typedef enum widget_gbar_close_type {
-	WIDGET_CLOSE_GBAR_NORMAL = 0x00,  /**< Glance Bar is closed normally */
-	WIDGET_CLOSE_GBAR_TIMEOUT = 0x01, /**< Glance Bar is closed because of timeout, there is no response */
-	WIDGET_CLOSE_GBAR_FAULT = 0x02,   /**< Glance Bar is closed because of unrecoverable error */
-	WIDGET_CLOSE_GBAR_INVALID = 0xff, /**< Unknown event type */
-} widget_gbar_close_type_e;
 
 /**
  * @internal
@@ -158,6 +124,22 @@ typedef enum widget_destroy_type {
 } widget_destroy_type_e; /**< Delete type */
 
 /**
+ * @brief Enumeration for widget event type.
+ * @details These events will be sent from the provider.
+ * @since_tizen 2.4
+ */
+typedef enum widget_event_type {
+    WIDGET_EVENT_WIDGET_UPDATED = 0,                      /**< Contents of the given widget is updated */
+    WIDGET_EVENT_WIDGET_EXTRA_UPDATED = 1,
+    WIDGET_EVENT_CREATED = 4,                            /**< A new widget is created */
+    WIDGET_EVENT_DELETED = 5,                            /**< A widget is deleted */
+    WIDGET_EVENT_PERIOD_CHANGED = 8,                     /**< Update period is changed */
+    WIDGET_EVENT_WIDGET_SIZE_CHANGED = 9,                /**< widget size is changed */
+    WIDGET_EVENT_EXTRA_INFO_UPDATED = 21,                /**< Extra information is updated */
+    WIDGET_EVENT_IGNORED = 0xFF                   /**< Request is ignored */
+} widget_event_type_e;
+
+/**
  * @brief
  * Text signal & Content event uses this data structure.
  * @since_tizen 2.4
@@ -194,6 +176,7 @@ typedef struct widget_buffer_event_data *widget_buffer_event_data_t;
  * @since_tizen 2.4
  */
 typedef struct widget_buffer *widget_buffer_h;
+
 
 /**
  * @internal
@@ -285,7 +268,7 @@ typedef struct widget_pkglist_handle *widget_pkglist_h;
  *  #WIDGET_SIZE_TYPE_4x4\n
  *  #WIDGET_SIZE_TYPE_4x5\n
  *  #WIDGET_SIZE_TYPE_4x6\n
- *  #WIDGET_SIZE_TYPE_0x0\n
+ *  #WIDGET_SIZE_TYPE_FULL\n
  *  #WIDGET_SIZE_TYPE_EASY_1x1\n
  *  #WIDGET_SIZE_TYPE_EASY_3x1\n
  *  #WIDGET_SIZE_TYPE_EASY_3x3.
@@ -296,10 +279,10 @@ typedef struct widget_pkglist_handle *widget_pkglist_h;
  * @param[in] type Size type
  * @param[out] width Pixel size width
  * @param[out] height Pixel size height
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
+ * @return #WIDGET_ERROR_NONE on success, 
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NONE Successfully done
  * @see widget_size_type()
  * @see widget_service_get_size_type()
  */
@@ -318,7 +301,7 @@ extern int widget_service_get_size(widget_size_type_e type, int *width, int *hei
  *  #WIDGET_SIZE_TYPE_4x4\n
  *  #WIDGET_SIZE_TYPE_4x5\n
  *  #WIDGET_SIZE_TYPE_4x6\n
- *  #WIDGET_SIZE_TYPE_0x0\n
+ *  #WIDGET_SIZE_TYPE_FULL\n
  *  #WIDGET_SIZE_TYPE_EASY_1x1\n
  *  #WIDGET_SIZE_TYPE_EASY_3x1\n
  *  #WIDGET_SIZE_TYPE_EASY_3x3\n
@@ -329,16 +312,16 @@ extern int widget_service_get_size(widget_size_type_e type, int *width, int *hei
  * @param[in] width Pixel size width
  * @param[in] height Pixel size height
  * @param[out] size_type Widget size type\n
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameter was given.
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter was given.
  * @see widget_size_type()
  * @see widget_service_get_size()
  */
 extern int widget_service_get_size_type(int width, int height, widget_size_type_e *size_type);
 
 /**
- * @brief Gets the need of mouse event for the given widget .
+ * @brief Gets the need of mouse event for the given widget.
  * @details This function gets need of mouse event for the given widget from database.\n
  * 	The value of mouse event requirement means... \n
  * 		1 : The widget requires mouse event. A viewer must has to feed the mouse event to the widget instance\n
@@ -350,15 +333,15 @@ extern int widget_service_get_size_type(int width, int height, widget_size_type_
  * @param[in] widget_id widget app id
  * @param[in] size_type widget size type
  * @param[out] need_of_mouse_event the need of mouse event
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameter was given.
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Some error occurs on opening DB file.
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter was given.
+ * @retval #WIDGET_ERROR_IO_ERROR Some error occurs on opening DB file.
  * @see widget_size_type_e
  * @see widget_service_get_need_of_touch_effect()
  * @see widget_service_get_need_of_frame()
  */
-extern int widget_service_get_need_of_mouse_event(const char *widget_id, widget_size_type_e size_type, int *need_of_mouse_event);
+extern int widget_service_get_need_of_mouse_event(const char *widget_id, widget_size_type_e size_type, bool *need_of_mouse_event);
 
 /**
  * @brief Gets the need of touch effect for the given widget.
@@ -373,15 +356,15 @@ extern int widget_service_get_need_of_mouse_event(const char *widget_id, widget_
  * @param[in] widget_id widget app id
  * @param[in] size_type Size type
  * @param[out] need_of_touch_event the need of touch effect
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameter was given.
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Some error occurs on opening DB file.
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter was given.
+ * @retval #WIDGET_ERROR_IO_ERROR Some error occurs on opening DB file.
  * @see widget_size_type_e
  * @see widget_service_get_need_of_mouse_event()
  * @see widget_service_get_need_of_frame()
   */
-extern int widget_service_get_need_of_touch_effect(const char *widget_id, widget_size_type_e size_type, int *need_of_touch_event);
+extern int widget_service_get_need_of_touch_effect(const char *widget_id, widget_size_type_e size_type, bool *need_of_touch_event);
 
 /**
  * @brief Gets the need of decoration frame for the given widget.
@@ -395,14 +378,14 @@ extern int widget_service_get_need_of_touch_effect(const char *widget_id, widget
  * @feature http://tizen.org/feature/shell.appwidget
  * @param[in] widget_id widget app id
  * @param[in] size_type Size type
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameter was given.
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Some error occurs on opening DB file.
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter was given.
+ * @retval #WIDGET_ERROR_IO_ERROR Some error occurs on opening DB file.
  * @see widget_service_get_need_of_mouse_event()
  * @see widget_service_get_need_of_touch_effect()
  */
-extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_type_e size_type, int *need_of_frame);
+extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_type_e size_type, bool *need_of_frame);
 
 /**
  * @brief Triggers the update event for given widget instance.
@@ -416,14 +399,14 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.provider
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_CANCEL Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
- * @retval #WIDGET_STATUS_ERROR_MEMORY Memory is not enough to make request
- * @retval #WIDGET_STATUS_ERROR_FAULT Failed to create a request packet
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully requested
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_CANCELED Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
+ * @retval #WIDGET_ERROR_MEMORY Memory is not enough to make request
+ * @retval #WIDGET_ERROR_FAULT Failed to create a request packet
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NONE Successfully requested
  * @see widget_service_trigger_update()
  */
 extern int widget_service_trigger_update(const char *widgetid, const char *instance_id, const char *cluster, const char *category, const char *content, int force);
@@ -437,13 +420,13 @@ extern int widget_service_trigger_update(const char *widgetid, const char *insta
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.provider
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully changed(requested)
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_FAULT Failed to create a request packet
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
- * @retval #WIDGET_STATUS_ERROR_MEMORY Not enough memory
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_NONE Successfully changed(requested)
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_FAULT Failed to create a request packet
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_MEMORY Not enough memory
  */
 extern int widget_service_change_period(const char *widgetid, const char *instance_id, double period);
 
@@ -462,11 +445,11 @@ extern int widget_service_change_period(const char *widgetid, const char *instan
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval count Count of widget packages
  * @see widget_service_get_pkglist_by_pkgid()
  */
@@ -486,14 +469,14 @@ extern int widget_service_get_pkglist(int (*cb)(const char *pkgid, const char *w
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_NONE Status success
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_STATUS_ERROR_MEMORY Memory error
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecoverable error occurred
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_NONE Status success
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_MEMORY Memory error
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
  */
 extern int widget_service_get_applist(const char *widgetid, void (*cb)(const char *widgetid, const char *appid, void *data), void *data);
 
@@ -505,9 +488,9 @@ extern int widget_service_get_applist(const char *widgetid, void (*cb)(const cha
  * @feature http://tizen.org/feature/shell.appwidget
  * @param[in] widgetid widget Package Id
  * @return char * type
- * @retval @c NULL If it fails to get main application Id (UI-APPID), widget_last_status() will returns reason of failure.
+ * @retval @c NULL If it fails to get main application Id (UI-APPID), get_last_result() will returns reason of failure.
  * @retval appid Main application Id
- * @see widget_last_status()
+ * @see get_last_result()
  */
 extern char *widget_service_get_main_app_id(const char *widgetid);
 
@@ -526,12 +509,12 @@ extern char *widget_service_get_main_app_id(const char *widgetid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
  * @retval int Count of widget packages
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_service_get_pkglist()
  */
 extern int widget_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *widgetid, int is_prime, void *data), void *data);
@@ -552,9 +535,9 @@ extern int widget_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(cons
  * @feature http://tizen.org/feature/shell.appwidget
  * @return int count
  * @retval Count of widget packages
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_service_get_pkglist_by_pkgid()
  */
 extern int widget_service_get_pkglist_by_category(const char *category, int (*cb)(const char *widgetid, void *data), void *data);
@@ -567,7 +550,7 @@ extern int widget_service_get_pkglist_by_category(const char *category, int (*cb
  * @feature http://tizen.org/feature/shell.appwidget
  * @param[in] id widget Id or Package Id or UI App Id
  * @return char * type
- * @retval @c NULL Failed to get primary widgetid, widget_last_status() will returns reason of failure.
+ * @retval @c NULL Failed to get primary widgetid, get_last_result() will returns reason of failure.
  * @retval widgetid Primary widget Id. which is allocated in the heap
  * @pre Must be released returned string by manually.
  * @see widget_service_package_id()
@@ -583,44 +566,10 @@ extern char *widget_service_get_widget_id(const char *id);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
  * @return the primary flag of given widget id.
- * @retval 0 If is not a primary, widget_last_status() will returns reason of failure if it fails.
+ * @retval 0 If is not a primary, get_last_result() will returns reason of failure if it fails.
  * @retval 1 If it is a primary widget
  */
 extern int widget_service_is_primary(const char *widgetid);
-
-/**
- * @internal
- * @brief Get the category using given widgetid.
- * @since_tizen 2.4
- * @param[in] widgetid widget AppId
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @feature http://tizen.org/feature/shell.appwidget
- * @return char *
- * @retval @c NULL Failed to get primary widgetid, widget_last_status() will returns reason of failure if it fails.
- * @retval category Category string which is allocated in the heap.
- * @pre Must be released returned string by manually
- * @post N/A
- * @see widget_service_widget_id()
- */
-extern char *widget_service_get_category(const char *widgetid);
-
-/**
- * @brief Gets the name of a widget (provider name == widget appid), you have to release the return value after use it.
- * @details
- *    widget has provider process for each widget instances.\n
- *    To get the provider's package name, you can use this API.\n
- *    If the given widgetid is inhouse widget, the return string will be the same with given argument but it is allocated in the heap.
- * @since_tizen 2.4
- * @privlevel N/P
- * @feature http://tizen.org/feature/shell.appwidget
- * @return char * type
- * @param[in] widgetid widget Id
- * @retval @c NULL Failed to get provider name, widget_last_status() will returns reason of failure if it fails.
- * @retval widgetid widget AppId which is allocated on the heap
- * @post Returned string must be free'd manually.
- */
-extern char *widget_service_get_provider_name(const char *widgetid);
 
 /**
  * @brief Gets the appId of setup app which is specified by given widget Id's manifest.
@@ -634,10 +583,10 @@ extern char *widget_service_get_provider_name(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @param[in] widgetid widget Id
  * @return char * type
- * @retval @c NULL There is no setup application or error occurred, you can check it using widget_last_status()
+ * @retval @c NULL There is no setup application or error occurred, you can check it using get_last_result()
  * @retval appid AppId if exists or @c NULL
  * @post Returned string must be free'd manually.
- * @see widget_last_status()
+ * @see get_last_result()
  */
 extern char *widget_service_get_app_id_of_setup_app(const char *widgetid);
 
@@ -651,7 +600,7 @@ extern char *widget_service_get_app_id_of_setup_app(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval appid String which is allocated in the heap
- * @retval @c NULL Invalid appid, widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL Invalid appid, get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  * @see widget_service_widget_id()
  */
@@ -668,7 +617,7 @@ extern char *widget_service_get_package_id(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval name If it fails to get name
- * @retval @c NULL Allocated heap address, widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL Allocated heap address, get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd by manually.
  * @see widget_service_i18n_icon()
  * @see widget_service_preview()
@@ -687,7 +636,7 @@ extern char *widget_service_get_i18n_name(const char *widgetid, const char *lang
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval path Preview image path
- * @retval @c NULL There is no preview image file, widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL There is no preview image file, get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  * @see widget_service_i18n_icon()
  * @see widget_service_i18n_name()
@@ -707,14 +656,14 @@ extern char *widget_service_get_preview_image_path(const char *widgetid, int siz
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval content Content string
- * @retval @c NULL There is no specified content string, or widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL There is no specified content string, or get_last_result() will returns reason of failure if it fails.
  * @pre Manifest has the default content string. &lt;content&gt;Default content string&lt;content&gt; tag.
  * @post Returned string must be free'd manually.
  */
 extern char *widget_service_get_content_string(const char *widgetid);
 
 /**
- * @brief Gives Internationalized icon path of given widget package.
+ * @brief Gives icon path of given widget package.
  * @details The user should free the returned string with free().
  * @since_tizen 2.4
  * @param[in] widgetid widget AppId (It must has to be a widget package ID. not the UI-APP and the PACKAGE)
@@ -724,12 +673,12 @@ extern char *widget_service_get_content_string(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval name Allocated heap address
- * @retval @c NULL Fails to get path of an icon, widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL Fails to get path of an icon, get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  * @see widget_service_i18n_name()
  * @see widget_service_preview()
  */
-extern char *widget_service_get_i18n_icon(const char *pkgid, const char *lang);
+extern char *widget_service_get_icon(const char *pkgid, const char *lang);
 
 /**
  * @internal
@@ -741,7 +690,7 @@ extern char *widget_service_get_i18n_icon(const char *pkgid, const char *lang);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return the "nodisplay" value of given widget.
  * @retval 1 The box should not be listed by the widget list app
- * @retval 0 Box should be listed, widget_last_status() will returns reason of failure if it fails.
+ * @retval 0 Box should be listed, get_last_result() will returns reason of failure if it fails.
  * @pre widget tag includes "nodisplay" attribute.
  */
 extern int widget_service_get_nodisplay(const char *widgetid);
@@ -756,7 +705,7 @@ extern int widget_service_get_nodisplay(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval abi String which is allocated in the heap
- * @retval @c NULL Failed to get ABI of given widget, widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL Failed to get ABI of given widget, get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  */
 extern char *widget_service_get_abi(const char *widgetid);
@@ -787,7 +736,7 @@ extern int widget_service_is_enabled(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval string Script file path
- * @retval @c NULL Not specified script file, widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL Not specified script file, get_last_result() will returns reason of failure if it fails.
  * @pre widget should be developed as script type.
  * @post Return'd string must be free'd manually.
  * @see widget_service_widget_script_group()
@@ -804,7 +753,7 @@ extern char *widget_service_get_widget_script_path(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval Group Name of widget
- * @retval @c NULL If there is no group defined, or widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL If there is no group defined, or get_last_result() will returns reason of failure if it fails.
  * @pre widget should be developed as script type.
  * @post Return'd string must be free'd manually.
  * @see widget_service_widget_script_path()
@@ -821,7 +770,7 @@ extern char *widget_service_get_widget_script_group(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval string Script file path
- * @retval @c NULL No specified script file for Glance Bar layout, or widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL No specified script file for Glance Bar layout, or get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  * @see widget_service_gbar_script_group()
  */
@@ -837,7 +786,7 @@ extern char *widget_service_get_gbar_script_path(const char *widgetid);
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval string Script group name
- * @retval @c NULL No script path, or widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL No script path, or get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  * @see widget_service_gbar_script_path()
  */
@@ -857,12 +806,12 @@ extern char *widget_service_get_gbar_script_group(const char *widgetid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_NONE If succeed to get supported size list
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @return #WIDGET_ERROR_NONE on success, 
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_NONE If succeed to get supported size list
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_service_get_supported_size_types()
  */
 extern int widget_service_get_supported_sizes(const char *widgetid, int *cnt, int *w, int *h);
@@ -878,12 +827,12 @@ extern int widget_service_get_supported_sizes(const char *widgetid, int *cnt, in
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_NONE Successfully done
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_service_get_supported_sizes()
  */
 extern int widget_service_get_supported_size_types(const char *widgetid, int *cnt, int *types);
@@ -898,12 +847,12 @@ extern int widget_service_get_supported_size_types(const char *widgetid, int *cn
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully done
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @return #WIDGET_ERROR_NONE on success, 
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_NONE Successfully done
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_service_enumerate_cluster_list()
  */
 extern int widget_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data);
@@ -917,11 +866,11 @@ extern int widget_service_enumerate_category_list(const char *cluster, int (*cb)
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval count Count of category items
  * @see widget_service_enumerate_category_list()
  */
@@ -940,11 +889,11 @@ extern int widget_service_enumerate_cluster_list(int (*cb)(const char *cluster, 
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_NONE Succeed to initialize
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access a DB
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @return #WIDGET_ERROR_NONE on success, 
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_NONE Succeed to initialize
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access a DB
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_service_fini()
  */
 extern int widget_service_init(void);
@@ -956,11 +905,11 @@ extern int widget_service_init(void);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_NONE Succeed to finalize
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to close the DB (access failed to DB)
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission denied
+ * @return #WIDGET_ERROR_NONE on success, 
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_NONE Succeed to finalize
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to close the DB (access failed to DB)
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @pre widget_service_init.
  * @see widget_service_init()
  */
@@ -985,7 +934,7 @@ extern int widget_service_fini(void);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
  * @return handle
- * @retval @c NULL If it fails, widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL If it fails, get_last_result() will returns reason of failure if it fails.
  * @retval handle If it successfully create the package list iterator
  * @see widget_service_pkglist_destroy()
  */
@@ -1002,12 +951,12 @@ extern widget_pkglist_h widget_service_create_pkglist(const char *widgetid, widg
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully get the record
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_STATUS_ERROR_NOT_EXIST Reach to the end of result set. you can rewind the iterator call widget_service_pkglist_create() again with current handle
- * @retval #WIDGET_STATUS_ERROR_MEMORY Not enough memory
+ * @return #WIDGET_ERROR_NONE on success, 
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_NONE Successfully get the record
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NOT_EXIST Reach to the end of result set. you can rewind the iterator call widget_service_pkglist_create() again with current handle
+ * @retval #WIDGET_ERROR_MEMORY Not enough memory
  * @post You must release the widgetid, pkgname manually.
  * @see widget_service_pkglist_create()
  * @see widget_service_pkglist_destroy()
@@ -1022,10 +971,10 @@ extern int widget_service_get_pkglist_item(widget_pkglist_h handle, char **widge
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_STATUS_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_STATUS_ERROR_XXX) on failure
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid handle
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully destroyed
+ * @return #WIDGET_ERROR_NONE on success, 
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
+ * @retval #WIDGET_ERROR_NONE Successfully destroyed
  * @pre Handle must be created by widget_service_pkglist_create().
  * @post You have not to use the handle again after destroy it.
  * @see widget_service_pkglist_create()
@@ -1043,8 +992,8 @@ extern int widget_service_destroy_pkglist(widget_pkglist_h handle);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
  * @return count of instances
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #WIDGET_STATUS_ERROR_FAULT Unrecorvarable error occurred
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #WIDGET_ERROR_FAULT Unrecorvarable error occurred
  * @retval count Positive value including ZERO, Count of activated instances on viewers
  */
 extern int widget_service_get_instance_count(const char *widgetid, const char *cluster, const char *category);
@@ -1059,7 +1008,7 @@ extern int widget_service_get_instance_count(const char *widgetid, const char *c
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
  * @retval path String which is allocated on the heap
- * @retval @c NULL No libexec attribute, or widget_last_status() will returns reason of failure if it fails.
+ * @retval @c NULL No libexec attribute, or get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  */
 extern char *widget_service_get_libexec(const char *widgetid);
@@ -1075,11 +1024,24 @@ extern char *widget_service_get_libexec(const char *widgetid);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char *
- * @retval @c NULL if it fails to get pkgname, widget_last_status() will returns reason of failure.
+ * @retval @c NULL if it fails to get pkgname, get_last_result() will returns reason of failure.
  * @retval address heap address of pkgname
  * @post return'd string should be released by "free()"
  */
 extern char *widget_service_get_widget_id_by_libexec(const char *libexec);
+
+/**
+* @brief Gets the base file path of the current widget
+* @since_tizen 2.4
+* @param[out] base_file_path base file path
+* @privlevel public
+* @privilege %http://tizen.org/privilege/widget.viewer
+* @feature http://tizen.org/feature/shell.appwidget
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
+*/
+extern int widget_service_get_base_file_path(char **base_file_path);
 
 /**
  * @}

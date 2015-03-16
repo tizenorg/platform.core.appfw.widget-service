@@ -41,6 +41,7 @@
 #include "util.h"
 #include "debug.h"
 #include "widget_service.h"
+#include "widget_service_internal.h"
 #include "widget_cmd_list.h"
 #include "widget_buffer.h"
 
@@ -94,7 +95,7 @@ static struct service_info s_info = {
 
 	.base_parse = 0,
 
-	.last_status = WIDGET_STATUS_ERROR_NONE,
+	.last_status = WIDGET_ERROR_NONE,
 };
 
 struct pkgmgr_cbdata {
@@ -114,10 +115,10 @@ static sqlite3 *open_db(void)
 		if (ret != SQLITE_OK) {
 			switch (ret) {
 			case SQLITE_PERM:
-				widget_set_last_status(WIDGET_STATUS_ERROR_PERMISSION_DENIED);
+				set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
 				break;
 			default:
-				widget_set_last_status(WIDGET_STATUS_ERROR_IO_ERROR);
+				set_last_result(WIDGET_ERROR_IO_ERROR);
 				break;
 			}
 
@@ -179,11 +180,11 @@ static int convert_size_from_type(widget_size_type_e type, int *width, int *heig
 	case WIDGET_SIZE_TYPE_EASY_3x3: /*!< 680x653 */
 		idx = 11;
 		break;
-	case WIDGET_SIZE_TYPE_0x0: /*!< 720x1280 */
+	case WIDGET_SIZE_TYPE_FULL: /*!< 720x1280 */
 		idx = 12;
 		break;
 	default:
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (util_update_resolution(&s_info, SIZE_LIST) < 0) {
@@ -192,7 +193,7 @@ static int convert_size_from_type(widget_size_type_e type, int *width, int *heig
 
 	*width = SIZE_LIST[idx].w;
 	*height = SIZE_LIST[idx].h;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 static int pkgmgr_cb(const pkgmgrinfo_appinfo_h handle, void *user_data)
@@ -281,7 +282,7 @@ static char *cur_locale(void)
 	} else {
 		language = strdup("en-us");
 		if (!language) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("Heap: %s\n", strerror(errno));
 		}
 	}
@@ -303,7 +304,7 @@ static char *get_default_name(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT name FROM client WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
 		return NULL;
@@ -311,7 +312,7 @@ static char *get_default_name(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -327,9 +328,9 @@ static char *get_default_name(const char *pkgid)
 				ErrPrint("Heap: %s\n", strerror(errno));
 			}
 		}
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 	} else {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 	}
 
 out:
@@ -353,7 +354,7 @@ static char *get_default_icon(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT icon FROM client WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
 		return NULL;
@@ -361,7 +362,7 @@ static char *get_default_icon(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -370,19 +371,19 @@ static char *get_default_icon(const char *pkgid)
 	if (ret == SQLITE_ROW) {
 		const char *tmp;
 
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 		tmp = (const char *)sqlite3_column_text(stmt, 0);
 		if (tmp && strlen(tmp)) {
 			icon = strdup(tmp);
 			if (!icon) {
-				widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 				ErrPrint("Heap: %s\n", strerror(errno));
 			}
 		}
 	} else if (ret == SQLITE_DONE) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 	} else {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 	}
 
 out:
@@ -413,7 +414,7 @@ static char *get_widget_pkgname_by_appid(const char *appid)
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE (appid = ? AND prime = 1) OR (uiapp = ? AND prime = 1) OR pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		close_db(handle);
 		return NULL;
 	}
@@ -421,27 +422,27 @@ static char *get_widget_pkgname_by_appid(const char *appid)
 	ret = sqlite3_bind_text(stmt, 1, appid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, appid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 3, appid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		goto out;
 	}
 
 	if (sqlite3_step(stmt) != SQLITE_ROW) {
 		ErrPrint("Error: %s (has no record? - %s)\n", sqlite3_errmsg(handle), appid);
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 		goto out;
 	}
 
@@ -449,13 +450,13 @@ static char *get_widget_pkgname_by_appid(const char *appid)
 	if (tmp && strlen(tmp)) {
 		pkgid = strdup(tmp);
 		if (!pkgid) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("Heap: %s\n", strerror(errno));
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+			set_last_result(WIDGET_ERROR_NONE);
 		}
 	} else {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 	}
 
 out:
@@ -473,7 +474,7 @@ static inline int update_lang_info(void)
 	syslang = vconf_get_str(VCONFKEY_LANGSET);
 	if (!syslang) {
 		ErrPrint("Failed to get vconf-lang\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		return -EFAULT;
 	}
 
@@ -489,7 +490,7 @@ static inline int update_lang_info(void)
 	err = U_ZERO_ERROR;
 	uloc_setDefault((const char *)s_info.syslang, &err);
 	if (!U_SUCCESS(err)) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Failed to set default lang: %s\n", u_errorName(err));
 		free(s_info.syslang);
 		s_info.syslang = NULL;
@@ -498,7 +499,7 @@ static inline int update_lang_info(void)
 
 	s_info.iso3lang = uloc_getISO3Language(uloc_getDefault());
 	if (!s_info.iso3lang || !strlen(s_info.iso3lang)) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Failed to get iso3lang\n");
 		free(s_info.syslang);
 		s_info.syslang = NULL;
@@ -508,7 +509,7 @@ static inline int update_lang_info(void)
 	err = U_ZERO_ERROR;
 	s_info.country_len = uloc_getCountry(uloc_getDefault(), s_info.country, ULOC_COUNTRY_CAPACITY, &err);
 	if (!U_SUCCESS(err) || s_info.country_len <= 0) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Failed to get locale: %s, %s, %d (%s)\n", u_errorName(err), s_info.iso3lang, s_info.country_len, s_info.country);
 		free(s_info.syslang);
 		s_info.syslang = NULL;
@@ -528,19 +529,19 @@ EAPI int widget_service_change_period(const char *pkgname, const char *id, doubl
 
 	if (!pkgname || !id || period < 0.0f) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	uri = util_id_to_uri(id);
 	if (!uri) {
-		return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	packet = packet_create((const char *)&cmd, "ssd", pkgname, uri, period);
 	free(uri);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for period changing\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
@@ -549,12 +550,12 @@ EAPI int widget_service_change_period(const char *pkgname, const char *id, doubl
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Failed to parse a result packet\n");
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 		}
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to get result packet\n");
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	}
 
 	return ret;
@@ -568,13 +569,13 @@ EAPI int widget_service_get_instance_count(const char *pkgname, const char *clus
 	int ret;
 
 	if (!pkgname) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	packet = packet_create((const char *)&cmd, "sssd", pkgname, cluster, category, util_timestamp());
 	if (!packet) {
 		ErrPrint("Failed to create a packet for period changing\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
@@ -583,12 +584,12 @@ EAPI int widget_service_get_instance_count(const char *pkgname, const char *clus
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Failed to parse a result packet\n");
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 		}
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to get result packet\n");
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	}
 
 	return ret;
@@ -604,18 +605,18 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 
 	if (!pkgname) {
 		ErrPrint("Invalid argument\n");
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (!force && access("/tmp/.live.paused", R_OK) == 0) {
 		DbgPrint("Provider is paused\n");
-		return WIDGET_STATUS_ERROR_CANCEL;
+		return WIDGET_ERROR_CANCELED;
 	}
 
 	if (id) {
 		uri = util_id_to_uri(id);
 		if (!uri) {
-			return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+			return WIDGET_ERROR_OUT_OF_MEMORY;
 		}
 	} else {
 		uri = NULL;
@@ -637,7 +638,7 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 	free(uri);
 	if (!packet) {
 		ErrPrint("Failed to create a packet for service_update\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	result = com_core_packet_oneshot_send(SERVICE_SOCKET, packet, DEFAULT_TIMEOUT);
@@ -646,13 +647,13 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 	if (result) {
 		if (packet_get(result, "i", &ret) != 1) {
 			ErrPrint("Failed to parse a result packet\n");
-			ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
 		}
 
 		packet_unref(result);
 	} else {
 		ErrPrint("Failed to get result packet\n");
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 	}
 
 	return ret;
@@ -665,13 +666,13 @@ EAPI widget_pkglist_h widget_service_create_pkglist(const char *pkgid, widget_pk
 	if (handle) {
 		if (handle->type != PKGLIST_TYPE_WIDGET_LIST) {
 			ErrPrint("Invalid handle\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
 		if (pkgid) {
 			ErrPrint("pkgid should be NULL\n");
-			widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+			set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 			return NULL;
 		}
 
@@ -681,7 +682,7 @@ EAPI widget_pkglist_h widget_service_create_pkglist(const char *pkgid, widget_pk
 
 	handle = calloc(1, sizeof(*handle));
 	if (!handle) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		ErrPrint("Heap: %s\n", strerror(errno));
 		return NULL;
 	}
@@ -697,7 +698,7 @@ EAPI widget_pkglist_h widget_service_create_pkglist(const char *pkgid, widget_pk
 	if (!pkgid) {
 		ret = sqlite3_prepare_v2(handle->handle, "SELECT appid, pkgid, prime FROM pkgmap", -1, &handle->stmt, NULL);
 		if (ret != SQLITE_OK) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
 			close_db(handle->handle);
 			free(handle);
@@ -706,7 +707,7 @@ EAPI widget_pkglist_h widget_service_create_pkglist(const char *pkgid, widget_pk
 	} else {
 		ret = sqlite3_prepare_v2(handle->handle, "SELECT appid, pkgid, prime FROM pkgmap WHERE appid = ?", -1, &handle->stmt, NULL);
 		if (ret != SQLITE_OK) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
 			close_db(handle->handle);
 			free(handle);
@@ -715,7 +716,7 @@ EAPI widget_pkglist_h widget_service_create_pkglist(const char *pkgid, widget_pk
 
 		ret = sqlite3_bind_text(handle->stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 		if (ret != SQLITE_OK) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Error: %s\n", sqlite3_errmsg(handle->handle));
 			sqlite3_finalize(handle->stmt);
 			close_db(handle->handle);
@@ -734,11 +735,11 @@ EAPI int widget_service_get_pkglist_item(widget_pkglist_h handle, char **appid, 
 	char *_pkgname = NULL;
 
 	if (!handle || handle->type != PKGLIST_TYPE_WIDGET_LIST) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (sqlite3_step(handle->stmt) != SQLITE_ROW) {
-		return WIDGET_STATUS_ERROR_NOT_EXIST;
+		return WIDGET_ERROR_NOT_EXIST;
 	}
 
 	if (appid) {
@@ -747,7 +748,7 @@ EAPI int widget_service_get_pkglist_item(widget_pkglist_h handle, char **appid, 
 			_appid = strdup(tmp);
 			if (!_appid) {
 				ErrPrint("Heap: %s\n", strerror(errno));
-				return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+				return WIDGET_ERROR_OUT_OF_MEMORY;
 			}
 		}
 	}
@@ -759,7 +760,7 @@ EAPI int widget_service_get_pkglist_item(widget_pkglist_h handle, char **appid, 
 			if (!_pkgname) {
 				ErrPrint("Heap: %s\n", strerror(errno));
 				free(_appid);
-				return WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+				return WIDGET_ERROR_OUT_OF_MEMORY;
 			}
 		}
 	}
@@ -776,13 +777,13 @@ EAPI int widget_service_get_pkglist_item(widget_pkglist_h handle, char **appid, 
 		*pkgname = _pkgname;
 	}
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_service_destroy_pkglist(widget_pkglist_h handle)
 {
 	if (!handle || handle->type != PKGLIST_TYPE_WIDGET_LIST) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle->type = PKGLIST_TYPE_UNKNOWN;
@@ -790,7 +791,7 @@ EAPI int widget_service_destroy_pkglist(widget_pkglist_h handle)
 	sqlite3_finalize(handle->stmt);
 	close_db(handle->handle);
 	free(handle);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_service_get_pkglist(int (*cb)(const char *appid, const char *pkgname, int is_prime, void *data), void *data)
@@ -803,18 +804,18 @@ EAPI int widget_service_get_pkglist(int (*cb)(const char *appid, const char *pkg
 	sqlite3 *handle;
 
 	if (!cb) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT appid, pkgid, prime FROM pkgmap", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -859,18 +860,18 @@ EAPI int widget_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const 
 	sqlite3 *handle;
 
 	if (!cb || !pkgid) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgid, prime FROM pkgmap WHERE appid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -879,7 +880,7 @@ EAPI int widget_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const 
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -917,18 +918,18 @@ EAPI int widget_service_get_pkglist_by_category(const char *category, int (*cb)(
 	sqlite3 *handle;
 
 	if (!cb || !category) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM pkgmap WHERE category = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -937,7 +938,7 @@ EAPI int widget_service_get_pkglist_by_category(const char *category, int (*cb)(
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -974,37 +975,37 @@ EAPI int widget_service_get_applist(const char *widgetid, void (*cb)(const char 
 	int ret;
 
 	if (!widgetid || !cb) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE (pkgid = ?) or (appid = ?)", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, widgetid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
 	if (sqlite3_step(stmt) != SQLITE_ROW) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -1013,7 +1014,7 @@ EAPI int widget_service_get_applist(const char *widgetid, void (*cb)(const char 
 	tmp = (const char *)sqlite3_column_text(stmt, 0);
 	if (!tmp || !strlen(tmp)) {
 		ErrPrint("Invalid package name (%s)\n", widgetid);
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -1022,7 +1023,7 @@ EAPI int widget_service_get_applist(const char *widgetid, void (*cb)(const char 
 	pkgid = strdup(tmp);
 	if (!pkgid) {
 		ErrPrint("Error: %s\n", strerror(errno));
-		ret = WIDGET_STATUS_ERROR_OUT_OF_MEMORY;
+		ret = WIDGET_ERROR_OUT_OF_MEMORY;
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -1036,14 +1037,14 @@ EAPI int widget_service_get_applist(const char *widgetid, void (*cb)(const char 
 
 	switch (ret) {
 	case PMINFO_R_EINVAL:
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
 	case PMINFO_R_OK:
-		ret = WIDGET_STATUS_ERROR_NONE;
+		ret = WIDGET_ERROR_NONE;
 		break;
 	case PMINFO_R_ERROR:
 	default:
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		break;
 	}
 
@@ -1128,18 +1129,18 @@ EAPI int widget_service_get_supported_size_types(const char *pkgid, int *cnt, in
 	int ret;
 
 	if (!types || !cnt || !pkgid) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -1148,7 +1149,7 @@ EAPI int widget_service_get_supported_size_types(const char *pkgid, int *cnt, in
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -1166,7 +1167,7 @@ EAPI int widget_service_get_supported_size_types(const char *pkgid, int *cnt, in
 	*cnt = ret;
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
-	ret = WIDGET_STATUS_ERROR_NONE;
+	ret = WIDGET_ERROR_NONE;
 out:
 	close_db(handle);
 	return ret;
@@ -1181,13 +1182,13 @@ EAPI char *widget_service_get_content_string(const char *pkgid)
 
 	handle = open_db();
 	if (!handle) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT content FROM client WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
 		return NULL;
@@ -1195,7 +1196,7 @@ EAPI char *widget_service_get_content_string(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -1208,16 +1209,16 @@ EAPI char *widget_service_get_content_string(const char *pkgid)
 		if (tmp && strlen(tmp)) {
 			content = strdup(tmp);
 			if (!content) {
-				widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 				ErrPrint("Heap: %s\n", strerror(errno));
 			}
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+			set_last_result(WIDGET_ERROR_NONE);
 		}
 	} else if (ret == SQLITE_DONE) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 	} else {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 	}
 
 out:
@@ -1235,7 +1236,7 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widgetid)
 	char *appid;
 
 	if (!widgetid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -1246,7 +1247,7 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widgetid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT setup FROM client WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
 		return NULL;
@@ -1255,7 +1256,7 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widgetid)
 	appid = NULL;
 	ret = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -1264,7 +1265,7 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widgetid)
 	if (ret == SQLITE_ROW) {
 		const char *tmp;
 
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 
 		tmp = (const char *)sqlite3_column_text(stmt, 0);
 		if (!tmp || !strlen(tmp)) {
@@ -1273,11 +1274,11 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widgetid)
 
 		appid = strdup(tmp);
 		if (!appid) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("Error: %s\n", strerror(errno));
 		}
 	} else {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 	}
 
 out:
@@ -1294,7 +1295,7 @@ EAPI int widget_service_get_nodisplay(const char *pkgid)
 	int ret;
 
 	if (!pkgid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return 0;
 	}
 
@@ -1305,7 +1306,7 @@ EAPI int widget_service_get_nodisplay(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT nodisplay FROM client WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
 		return 0;
@@ -1313,7 +1314,7 @@ EAPI int widget_service_get_nodisplay(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		ret = 0;
 		goto out;
@@ -1321,10 +1322,10 @@ EAPI int widget_service_get_nodisplay(const char *pkgid)
 
 	ret = sqlite3_step(stmt);
 	if (ret == SQLITE_ROW) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 		ret = !!sqlite3_column_int(stmt, 0);
 	} else {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 		ret = 0;
 	}
 
@@ -1335,30 +1336,30 @@ out:
 	return ret;
 }
 
-EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e size_type, int *need_of_frame)
+EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e size_type, bool *need_of_frame)
 {
 	char *widgetid = NULL;
 	sqlite3_stmt *stmt = NULL;
 	sqlite3 *handle = NULL;
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 	int ret_sqlite = 0;
 	int result_need_of_frame = 0;
 
 	if (pkgid == NULL || need_of_frame == NULL) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	handle = open_db();
 	if (!handle) {
 		ErrPrint("Unable to open a DB\n");
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
 	ret_sqlite = sqlite3_prepare_v2(handle, "SELECT need_frame FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
 	if (ret_sqlite != SQLITE_OK) {
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -1374,7 +1375,7 @@ EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e 
 	free(widgetid);
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		result_need_of_frame = 0;
 		goto out;
 	}
@@ -1382,7 +1383,7 @@ EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e 
 	ret_sqlite = sqlite3_bind_int(stmt, 2, size_type);
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		result_need_of_frame = 0;
 		goto out;
 	}
@@ -1391,7 +1392,7 @@ EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e 
 	if (ret_sqlite != SQLITE_ROW) {
 		result_need_of_frame = 0;
 		ErrPrint("There is no such result\n");
-		ret = WIDGET_STATUS_ERROR_NOT_EXIST;
+		ret = WIDGET_ERROR_NOT_EXIST;
 		goto out;
 	}
 
@@ -1409,37 +1410,37 @@ out:
 	if (handle)
 		close_db(handle);
 
-	if (ret != WIDGET_STATUS_ERROR_NONE)
+	if (ret != WIDGET_ERROR_NONE)
 		ErrPrint("Error: %d\n", ret);
 
 	return ret;
 }
 
-EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_type_e size_type, int *need_of_touch_event)
+EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_type_e size_type, bool *need_of_touch_event)
 {
 	char *widgetid = NULL;
 	sqlite3_stmt *stmt = NULL;
 	sqlite3 *handle = NULL;
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 	int ret_sqlite;
 	int result_need_of_touch_event = 0;
 
 	if (pkgid == NULL || need_of_touch_event == NULL) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	handle = open_db();
 	if (!handle) {
 		ErrPrint("Unable to open a DB\n");
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
 	ret_sqlite = sqlite3_prepare_v2(handle, "SELECT touch_effect FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto out;
 	}
 
@@ -1452,7 +1453,7 @@ EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_
 	widgetid = widget_service_get_widget_id(pkgid);
 	if (!widgetid) {
 		ErrPrint("Invalid appid (%s)\n", pkgid);
-		ret = widget_last_status();
+		ret = get_last_result();
 		result_need_of_touch_event = 1;
 		goto out;
 	}
@@ -1461,7 +1462,7 @@ EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_
 	free(widgetid);
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		result_need_of_touch_event = 1;
 		goto out;
 	}
@@ -1469,7 +1470,7 @@ EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_
 	ret_sqlite = sqlite3_bind_int(stmt, 2, size_type);
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		result_need_of_touch_event = 1;
 		goto out;
 	}
@@ -1478,7 +1479,7 @@ EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_
 	if (ret_sqlite != SQLITE_ROW) {
 		result_need_of_touch_event = 1; /**< Default true: In this case the DB is corrupted. */
 		ErrPrint("There is no result\n");
-		ret = WIDGET_STATUS_ERROR_NOT_EXIST;
+		ret = WIDGET_ERROR_NOT_EXIST;
 		goto out;
 	}
 
@@ -1496,29 +1497,29 @@ out:
 	if (handle)
 		close_db(handle);
 
-	if (ret != WIDGET_STATUS_ERROR_NONE)
+	if (ret != WIDGET_ERROR_NONE)
 		ErrPrint("Error: %d\n", ret);
 
 	return ret;
 }
 
-EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_type_e size_type, int *need_of_mouse_event)
+EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_type_e size_type, bool *need_of_mouse_event)
 {
 	sqlite3_stmt *stmt = NULL;
 	sqlite3 *handle = NULL;
 	char *widgetid = NULL;
 	int ret_sqlite = 0;
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 	int result_need_of_mouse_event = 0;
 
 	if (pkgid == NULL || need_of_mouse_event == NULL) {
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
 	if (!(handle = open_db())) {
 		ErrPrint("open_db failed : %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -1526,14 +1527,14 @@ EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_t
 
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("sqlite3_prepare_v2 failed : %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto out;
 	}
 
 	widgetid = widget_service_get_widget_id(pkgid);
 	if (!widgetid) {
 		ErrPrint("Failed to get widgetid: %s\n", pkgid);
-		ret = widget_last_status();
+		ret = get_last_result();
 		goto out;
 	}
 
@@ -1542,14 +1543,14 @@ EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_t
 
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto out;
 	}
 
 	ret_sqlite = sqlite3_bind_int(stmt, 2, size_type);
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_FAULT;
+		ret = WIDGET_ERROR_FAULT;
 		goto out;
 	}
 
@@ -1557,11 +1558,11 @@ EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_t
 
 	if (ret_sqlite == SQLITE_ROW) {
 		result_need_of_mouse_event = !!sqlite3_column_int(stmt, 0);
-		ret = WIDGET_STATUS_ERROR_NONE;
+		ret = WIDGET_ERROR_NONE;
 	} else {
 		ErrPrint("There is no result.\n");
 		result_need_of_mouse_event = 0; /**< Default is false, In this case the DB is corrupted */
-		ret = WIDGET_STATUS_ERROR_NOT_EXIST;
+		ret = WIDGET_ERROR_NOT_EXIST;
 	}
 
 out:
@@ -1576,7 +1577,7 @@ out:
 	if (handle)
 		close_db(handle);
 
-	if (ret != WIDGET_STATUS_ERROR_NONE)
+	if (ret != WIDGET_ERROR_NONE)
 		ErrPrint("Error: %d\n", ret);
 
 	return ret;
@@ -1638,14 +1639,14 @@ static char *get_appid(sqlite3 *handle, const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT appid FROM pkgmap WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		return NULL;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -1654,18 +1655,18 @@ static char *get_appid(sqlite3 *handle, const char *pkgid)
 	if (ret == SQLITE_ROW) {
 		const char *tmp;
 
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 		tmp = (const char *)sqlite3_column_text(stmt, 0);
 		if (tmp && strlen(tmp)) {
 			appid = strdup(tmp);
 			if (!appid) {
-				widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			}
 		}
 	} else if (ret == SQLITE_DONE) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 	} else {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 	}
 
 out:
@@ -1690,13 +1691,13 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 
 	handle = open_db();
 	if (!handle) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT preview FROM box_size WHERE pkgid = ? AND size_type = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
 		close_db(handle);
 		return NULL;
@@ -1704,14 +1705,14 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
 		goto out;
 	}
 
 	ret = sqlite3_bind_int(stmt, 2, size_type);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
 		goto out;
 	}
@@ -1719,9 +1720,9 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 		}
 		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
 		goto out;
@@ -1739,7 +1740,7 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 	if (!abspath) {
 		abspath = strdup(tmp);
 		if (!abspath) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("strdup: %s\n", strerror(errno));
 			goto out;
 		}
@@ -1756,7 +1757,7 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 	buf_len = tmp_len + strlen(s_info.iso3lang) + s_info.country_len + 3; /* '/' '-' '/' */
 	preview = malloc(buf_len + 1);
 	if (!preview) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		ErrPrint("Heap: %s\n", strerror(errno));
 		free(abspath);
 		goto out;
@@ -1788,7 +1789,7 @@ out:
 	return preview;
 }
 
-EAPI char *widget_service_get_i18n_icon(const char *pkgid, const char *lang)
+EAPI char *widget_service_get_icon(const char *pkgid, const char *lang)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1799,14 +1800,14 @@ EAPI char *widget_service_get_i18n_icon(const char *pkgid, const char *lang)
 	char *ret_icon;
 
 	if (!pkgid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (lang) {
 		language = strdup(lang);
 		if (!language) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("Heap: %s\n", strerror(errno));
 			return NULL;
 		}
@@ -1825,7 +1826,7 @@ EAPI char *widget_service_get_i18n_icon(const char *pkgid, const char *lang)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT icon FROM i18n WHERE pkgid = ? AND lang = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
 		free(language);
@@ -1834,14 +1835,14 @@ EAPI char *widget_service_get_i18n_icon(const char *pkgid, const char *lang)
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, language, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -1855,7 +1856,7 @@ EAPI char *widget_service_get_i18n_icon(const char *pkgid, const char *lang)
 		} else {
 			icon = strdup(tmp);
 			if (!icon) {
-				widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 				ErrPrint("Heap: %s\n", strerror(errno));
 			}
 		}
@@ -1888,14 +1889,14 @@ EAPI char *widget_service_get_i18n_name(const char *pkgid, const char *lang)
 	int ret;
 
 	if (!pkgid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	if (lang) {
 		language = strdup(lang);
 		if (!language) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("Error: %s\n", strerror(errno));
 			return NULL;
 		}
@@ -1914,7 +1915,7 @@ EAPI char *widget_service_get_i18n_name(const char *pkgid, const char *lang)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT name FROM i18n WHERE pkgid = ? AND lang = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
 		free(language);
@@ -1923,14 +1924,14 @@ EAPI char *widget_service_get_i18n_name(const char *pkgid, const char *lang)
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 2, language, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -1944,7 +1945,7 @@ EAPI char *widget_service_get_i18n_name(const char *pkgid, const char *lang)
 		} else {
 			name = strdup(tmp);
 			if (!name) {
-				widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 				ErrPrint("Heap: %s\n", strerror(errno));
 			}
 		}
@@ -1968,18 +1969,18 @@ EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int *w,
 	int ret;
 
 	if (!w || !h || !cnt || !pkgid) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT size_type FROM box_size WHERE pkgid = ? ORDER BY size_type ASC", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -1988,7 +1989,7 @@ EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int *w,
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
-		ret = WIDGET_STATUS_ERROR_IO_ERROR;
+		ret = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -2021,7 +2022,7 @@ EAPI char *widget_service_get_abi(const char *widgetid)
 
 	if (!widgetid) {
 		ErrPrint("Invalid argument\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2033,14 +2034,14 @@ EAPI char *widget_service_get_abi(const char *widgetid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT abi FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2049,9 +2050,9 @@ EAPI char *widget_service_get_abi(const char *widgetid)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 		}
 
 		ErrPrint("Error: %s (%d)\n", sqlite3_errmsg(handle), ret);
@@ -2062,7 +2063,7 @@ EAPI char *widget_service_get_abi(const char *widgetid)
 
 	tmp = (char *)sqlite3_column_text(stmt, 0);
 	if (!tmp || !strlen(tmp)) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 		ErrPrint("Invalid abi: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2071,7 +2072,7 @@ EAPI char *widget_service_get_abi(const char *widgetid)
 
 	abi = strdup(tmp);
 	if (!abi) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		ErrPrint("strdup: %s\n", strerror(errno));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2080,7 +2081,7 @@ EAPI char *widget_service_get_abi(const char *widgetid)
 
 	DbgPrint("abi: %s\n", abi);
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
 out:
@@ -2100,7 +2101,7 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 
 	if (!libexec) {
 		ErrPrint("Invalid argument\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2114,7 +2115,7 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 
 	_libexec = malloc(len);
 	if (!_libexec) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		ErrPrint("Heap: %s\n", strerror(errno));
 		close_db(handle);
 		return NULL;
@@ -2124,14 +2125,14 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgid FROM provider WHERE libexec like ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, _libexec, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2140,9 +2141,9 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 		}
 		ErrPrint("No records (%s) for (%s)\n", sqlite3_errmsg(handle), libexec);
 		sqlite3_reset(stmt);
@@ -2150,7 +2151,7 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 		goto out;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	tmp = (char *)sqlite3_column_text(stmt, 0);
 	if (!tmp || !strlen(tmp)) {
 		ErrPrint("Invalid pkgid: %s\n", sqlite3_errmsg(handle));
@@ -2161,7 +2162,7 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 
 	pkgid = strdup(tmp);
 	if (!pkgid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		ErrPrint("Heap: %s\n", strerror(errno));
 	}
 
@@ -2186,7 +2187,7 @@ EAPI char *widget_service_get_libexec(const char *pkgid)
 
 	if (!pkgid) {
 		ErrPrint("Invalid argument\n");
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2198,14 +2199,14 @@ EAPI char *widget_service_get_libexec(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgmap.appid, provider.libexec FROM pkgmap, provider WHERE pkgmap.pkgid = ? AND provider.pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2213,7 +2214,7 @@ EAPI char *widget_service_get_libexec(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2222,9 +2223,9 @@ EAPI char *widget_service_get_libexec(const char *pkgid)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 		}
 
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
@@ -2233,7 +2234,7 @@ EAPI char *widget_service_get_libexec(const char *pkgid)
 		goto out;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	appid = (char *)sqlite3_column_text(stmt, 0);
 	if (!appid || !strlen(appid)) {
 		ErrPrint("Invalid appid: %s\n", sqlite3_errmsg(handle));
@@ -2254,7 +2255,7 @@ EAPI char *widget_service_get_libexec(const char *pkgid)
 	if (!libexec) {
 		libexec = strdup(path);
 		if (!libexec) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("Heap: %s\n", strerror(errno));
 		}
 	}
@@ -2276,7 +2277,7 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	char *new_appid;
 
 	if (!appid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2291,14 +2292,14 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	 */
 	ret = pkgmgrinfo_appinfo_get_appinfo(appid, &handle);
 	if (ret != PKGMGR_R_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Failed to get appinfo\n");
 		return NULL;
 	}
 
 	ret = pkgmgrinfo_appinfo_get_pkgid(handle, &new_appid);
 	if (ret != PKGMGR_R_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		pkgmgrinfo_appinfo_destroy_appinfo(handle);
 		ErrPrint("Failed to get pkgname for (%s)\n", appid);
 		return NULL;
@@ -2310,7 +2311,7 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	if (!widget_pkgname) {
 		widget_pkgname = strdup(appid);
 		if (!widget_pkgname) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		}
 	}
 
@@ -2327,7 +2328,7 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 	int ret;
 
 	if (!pkgname) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2339,14 +2340,14 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT appid, prime FROM pkgmap WHERE pkgid = ? OR appid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgname, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2355,7 +2356,7 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 
 	ret = sqlite3_bind_text(stmt, 2, pkgname, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2377,14 +2378,14 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 
 		ret = pkgmgrinfo_appinfo_get_appinfo(pkgname, &pkg_handle);
 		if (ret != PKGMGR_R_OK) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Failed to get appinfo: %s\n", pkgname);
 			goto out;
 		}
 
 		ret = pkgmgrinfo_appinfo_get_pkgid(pkg_handle, &new_appid);
 		if (ret != PKGMGR_R_OK) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Failed to get pkgname for (%s)\n", appid);
 			pkgmgrinfo_appinfo_destroy_appinfo(pkg_handle);
 			goto out;
@@ -2392,7 +2393,7 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 
 		appid = strdup(new_appid);
 		if (!appid) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("Heap: %s\n", strerror(errno));
 		}
 
@@ -2402,7 +2403,7 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 
 	tmp = (char *)sqlite3_column_text(stmt, 0);
 	if (!tmp || !strlen(tmp)) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 		ErrPrint("APPID is NIL\n");
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2411,14 +2412,14 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 
 	appid = strdup(tmp);
 	if (!appid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		ErrPrint("Heap: %s\n", strerror(errno));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	is_prime = sqlite3_column_int(stmt, 1);
 
 	sqlite3_reset(stmt);
@@ -2437,7 +2438,7 @@ EAPI char *widget_service_get_provider_name(const char *widgetid)
 	char *str = WIDGET_ID_PREFIX;
 
 	if (!widgetid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2453,7 +2454,7 @@ EAPI char *widget_service_get_provider_name(const char *widgetid)
 		ret = strdup(widgetid);
 		/* Inhouse */
 		if (!ret) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		}
 		return ret;
 	} else if (seq < 2) {
@@ -2462,7 +2463,7 @@ EAPI char *widget_service_get_provider_name(const char *widgetid)
 				seq++;
 			} else if (!widgetid[idx]) {
 				ErrPrint("Invalid widgetid: %s\n", widgetid);
-				widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+				set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 				return NULL;
 			}
 
@@ -2476,12 +2477,12 @@ EAPI char *widget_service_get_provider_name(const char *widgetid)
 
 	ret = strdup(widgetid + stage);
 	if (!ret) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		ErrPrint("Error: %s\n", strerror(errno));
 		return NULL;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	return ret;
 }
 
@@ -2520,7 +2521,7 @@ EAPI int widget_service_is_primary(const char *widgetid)
 	int ret = 0;
 
 	if (!widgetid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return 0;
 	}
 
@@ -2531,7 +2532,7 @@ EAPI int widget_service_is_primary(const char *widgetid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT prime FROM pkgmap WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		close_db(handle);
 		return 0;
@@ -2539,7 +2540,7 @@ EAPI int widget_service_is_primary(const char *widgetid)
 
 	ret = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
@@ -2547,16 +2548,16 @@ EAPI int widget_service_is_primary(const char *widgetid)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 		}
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_column_int(stmt, 0);
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 
 out:
 	sqlite3_reset(stmt);
@@ -2574,7 +2575,7 @@ EAPI char *widget_service_get_category(const char *widgetid)
 	int ret;
 
 	if (!widgetid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2586,14 +2587,14 @@ EAPI char *widget_service_get_category(const char *widgetid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT category FROM pkgmap WHERE pkgid = ? OR appid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2602,7 +2603,7 @@ EAPI char *widget_service_get_category(const char *widgetid)
 
 	ret = sqlite3_bind_text(stmt, 2, widgetid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2612,10 +2613,10 @@ EAPI char *widget_service_get_category(const char *widgetid)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 			ErrPrint("Has no record?: %s\n", sqlite3_errmsg(handle));
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Failed to retrieve record set: %s\n", sqlite3_errmsg(handle));
 		}
 		sqlite3_reset(stmt);
@@ -2623,7 +2624,7 @@ EAPI char *widget_service_get_category(const char *widgetid)
 		goto out;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	tmp = (char *)sqlite3_column_text(stmt, 0);
 	if (!tmp || !strlen(tmp)) {
 		ErrPrint("APPID is NIL\n");
@@ -2634,7 +2635,7 @@ EAPI char *widget_service_get_category(const char *widgetid)
 
 	category = strdup(tmp);
 	if (!category) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		ErrPrint("Heap: %s\n", strerror(errno));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2658,7 +2659,7 @@ EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 	char *widget_src;
 
 	if (!pkgid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2670,14 +2671,14 @@ EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgmap.appid, provider.box_src FROM provider, pkgmap WHERE pkgmap.pkgid = ? AND provider.pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s, pkgid(%s), ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s, pkgid(%s), ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2685,7 +2686,7 @@ EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s, pkgid(%s), ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2694,9 +2695,9 @@ EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 		}
 		ErrPrint("Error: %s, pkgid(%s), ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_reset(stmt);
@@ -2706,7 +2707,7 @@ EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 
 	appid = (char *)sqlite3_column_text(stmt, 0);
 	if (!appid || !strlen(appid)) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 		ErrPrint("Invalid appid : %s, pkgid(%s)\n", sqlite3_errmsg(handle), pkgid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2715,7 +2716,7 @@ EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 
 	widget_src = (char *)sqlite3_column_text(stmt, 1);
 	if (!widget_src || !strlen(widget_src)) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+		set_last_result(WIDGET_ERROR_NONE);
 		ErrPrint("No records for widget src : %s, pkgid(%s), appid(%s)\n", sqlite3_errmsg(handle), pkgid, appid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2726,7 +2727,7 @@ EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 	if (!path) {
 		path = strdup(widget_src);
 		if (!path) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		}
 	}
 
@@ -2747,7 +2748,7 @@ EAPI char *widget_service_get_widget_script_group(const char *pkgid)
 	char *tmp;
 
 	if (!pkgid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2759,14 +2760,14 @@ EAPI char *widget_service_get_widget_script_group(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT box_group FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2775,9 +2776,9 @@ EAPI char *widget_service_get_widget_script_group(const char *pkgid)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 		}
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
@@ -2785,12 +2786,12 @@ EAPI char *widget_service_get_widget_script_group(const char *pkgid)
 		goto out;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	tmp = (char *)sqlite3_column_text(stmt, 0);
 	if (tmp && strlen(tmp)) {
 		group = strdup(tmp);
 		if (!group) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			ErrPrint("Heap: %s\n", strerror(errno));
 		}
 	}
@@ -2812,7 +2813,7 @@ EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 	const char *appid;
 
 	if (!pkgid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2824,14 +2825,14 @@ EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pkgmap.appid, provider.pd_src FROM provider, pkgmap WHERE provider.pkgid = ? AND pkgmap.pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s pkgid(%s) ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s pkgid(%s) ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2839,7 +2840,7 @@ EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 
 	ret = sqlite3_bind_text(stmt, 2, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s pkgid(%s) ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2848,9 +2849,9 @@ EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
 		if (ret == SQLITE_DONE) {
-			widget_set_last_status(WIDGET_STATUS_ERROR_NOT_EXIST);
+			set_last_result(WIDGET_ERROR_NOT_EXIST);
 		} else {
-			widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+			set_last_result(WIDGET_ERROR_FAULT);
 		}
 		ErrPrint("Error: %s pkgid(%s) ret(%d)\n", sqlite3_errmsg(handle), pkgid, ret);
 		sqlite3_reset(stmt);
@@ -2858,7 +2859,7 @@ EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 		goto out;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 
 	appid = (char *)sqlite3_column_text(stmt, 0);
 	if (!appid || !strlen(appid)) {
@@ -2881,7 +2882,7 @@ EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 		path = strdup(gbar_src);
 		if (!path) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		}
 	}
 
@@ -2902,7 +2903,7 @@ EAPI char *widget_service_get_gbar_script_group(const char *pkgid)
 	char *tmp;
 
 	if (!pkgid) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -2914,14 +2915,14 @@ EAPI char *widget_service_get_gbar_script_group(const char *pkgid)
 
 	ret = sqlite3_prepare_v2(handle, "SELECT pd_group FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		goto out;
 	}
 
 	ret = sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_TRANSIENT);
 	if (ret != SQLITE_OK) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2929,20 +2930,20 @@ EAPI char *widget_service_get_gbar_script_group(const char *pkgid)
 
 	ret = sqlite3_step(stmt);
 	if (ret != SQLITE_ROW) {
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
 	}
 
-	widget_set_last_status(WIDGET_STATUS_ERROR_NONE);
+	set_last_result(WIDGET_ERROR_NONE);
 	tmp = (char *)sqlite3_column_text(stmt, 0);
 	if (tmp && strlen(tmp)) {
 		group = strdup(tmp);
 		if (!group) {
 			ErrPrint("Heap: %s\n", strerror(errno));
-			widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		}
 	}
 	sqlite3_reset(stmt);
@@ -2961,19 +2962,19 @@ EAPI int widget_service_enumerate_cluster_list(int (*cb)(const char *cluster, vo
 	int ret;
 
 	if (!cb) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	cnt = 0;
 	ret = sqlite3_prepare_v2(handle, "SELECT DISTINCT cluster FROM groupinfo", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		cnt = WIDGET_STATUS_ERROR_IO_ERROR;
+		cnt = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -3006,18 +3007,18 @@ EAPI int widget_service_enumerate_category_list(const char *cluster, int (*cb)(c
 	int ret;
 
 	if (!cluster || !cb) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	handle = open_db();
 	if (!handle) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	ret = sqlite3_prepare_v2(handle, "SELECT DISTINCT category FROM groupinfo WHERE cluster = ?", -1, &stmt, NULL);
 	if (ret != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
-		cnt = WIDGET_STATUS_ERROR_IO_ERROR;
+		cnt = WIDGET_ERROR_IO_ERROR;
 		goto out;
 	}
 
@@ -3047,34 +3048,34 @@ EAPI int widget_service_init(void)
 	if (s_info.handle) {
 		DbgPrint("Already initialized\n");
 		s_info.init_count++;
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	s_info.handle = open_db();
 	if (s_info.handle) {
 		s_info.init_count++;
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
-	return WIDGET_STATUS_ERROR_IO_ERROR;
+	return WIDGET_ERROR_IO_ERROR;
 }
 
 EAPI int widget_service_fini(void)
 {
 	if (!s_info.handle || s_info.init_count <= 0) {
 		ErrPrint("Service is not initialized\n");
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	s_info.init_count--;
 	if (s_info.init_count > 0) {
 		DbgPrint("Init count %d\n", s_info.init_count);
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	db_util_close(s_info.handle);
 	s_info.handle = NULL;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_service_get_size(widget_size_type_e type, int *width, int *height)
@@ -3097,11 +3098,11 @@ EAPI int widget_service_get_size_type(int width, int height, widget_size_type_e 
 {
 	int idx;
 	int output_size_type = WIDGET_SIZE_TYPE_UNKNOWN;
-	int ret = WIDGET_STATUS_ERROR_NONE;
+	int ret = WIDGET_ERROR_NONE;
 
 	if (size_type == NULL) {
-		ErrPrint("WIDGET_STATUS_ERROR_INVALID_PARAMETER\n");
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ErrPrint("WIDGET_ERROR_INVALID_PARAMETER\n");
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		goto out;
 	}
 
@@ -3153,10 +3154,10 @@ EAPI int widget_service_get_size_type(int width, int height, widget_size_type_e 
 		output_size_type =  WIDGET_SIZE_TYPE_EASY_3x3;
 		break;
 	case 12:
-		output_size_type =  WIDGET_SIZE_TYPE_0x0;
+		output_size_type =  WIDGET_SIZE_TYPE_FULL;
 		break;
 	default:
-		ret = WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
@@ -3165,16 +3166,6 @@ out:
 		*size_type = output_size_type;
 
 	return ret;
-}
-
-EAPI void widget_set_last_status(widget_status_e status)
-{
-	s_info.last_status = status;
-}
-
-EAPI widget_status_e widget_last_status(void)
-{
-	return s_info.last_status;
 }
 
 EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_target_type_e type, widget_lock_type_e option)
@@ -3186,7 +3177,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 	info = malloc(sizeof(*info));
 	if (!info) {
 		ErrPrint("malloc: %s\n", strerror(errno));
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -3195,7 +3186,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 	if (!info->filename) {
 		ErrPrint("malloc: %s\n", strerror(errno));
 		free(info);
-		widget_set_last_status(WIDGET_STATUS_ERROR_OUT_OF_MEMORY);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
 
@@ -3204,7 +3195,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 		ErrPrint("snprintf: %s\n", strerror(errno));
 		free(info->filename);
 		free(info);
-		widget_set_last_status(WIDGET_STATUS_ERROR_FAULT);
+		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
 	}
 
@@ -3216,7 +3207,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 		ErrPrint("Invalid paramter\n");
 		free(info->filename);
 		free(info);
-		widget_set_last_status(WIDGET_STATUS_ERROR_INVALID_PARAMETER);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
@@ -3227,7 +3218,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 		ErrPrint("open: %s\n", strerror(errno));
 		free(info->filename);
 		free(info);
-		widget_set_last_status(WIDGET_STATUS_ERROR_IO_ERROR);
+		set_last_result(WIDGET_ERROR_IO_ERROR);
 		return NULL;
 	}
 
@@ -3237,12 +3228,12 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 {
 	if (!info || !info->filename || info->fd < 0) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (close(info->fd) < 0) {
 		ErrPrint("close: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	if (unlink(info->filename) < 0) {
@@ -3251,7 +3242,7 @@ EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 
 	free(info->filename);
 	free(info);
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_service_acquire_lock(widget_lock_info_t info)
@@ -3260,7 +3251,7 @@ EAPI int widget_service_acquire_lock(widget_lock_info_t info)
 	int ret;
 
 	if (!info || info->fd < 0) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	if (info->type == WIDGET_LOCK_WRITE) {
@@ -3281,7 +3272,7 @@ EAPI int widget_service_acquire_lock(widget_lock_info_t info)
 		}
 	} while (ret == EINTR);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_service_release_lock(widget_lock_info_t info)
@@ -3290,7 +3281,7 @@ EAPI int widget_service_release_lock(widget_lock_info_t info)
 	int ret;
 
 	if (info->fd < 0) {
-		return WIDGET_STATUS_ERROR_INVALID_PARAMETER;
+		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
 	flock.l_type = F_UNLCK;
@@ -3307,7 +3298,14 @@ EAPI int widget_service_release_lock(widget_lock_info_t info)
 		}
 	} while (ret == EINTR);
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
+}
+
+extern int widget_service_get_base_file_path(char **base_file_path)
+{
+	int ret = WIDGET_ERROR_NONE;
+
+	return ret;
 }
 
 /* End of a file */

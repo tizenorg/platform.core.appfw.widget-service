@@ -26,8 +26,8 @@ extern "C" {
  * @brief Load a configuration file to the memory
  * @since_tizen 2.3
  * @return int
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully loaded
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to access the configuration file
+ * @retval #WIDGET_ERROR_NONE Successfully loaded
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access the configuration file
  * @see widget_conf_reset()
  */
 extern int widget_conf_load(void);
