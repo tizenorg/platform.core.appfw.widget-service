@@ -1,0 +1,11 @@
+prefix=@PREFIX@
+exec_prefix=@EXEC_PREFIX@
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: widget_service
+Description: widget service library
+Version: @VERSION@
+Libs: -L${libdir} -lwidget_service
+Cflags: -I${includedir}
+cppflags: -I${includedir}
