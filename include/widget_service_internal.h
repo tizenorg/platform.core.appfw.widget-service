@@ -65,6 +65,13 @@ extern "C" {
 
 /**
  * @internal
+ * @brief widget Buffer Handler
+ * @since_tizen 2.4
+ */
+typedef struct widget_buffer *widget_buffer_h;
+
+/**
+ * @internal
  * @brief Request type for closing Glance Bar
  * @since_tizen 2.4
  */
@@ -85,6 +92,129 @@ typedef enum widget_delete_type {
 	WIDGET_DELETE_TEMPORARY = 0x02,   /**< The widget is removed from the homescreen by user permanently */
 	WIDGET_DELETE_INVALID = 0xff,     /**< Unknown event type */
 } widget_delete_type_e;
+
+/**
+ * @internal
+ * @brief Enumeration for result of accessibility event processing.
+ * @details Reference the libprovider & libwidget-viewer.
+ * @since_tizen 2.4
+ */
+typedef enum widget_access_status {
+	WIDGET_ACCESS_STATUS_ERROR = 0x80000000,  /**< Mask value */
+	WIDGET_ACCESS_STATUS_DONE = 0x00000000,   /**< Successfully finished */
+	WIDGET_ACCESS_STATUS_FIRST,               /**< Reach to the first item */
+	WIDGET_ACCESS_STATUS_LAST,                /**< Reach to the last item */
+	WIDGET_ACCESS_STATUS_READ                 /**< TTS is done */
+} widget_access_status_e;
+
+/**
+ * @internal
+ * @brief Key event handling result status.
+ * @since_tizen 2.4
+ */
+typedef enum widget_key_status {
+	WIDGET_KEY_STATUS_ERROR = 0x80000000, /**< Key operation is failed */
+	WIDGET_KEY_STATUS_DONE = 0x00000000,  /**< Key operation is successfully done */
+	WIDGET_KEY_STATUS_FIRST,              /**< Focusable object item reaches to the first in it */
+	WIDGET_KEY_STATUS_LAST,               /**< Focusable object item reaches to the last in it */
+} widget_key_status_e;
+
+/**
+ * @internal
+ * @brief Type of widget content sharing method
+ * @since_tizen 2.4
+ */
+typedef enum widget_widget_type {
+	WIDGET_TYPE_NONE = 0x0, /**< Undefined */
+	WIDGET_TYPE_SCRIPT,     /**< Script base */
+	WIDGET_TYPE_FILE,       /**< File base */
+	WIDGET_TYPE_TEXT,       /**< Text base */
+	WIDGET_TYPE_BUFFER,     /**< Buffer base */
+	WIDGET_TYPE_UIFW        /**< UIFW supported type */
+} widget_widget_type_e;
+
+/**
+ * @internal
+ * @brief Type of glance bar content sharing method
+ * @since_tizen 2.4
+ */
+typedef enum widget_gbar_type {
+	GBAR_TYPE_NONE = 0x0, /**< Undefined */
+	GBAR_TYPE_SCRIPT,     /**< Script base */
+	GBAR_TYPE_TEXT,       /**< Text base */
+	GBAR_TYPE_BUFFER,     /**< Buffer base */
+	GBAR_TYPE_UIFW        /**< UIFW supported type */
+} widget_gbar_type_e;
+
+/**
+ * @internal
+ * @brief This enumeration values should be sync'd with libwidget interface. (only for inhouse widget)
+ * @since_tizen 2.4
+ */
+typedef enum widget_buffer_event {
+	WIDGET_BUFFER_EVENT_ENTER, /**< get the focus */
+	WIDGET_BUFFER_EVENT_LEAVE, /**< lost the focus */
+	WIDGET_BUFFER_EVENT_DOWN, /**< Touch down */
+	WIDGET_BUFFER_EVENT_MOVE, /**< Touch move */
+	WIDGET_BUFFER_EVENT_UP, /**< Touch up */
+
+	WIDGET_BUFFER_EVENT_KEY_DOWN, /**< Key pressed */
+	WIDGET_BUFFER_EVENT_KEY_UP, /**< Key release */
+	WIDGET_BUFFER_EVENT_KEY_FOCUS_IN, /**< Focus in */
+	WIDGET_BUFFER_EVENT_KEY_FOCUS_OUT, /**< Focus out */
+
+	WIDGET_BUFFER_EVENT_ACCESS_HIGHLIGHT, /**< Accessibility Highlight event */
+	WIDGET_BUFFER_EVENT_ACCESS_HIGHLIGHT_NEXT, /**< Accessibility Highlight Next event */
+	WIDGET_BUFFER_EVENT_ACCESS_HIGHLIGHT_PREV, /**< Accessibility Highlight Prev event */
+	WIDGET_BUFFER_EVENT_ACCESS_ACTIVATE, /**< Accessibility Activate event */
+	WIDGET_BUFFER_EVENT_ACCESS_ACTION_UP, /**< Accessibility Action Up event */
+	WIDGET_BUFFER_EVENT_ACCESS_ACTION_DOWN, /**< Accessibility Action Down event */
+	WIDGET_BUFFER_EVENT_ACCESS_SCROLL_UP, /**< Accessibility Scroll Mouse Up event */
+	WIDGET_BUFFER_EVENT_ACCESS_SCROLL_MOVE, /**< Accessibility Scroll Mouse Move event */
+	WIDGET_BUFFER_EVENT_ACCESS_SCROLL_DOWN, /**< Accessibility Scroll Mouse Down event */
+	WIDGET_BUFFER_EVENT_ACCESS_UNHIGHLIGHT, /**< Accessibility Unhighlight event */
+
+	WIDGET_BUFFER_EVENT_ON_HOLD,    /**< To prevent from generating mouse clicked event */
+	WIDGET_BUFFER_EVENT_OFF_HOLD, /**< Disable the mouse hold event */
+	WIDGET_BUFFER_EVENT_ON_SCROLL, /**< Enable the scroll flag */
+	WIDGET_BUFFER_EVENT_OFF_SCROLL, /**< Disable the scroll flag */
+
+	WIDGET_BUFFER_EVENT_ACCESS_VALUE_CHANGE, /**< */
+	WIDGET_BUFFER_EVENT_ACCESS_MOUSE, /**< give mouse event to highlight object */
+	WIDGET_BUFFER_EVENT_ACCESS_BACK, /**< go back to a previous view ex: pop naviframe item */
+	WIDGET_BUFFER_EVENT_ACCESS_OVER, /**< mouse over an object */
+	WIDGET_BUFFER_EVENT_ACCESS_READ, /**< highlight an object */
+	WIDGET_BUFFER_EVENT_ACCESS_ENABLE, /**< enable highlight and read ability */
+	WIDGET_BUFFER_EVENT_ACCESS_DISABLE /**< disable highlight and read ability */
+} widget_buffer_event_e;
+
+/**
+ * @internal
+ * @brief widget Buffer Event Data
+ * @since_tizen 2.4
+ */
+typedef struct widget_buffer_event_data {
+	widget_buffer_event_e type; /**< Event type */
+	double timestamp; /**< Timestamp */
+
+	union input_data {
+		struct mouse {
+			int x; /**< Touch X coordinate */
+			int y; /**< Touch Y coordinate */
+		} pointer;
+
+		struct access {
+			int x; /**< Accessibility event X coordinate */
+			int y; /**< Accessibility event Y coordinate */
+			unsigned int mouse_type; /**< 0: down, 1: move, 2: up | 0: cur, 1: next, 2: prev, 3: off */
+			unsigned int action_type; /**< reserved for protocol */
+			unsigned int action_by; /**< reserved for protocol */
+			int cycle; /**< reserved for protocol */
+		} access;
+
+		unsigned int keycode; /**< Key code value */
+	} info;
+} *widget_buffer_event_data_t;
 
 /**
  * @internal

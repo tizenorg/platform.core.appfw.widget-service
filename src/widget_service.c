@@ -596,7 +596,7 @@ EAPI int widget_service_get_instance_count(const char *pkgname, const char *clus
 	return ret;
 }
 
-EAPI int widget_service_trigger_update(const char *pkgname, const char *id, const char *cluster, const char *category, const char *content, int force)
+EAPI int widget_service_trigger_update(const char *pkgname, const char *id, const char *content, int force)
 {
 	struct packet *packet;
 	struct packet *result;
@@ -623,15 +623,7 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 		uri = NULL;
 	}
 
-	if (!cluster) {
-		cluster = "user,created";
-	}
-
-	if (!category) {
-		category = "default";
-	}
-
-	packet = packet_create((const char *)&cmd, "sssssi", pkgname, uri, cluster, category, content, force);
+	packet = packet_create((const char *)&cmd, "sssssi", pkgname, uri, "user,created", "default", content, force);
 	/*!
 	 * \note
 	 * "free" function accepts NULL

@@ -36,6 +36,12 @@ extern "C" {
 
 
 /**
+ * @brief Definition for count of supported widget size type.
+ * @since_tizen 2.4
+ */
+#define WIDGET_COUNT_OF_SIZE_TYPE 13
+
+/**
  * @brief Enumeration for list of supporting widget size types.
  * @since_tizen 2.4
  */
@@ -55,59 +61,6 @@ typedef enum widget_size_type {
 	WIDGET_SIZE_TYPE_FULL = 0x0800,      /**< 720x1280 based on 720x1280 resolution */
 	WIDGET_SIZE_TYPE_UNKNOWN = 0xFFFF
 } widget_size_type_e;
-
-/**
- * @internal
- * @brief Enumeration for result of accessibility event processing.
- * @details Reference the libprovider & libwidget-viewer.
- * @since_tizen 2.4
- */
-typedef enum widget_access_status {
-	WIDGET_ACCESS_STATUS_ERROR = 0x80000000,  /**< Mask value */
-	WIDGET_ACCESS_STATUS_DONE = 0x00000000,   /**< Successfully finished */
-	WIDGET_ACCESS_STATUS_FIRST,               /**< Reach to the first item */
-	WIDGET_ACCESS_STATUS_LAST,                /**< Reach to the last item */
-	WIDGET_ACCESS_STATUS_READ                 /**< TTS is done */
-} widget_access_status_e;
-
-/**
- * @internal
- * @brief Key event handling result status.
- * @since_tizen 2.4
- */
-typedef enum widget_key_status {
-	WIDGET_KEY_STATUS_ERROR = 0x80000000, /**< Key operation is failed */
-	WIDGET_KEY_STATUS_DONE = 0x00000000,  /**< Key operation is successfully done */
-	WIDGET_KEY_STATUS_FIRST,              /**< Focusable object item reaches to the first in it */
-	WIDGET_KEY_STATUS_LAST,               /**< Focusable object item reaches to the last in it */
-} widget_key_status_e;
-
-/**
- * @internal
- * @brief Type of widget content sharing method
- * @since_tizen 2.4
- */
-typedef enum widget_widget_type {
-	WIDGET_TYPE_NONE = 0x0, /**< Undefined */
-	WIDGET_TYPE_SCRIPT,     /**< Script base */
-	WIDGET_TYPE_FILE,       /**< File base */
-	WIDGET_TYPE_TEXT,       /**< Text base */
-	WIDGET_TYPE_BUFFER,     /**< Buffer base */
-	WIDGET_TYPE_UIFW        /**< UIFW supported type */
-} widget_widget_type_e;
-
-/**
- * @internal
- * @brief Type of glance bar content sharing method
- * @since_tizen 2.4
- */
-typedef enum widget_gbar_type {
-	GBAR_TYPE_NONE = 0x0, /**< Undefined */
-	GBAR_TYPE_SCRIPT,     /**< Script base */
-	GBAR_TYPE_TEXT,       /**< Text base */
-	GBAR_TYPE_BUFFER,     /**< Buffer base */
-	GBAR_TYPE_UIFW        /**< UIFW supported type */
-} widget_gbar_type_e;
 
 /**
  * @brief Destroy type of widget instance
@@ -159,94 +112,23 @@ typedef struct widget_event_info {
 	} part;
 } *widget_event_info_t;
 
-/**
- * @brief widget Buffer Handler
- * @since_tizen 2.4
- */
-typedef struct widget_buffer *widget_buffer_h;
+#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON    "edit,on"
+#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF   "edit,off"
 
 /**
- * @brief widget Buffer Event information
- * @since_tizen 2.4
+ * @brief Text signal information
+ * @since_tizen 2.3
  */
-typedef struct widget_buffer_event_data *widget_buffer_event_data_t;
-
-/**
- * @brief widget Buffer Handler
- * @since_tizen 2.4
- */
-typedef struct widget_buffer *widget_buffer_h;
-
-
-/**
- * @internal
- * @brief This enumeration values should be sync'd with libwidget interface. (only for inhouse widget)
- * @since_tizen 2.4
- */
-typedef enum widget_buffer_event {
-	WIDGET_BUFFER_EVENT_ENTER, /**< get the focus */
-	WIDGET_BUFFER_EVENT_LEAVE, /**< lost the focus */
-	WIDGET_BUFFER_EVENT_DOWN, /**< Touch down */
-	WIDGET_BUFFER_EVENT_MOVE, /**< Touch move */
-	WIDGET_BUFFER_EVENT_UP, /**< Touch up */
-
-	WIDGET_BUFFER_EVENT_KEY_DOWN, /**< Key pressed */
-	WIDGET_BUFFER_EVENT_KEY_UP, /**< Key release */
-	WIDGET_BUFFER_EVENT_KEY_FOCUS_IN, /**< Focus in */
-	WIDGET_BUFFER_EVENT_KEY_FOCUS_OUT, /**< Focus out */
-
-	WIDGET_BUFFER_EVENT_ACCESS_HIGHLIGHT, /**< Accessibility Highlight event */
-	WIDGET_BUFFER_EVENT_ACCESS_HIGHLIGHT_NEXT, /**< Accessibility Highlight Next event */
-	WIDGET_BUFFER_EVENT_ACCESS_HIGHLIGHT_PREV, /**< Accessibility Highlight Prev event */
-	WIDGET_BUFFER_EVENT_ACCESS_ACTIVATE, /**< Accessibility Activate event */
-	WIDGET_BUFFER_EVENT_ACCESS_ACTION_UP, /**< Accessibility Action Up event */
-	WIDGET_BUFFER_EVENT_ACCESS_ACTION_DOWN, /**< Accessibility Action Down event */
-	WIDGET_BUFFER_EVENT_ACCESS_SCROLL_UP, /**< Accessibility Scroll Mouse Up event */
-	WIDGET_BUFFER_EVENT_ACCESS_SCROLL_MOVE, /**< Accessibility Scroll Mouse Move event */
-	WIDGET_BUFFER_EVENT_ACCESS_SCROLL_DOWN, /**< Accessibility Scroll Mouse Down event */
-	WIDGET_BUFFER_EVENT_ACCESS_UNHIGHLIGHT, /**< Accessibility Unhighlight event */
-
-	WIDGET_BUFFER_EVENT_ON_HOLD,    /**< To prevent from generating mouse clicked event */
-	WIDGET_BUFFER_EVENT_OFF_HOLD, /**< Disable the mouse hold event */
-	WIDGET_BUFFER_EVENT_ON_SCROLL, /**< Enable the scroll flag */
-	WIDGET_BUFFER_EVENT_OFF_SCROLL, /**< Disable the scroll flag */
-
-	WIDGET_BUFFER_EVENT_ACCESS_VALUE_CHANGE, /**< */
-	WIDGET_BUFFER_EVENT_ACCESS_MOUSE, /**< give mouse event to highlight object */
-	WIDGET_BUFFER_EVENT_ACCESS_BACK, /**< go back to a previous view ex: pop naviframe item */
-	WIDGET_BUFFER_EVENT_ACCESS_OVER, /**< mouse over an object */
-	WIDGET_BUFFER_EVENT_ACCESS_READ, /**< highlight an object */
-	WIDGET_BUFFER_EVENT_ACCESS_ENABLE, /**< enable highlight and read ability */
-	WIDGET_BUFFER_EVENT_ACCESS_DISABLE /**< disable highlight and read ability */
-} widget_buffer_event_e;
-
-/**
- * @internal
- * @brief widget Buffer Event Data
- * @since_tizen 2.4
- */
-typedef struct widget_buffer_event_data {
-	widget_buffer_event_e type; /**< Event type */
-	double timestamp; /**< Timestamp */
-
-	union input_data {
-		struct mouse {
-			int x; /**< Touch X coordinate */
-			int y; /**< Touch Y coordinate */
-		} pointer;
-
-		struct access {
-			int x; /**< Accessibility event X coordinate */
-			int y; /**< Accessibility event Y coordinate */
-			unsigned int mouse_type; /**< 0: down, 1: move, 2: up | 0: cur, 1: next, 2: prev, 3: off */
-			unsigned int action_type; /**< reserved for protocol */
-			unsigned int action_by; /**< reserved for protocol */
-			int cycle; /**< reserved for protocol */
-		} access;
-
-		unsigned int keycode; /**< Key code value */
-	} info;
-} *widget_buffer_event_data_t;
+typedef struct widget_text_signal {
+    const char *signal_name;
+    const char *source;
+    struct {
+        double sx;
+        double sy;
+        double ex;
+        double ey;
+    } geometry;
+} *widget_text_signal_s;
 
 /**
  * @internal
@@ -324,8 +206,8 @@ extern int widget_service_get_size_type(int width, int height, widget_size_type_
  * @brief Gets the need of mouse event for the given widget.
  * @details This function gets need of mouse event for the given widget from database.\n
  * 	The value of mouse event requirement means... \n
- * 		1 : The widget requires mouse event. A viewer must has to feed the mouse event to the widget instance\n
- * 		0 : The widget doesn't require mouse event.\n
+ * 		true : The widget requires mouse event. A viewer must has to feed the mouse event to the widget instance\n
+ * 		false : The widget doesn't require mouse event.\n
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -347,13 +229,13 @@ extern int widget_service_get_need_of_mouse_event(const char *widget_id, widget_
  * @brief Gets the need of touch effect for the given widget.
  * @details This API gets the need of touch effect for the given widget from database.\n
  *          The value of the need of touch effect means... \n
- *          1 : A viewer is required to make the touch effect when a user click the widget, but it is just recommendation.\n
- *          0 : A viewer is not required to make the touch effect, the box will make touch effect itself.
+ *          true : A viewer is required to make the touch effect when a user click the widget, but it is just recommendation.\n
+ *          false : A viewer is not required to make the touch effect, the box will make touch effect itself.
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @param[in] widget_id widget app id
+ * @param[in] widget_id appid of widget provider
  * @param[in] size_type Size type
  * @param[out] need_of_touch_event the need of touch effect
  * @return #WIDGET_ERROR_NONE on success,
@@ -370,8 +252,8 @@ extern int widget_service_get_need_of_touch_effect(const char *widget_id, widget
  * @brief Gets the need of decoration frame for the given widget.
  * @details This API gets the need of decoration frame for the given widget from database.\n
  *          The value of the need of touch effect means... \n
- *          1 : the viewer should make decoration frame on outside of the widget.
- *          0 : no need to amke decoration frame.
+ *          true : the viewer should make decoration frame on outside of the widget.
+ *          false : no need to amke decoration frame.
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -390,10 +272,8 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
 /**
  * @brief Triggers the update event for given widget instance.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @param[in] instance_id Set @c NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
- * @param[in] cluster Cluster name. Default @c NULL
- * @param[in] category Category name, Default @c NULL
  * @param[in] content New content information, Default @c NULL
  * @param[in] force 1 if you want to update your widget even if the provider is paused or 0. 0 is default
  * @privlevel public
@@ -409,12 +289,12 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
  * @retval #WIDGET_ERROR_NONE Successfully requested
  * @see widget_service_trigger_update()
  */
-extern int widget_service_trigger_update(const char *widgetid, const char *instance_id, const char *cluster, const char *category, const char *content, int force);
+extern int widget_service_trigger_update(const char *widgetid, const char *instance_id, const char *content, int force);
 
 /**
  * @brief Changes the update period of given widget instance.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @param[in] instance_id widget instance id
  * @param[in] period New update period in sec
  * @privlevel public
@@ -463,7 +343,7 @@ extern int widget_service_get_pkglist(int (*cb)(const char *pkgid, const char *w
  *        This function will retrieve all UI Apps in a package which has given widget appid(widgetid).\n
  *        If you need to get all ui-app list, using a widget appid, this function is able to help you.
  * @since_tizen 2.4
- * @param[in] widgetid widget App Id
+ * @param[in] widgetid appid of widget provider
  * @param[in] cb Callback function
  * @param[in] data Callback Data
  * @privlevel public
@@ -543,12 +423,13 @@ extern int widget_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(cons
 extern int widget_service_get_pkglist_by_category(const char *category, int (*cb)(const char *widgetid, void *data), void *data);
 
 /**
- * @brief Gets the id of a primary widget using given (widget or package or UI app) Id. If a given id is a widget id, check its existence. and if it is package or ui-app id, then find the primary widget in its package.
+ * @brief Gets the id of a widget by the given id of package or UI app.
+ *        If there are two or more widgets in the package, this function returns the id of the primary widget.
  * @since_tizen 2.4
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @param[in] id widget Id or Package Id or UI App Id
+ * @param[in] id Package Id or UI App Id
  * @return char * type
  * @retval @c NULL Failed to get primary widgetid, get_last_result() will returns reason of failure.
  * @retval widgetid Primary widget Id. which is allocated in the heap
@@ -561,7 +442,7 @@ extern char *widget_service_get_widget_id(const char *id);
  * @internal
  * @brief Checks the primary flag of given widget Id.
  * @since_tizen 2.4
- * @param[in] widgetid widget Id
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -581,7 +462,7 @@ extern int widget_service_is_primary(const char *widgetid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
- * @param[in] widgetid widget Id
+ * @param[in] widgetid appid of widget provider
  * @return char * type
  * @retval @c NULL There is no setup application or error occurred, you can check it using get_last_result()
  * @retval appid AppId if exists or @c NULL
@@ -594,7 +475,7 @@ extern char *widget_service_get_app_id_of_setup_app(const char *widgetid);
  * @internal
  * @brief Gets the Package Id (Not the UI App Id) of given widget, &lt;manifest package="AAA"&gt; tag.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -610,7 +491,7 @@ extern char *widget_service_get_package_id(const char *widgetid);
  * @internal
  * @brief Gives Internationalized name of widget package.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -629,7 +510,7 @@ extern char *widget_service_get_i18n_name(const char *widgetid, const char *lang
  * @brief Gets the preview image path of given size type.
  * @details This function will returns i18nized preview image path.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @param[in] size_type widget size type
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -650,7 +531,7 @@ extern char *widget_service_get_preview_image_path(const char *widgetid, int siz
  *    If the user defines the default content string in the manifest file (.xml),\n
  *    this API will return it.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -663,10 +544,10 @@ extern char *widget_service_get_preview_image_path(const char *widgetid, int siz
 extern char *widget_service_get_content_string(const char *widgetid);
 
 /**
- * @brief Gives icon path of given widget package.
+ * @brief Gets icon path of given widget package.
  * @details The user should free the returned string with free().
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId (It must has to be a widget package ID. not the UI-APP and the PACKAGE)
+ * @param[in] pkgid package id of widget provider
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -684,7 +565,7 @@ extern char *widget_service_get_icon(const char *pkgid, const char *lang);
  * @internal
  * @brief Gets the "nodisplay" value.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -699,7 +580,7 @@ extern int widget_service_get_nodisplay(const char *widgetid);
  * @internal
  * @brief Gets the "ABI" of given package.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -716,7 +597,7 @@ extern char *widget_service_get_abi(const char *widgetid);
  * @details Currently this API is not implemented. It just returns 1 all the time.
  * @since_tizen 2.4
  * @remarks This API is not implemented. It will always return 1.
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -730,7 +611,7 @@ extern int widget_service_is_enabled(const char *widgetid);
  * @internal
  * @brief Gets the script file of widget.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -747,7 +628,7 @@ extern char *widget_service_get_widget_script_path(const char *widgetid);
  * @internal
  * @brief Gets the script group of widget.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -764,7 +645,7 @@ extern char *widget_service_get_widget_script_group(const char *widgetid);
  * @internal
  * @brief Gets the script file path of given widget package.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -780,7 +661,7 @@ extern char *widget_service_get_gbar_script_path(const char *widgetid);
  * @internal
  * @brief Gets the group name for script file to load it.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -796,7 +677,7 @@ extern char *widget_service_get_gbar_script_group(const char *widgetid);
  * @internal
  * @brief Gets the supported size list.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @param[in] cnt Count of array w and h
  * @param[in] w Width array
  * @param[in] h Height array
@@ -820,7 +701,7 @@ extern int widget_service_get_supported_sizes(const char *widgetid, int *cnt, in
  * @internal
  * @brief Gets the supported size list of given pkgid.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @param[in] cnt Size of types array
  * @param[out] cnt Result count of types array
  * @param[out] types Array of types
@@ -928,7 +809,7 @@ extern int widget_service_fini(void);
  * @remarks
  *    If you call this function again using created pkglist handle, it will be reset.
  *    So you can get records from the first one again.
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @param[in] handle @c NULL if you call this first, or it will be reset
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -985,7 +866,7 @@ extern int widget_service_destroy_pkglist(widget_pkglist_h handle);
  * @internal
  * @brief Gets the activated instance count.
  * @since_tizen 2.4
- * @param[in] widgetid widget Id, if you want to get whole instances list, use NULL.
+ * @param[in] widgetid appid of widget provider, if you want to get whole instances list, use NULL.
  * @param[in] cluster Cluster name if you don't know what this is, use NULL.
  * @param[in] category Sub-cluster(category) name if you don't know what this is, use NULL.
  * @privlevel public
@@ -1002,7 +883,7 @@ extern int widget_service_get_instance_count(const char *widgetid, const char *c
  * @internal
  * @brief Gets the path of the plug-in module.
  * @since_tizen 2.4
- * @param[in] widgetid widget AppId
+ * @param[in] widgetid appid of widget provider
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget

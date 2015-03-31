@@ -17,6 +17,8 @@
 #ifndef __WIDGET_BUFFER_H
 #define __WIDGET_BUFFER_H
 
+#include <widget_service_internal.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
