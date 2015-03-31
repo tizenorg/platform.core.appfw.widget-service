@@ -63,6 +63,7 @@ SET(BUILD_SOURCE
 	src/widget_service.c
 	src/util.c
 	src/widget_conf.c
+	src/widget_abi.c
 )
 
 IF (X11_SUPPORT)
@@ -100,6 +101,7 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_cmd_list.h DESTINATION 
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_buffer.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_script.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_conf.h DESTINATION include/${PROJECT_NAME})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_abi.h DESTINATION include/${PROJECT_NAME})
 
 
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "lib${PROJECT_NAME}")
