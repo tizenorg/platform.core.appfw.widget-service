@@ -37,7 +37,7 @@ extern "C" {
  * @details
  * This enumeration values will be used for script plugin of data-provider-master.
  * Master will send down these accessibility events to the script plugin.
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef enum widget_script_event {
     WIDGET_SCRIPT_ACCESS_EVENT          = 0x01000000, /**< Mask value */

@@ -47,7 +47,7 @@ typedef enum widget_fb_type { /*!< Must have to be sync with libwidget-provider,
 /**
  * @internal
  * @brief ADT for widget Buffer
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef struct widget_fb { /*!< Must has to be sync with slave & provider */
     enum widget_fb_state {
@@ -63,7 +63,7 @@ typedef struct widget_fb { /*!< Must has to be sync with slave & provider */
 /**
  * @internal
  * @brief This enumeration value has to be sync'd with the libwidget interface. (only for inhouse widget)
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef enum widget_target_type {
     WIDGET_TYPE_WIDGET, /**< widget */
@@ -74,7 +74,7 @@ typedef enum widget_target_type {
 /**
  * @internal
  * @brief widget Frame Buffer Info
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 struct fb_info {
     char *id;
@@ -92,7 +92,7 @@ struct fb_info {
 /**
  * @internal
  * @brief Locking type - Read/Write
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef enum widget_lock_type {
     WIDGET_LOCK_READ = 0x01,
@@ -102,7 +102,7 @@ typedef enum widget_lock_type {
 /**
  * @internal
  * @brief Locking info
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef struct widget_lock_info {
     char *filename;
@@ -114,7 +114,7 @@ typedef struct widget_lock_info {
 /**
  * @internal
  * @brief widget Buffer structure
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef struct widget_buffer {
     enum {

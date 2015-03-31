@@ -59,7 +59,7 @@ typedef enum widget_status  {
 
 /**
  * @brief Enumeration for the result status of widget operation.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef enum widget_error
 {

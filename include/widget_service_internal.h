@@ -24,7 +24,7 @@ extern "C" {
 /**
  * @internal
  * @brief Index of buffer
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 #define WIDGET_PRIMARY_BUFFER -1
 #define WIDGET_UNKNOWN_BUFFER -2
@@ -32,7 +32,7 @@ extern "C" {
 /**
  * @internal
  * @brief Definition for maximum number of supported widget size type.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 #define WIDGET_NR_OF_SIZE_LIST 13
 
@@ -66,14 +66,14 @@ extern "C" {
 /**
  * @internal
  * @brief widget Buffer Handler
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef struct widget_buffer *widget_buffer_h;
 
 /**
  * @internal
  * @brief Request type for closing Glance Bar
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef enum widget_gbar_close_type {
 	WIDGET_CLOSE_GBAR_NORMAL = 0x00,  /**< Glance Bar is closed normally */
@@ -85,7 +85,7 @@ typedef enum widget_gbar_close_type {
 /**
  * @internal
  * @brief Delete type for widget delete operation.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef enum widget_delete_type {
 	WIDGET_DELETE_PERMANENTLY = 0x01, /**< The widget is removed from the homescreen temporary */
@@ -97,7 +97,7 @@ typedef enum widget_delete_type {
  * @internal
  * @brief Enumeration for result of accessibility event processing.
  * @details Reference the libprovider & libwidget-viewer.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef enum widget_access_status {
 	WIDGET_ACCESS_STATUS_ERROR = 0x80000000,  /**< Mask value */
@@ -110,7 +110,7 @@ typedef enum widget_access_status {
 /**
  * @internal
  * @brief Key event handling result status.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef enum widget_key_status {
 	WIDGET_KEY_STATUS_ERROR = 0x80000000, /**< Key operation is failed */
@@ -122,7 +122,7 @@ typedef enum widget_key_status {
 /**
  * @internal
  * @brief Type of widget content sharing method
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef enum widget_widget_type {
 	WIDGET_TYPE_NONE = 0x0, /**< Undefined */
@@ -136,7 +136,7 @@ typedef enum widget_widget_type {
 /**
  * @internal
  * @brief Type of glance bar content sharing method
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef enum widget_gbar_type {
 	GBAR_TYPE_NONE = 0x0, /**< Undefined */
@@ -149,7 +149,7 @@ typedef enum widget_gbar_type {
 /**
  * @internal
  * @brief This enumeration values should be sync'd with libwidget interface. (only for inhouse widget)
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef enum widget_buffer_event {
 	WIDGET_BUFFER_EVENT_ENTER, /**< get the focus */
@@ -191,7 +191,7 @@ typedef enum widget_buffer_event {
 /**
  * @internal
  * @brief widget Buffer Event Data
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  */
 typedef struct widget_buffer_event_data {
 	widget_buffer_event_e type; /**< Event type */
@@ -219,7 +219,7 @@ typedef struct widget_buffer_event_data {
 /**
  * @internal
  * @brief Get the category using given widgetid.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @param[in] widgetid widget AppId
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -240,7 +240,7 @@ extern char *widget_service_get_category(const char *widgetid);
  *    widget has provider process for each widget instances.\n
  *    To get the provider's package name, you can use this API.\n
  *    If the given widgetid is inhouse widget, the return string will be the same with given argument but it is allocated in the heap.
- * @since_tizen 2.4
+ * @since_tizen 2.3.1
  * @privlevel N/P
  * @feature http://tizen.org/feature/shell.appwidget
  * @return char * type
