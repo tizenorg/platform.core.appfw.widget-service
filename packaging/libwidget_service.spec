@@ -96,6 +96,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %{_includedir}/widget_service/widget_script.h
 %{_includedir}/widget_service/widget_conf.h
 %{_includedir}/widget_service/widget_abi.h
+%{_includedir}/widget_service/widget_util.h
 %{_libdir}/pkgconfig/widget_service.pc
 
 # End of a file

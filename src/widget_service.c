@@ -44,6 +44,7 @@
 #include "widget_service_internal.h"
 #include "widget_cmd_list.h"
 #include "widget_buffer.h"
+#include "widget_util.h"
 
 #define WIDGET_ID_PREFIX    "org.tizen."
 #define DEFAULT_TIMEOUT 2.0
@@ -3190,7 +3191,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 		return NULL;
 	}
 
-	len = snprintf(info->filename, len + 20, "%s.%s.lck", util_uri_to_path(uri), type == WIDGET_TYPE_GBAR ? "gbar" : "widget");
+	len = snprintf(info->filename, len + 20, "%s.%s.lck", widget_util_uri_to_path(uri), type == WIDGET_TYPE_GBAR ? "gbar" : "widget");
 	if (len < 0) {
 		ErrPrint("snprintf: %s\n", strerror(errno));
 		free(info->filename);

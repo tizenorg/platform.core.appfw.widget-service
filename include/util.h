@@ -40,8 +40,6 @@ struct service_info {
 extern double util_timestamp(void);
 extern const char *util_basename(const char *name);
 extern unsigned long util_free_space(const char *path);
-extern char *util_replace_string(const char *src, const char *pattern, const char *replace);
-extern const char *util_uri_to_path(const char *uri);
 extern char *util_id_to_uri(const char *id);    /* For FILENAME id */
 extern int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST);
 extern int util_screen_size_get(unsigned int *width, unsigned int *height);
