@@ -1114,7 +1114,7 @@ out:
 	return ret;
 }
 
-EAPI int widget_service_get_supported_size_types(const char *pkgid, int *cnt, int *types)
+EAPI int widget_service_get_supported_size_types(const char *pkgid, int *cnt, int **types)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1150,10 +1150,20 @@ EAPI int widget_service_get_supported_size_types(const char *pkgid, int *cnt, in
 		*cnt = WIDGET_NR_OF_SIZE_LIST;
 	}
 
+	*types = malloc(sizeof(int) * *cnt);
+
+	if(*types == NULL) {
+		ErrPrint("Out of memory");
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = WIDGET_ERROR_OUT_OF_MEMORY;
+		goto out;
+	}
+
 	ret = 0;
 	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
 		size = sqlite3_column_int(stmt, 0);
-		types[ret] = size;
+		(*types)[ret] = size;
 		ret++;
 	}
 
@@ -1954,7 +1964,7 @@ out:
 	return name;
 }
 
-EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int *w, int *h)
+EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int **w, int **h)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1990,10 +2000,26 @@ EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int *w,
 		*cnt = WIDGET_NR_OF_SIZE_LIST;
 	}
 
+	*w = malloc(sizeof(int) * *cnt);
+	*h = malloc(sizeof(int) * *cnt);
+	if (*w == NULL || *h == NULL) {
+		ErrPrint("Out of memory");
+		if (w)
+			free(w);
+
+		if (h)
+			free(h);
+
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		ret = WIDGET_ERROR_OUT_OF_MEMORY;
+		goto out;
+	}
+
 	ret = 0;
 	while (sqlite3_step(stmt) == SQLITE_ROW && ret < *cnt) {
 		size = sqlite3_column_int(stmt, 0);
-		ret += (convert_size_from_type((widget_size_type_e)size, w + ret, h + ret) == 0);
+		ret += (convert_size_from_type((widget_size_type_e)size, *w + ret, *h + ret) == 0);
 	}
 
 	*cnt = ret;
