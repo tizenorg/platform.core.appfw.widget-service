@@ -217,21 +217,10 @@ typedef struct widget_buffer_event_data {
 } *widget_buffer_event_data_t;
 
 /**
- * @internal
- * @brief Get the category using given widgetid.
+ * @brief Package list handle.
  * @since_tizen 2.3.1
- * @param[in] widgetid widget AppId
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @feature http://tizen.org/feature/shell.appwidget
- * @return char *
- * @retval @c NULL Failed to get primary widgetid, get_last_result() will returns reason of failure if it fails.
- * @retval category Category string which is allocated in the heap.
- * @pre Must be released returned string by manually
- * @post N/A
- * @see widget_service_widget_id()
  */
-extern char *widget_service_get_category(const char *widgetid);
+typedef struct widget_list_handle *widget_list_h;
 
 /**
  * @internal
@@ -553,6 +542,121 @@ extern char *widget_service_get_libexec(const char *widgetid);
  * @post return'd string should be released by "free()"
  */
 extern char *widget_service_get_widget_id_by_libexec(const char *libexec);
+
+/**
+ * @internal
+ * @brief Gets the base file path of the current widget
+ * @since_tizen 2.3.1
+ * @param[out] base_file_path base file path
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
+*/
+extern int widget_service_get_base_file_path(char **base_file_path);
+
+/**
+ * @brief Get the category using given widgetid.
+ * @since_tizen 2.3.1
+ * @param[in] widgetid widget AppId
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
+ * @return char *
+ * @retval @c NULL Failed to get primary widgetid, get_last_result() will returns reason of failure if it fails.
+ * @retval category Category string which is allocated in the heap.
+ * @pre Must be released returned string by manually
+ * @post N/A
+ * @see widget_service_widget_id()
+ */
+extern char *widget_service_get_category(const char *widgetid);
+
+/**
+ * @brief Gets synchronous package list.
+ * @details
+ *      callback (widgetid)\n
+ *      widgetid == widget AppId\n
+ *        If the callback returns negative value, the list crawling will be stopped
+ * @since_tizen 2.3.1
+ * @param[in] category Name of category
+ * @param[in] cb Callback function
+ * @param[in] data Callback data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
+ * @return int count
+ * @retval Count of widget packages
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see #widget_service_get_widget_list_by_pkgid
+ */
+extern int widget_service_get_widget_list_by_category(const char *category, int (*cb)(const char *widgetid, void *data), void *data);
+
+/**
+ * @brief Creates a handle for getting the package list.
+ * @details
+ *    If you want get the record one by one from DB, use this.\n
+ *    This function will create a iterator.\n
+ *    Then you can get the records one by one, but there is no backward iterator.\n
+ *    You can only get a forward iterator.\n
+ *    After calling this function the iterator will be moved to the next record automatically.
+ * @since_tizen 2.3.1
+ * @remarks
+ *    If you call this function again using created pkglist handle, it will be reset.
+ *    So you can get records from the first one again.
+ * @param[in] widgetid appid of widget provider
+ * @param[in] handle @c NULL if you call this first, or it will be reset
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
+ * @return handle
+ * @retval @c NULL If it fails, get_last_result() will returns reason of failure if it fails.
+ * @retval handle If it successfully create the package list iterator
+ * @see widget_service_pkglist_destroy()
+ */
+extern widget_list_h widget_service_create_widget_list(const char *widgetid, widget_list_h handle);
+
+/**
+ * @brief Gets the widgetid & package name & is_prime flag.
+ * @since_tizen 2.3.1
+ * @param[in] handle Handle which is created by widget_service_pkglist_create() function
+ * @param[out] widgetid  widget Id
+ * @param[out] pkgname Package Id which includes widgetes
+ * @param[out] is_prime If the returned widgetid is primary, this will be 1 or 0
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_NONE Successfully get the record
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_NOT_EXIST Reach to the end of result set. you can rewind the iterator call widget_service_pkglist_create() again with current handle
+ * @retval #WIDGET_ERROR_MEMORY Not enough memory
+ * @post You must release the widgetid, pkgname manually.
+ * @see widget_service_pkglist_create()
+ * @see widget_service_pkglist_destroy()
+ */
+extern int widget_service_get_item_from_widget_list(widget_list_h handle, char **widgetid, char **pkgname, int *is_prime);
+
+/**
+ * @brief Destroys the iterator of pkglist.
+ * @since_tizen 2.3.1
+ * @param[in] handle Package list handle
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
+ * @return #WIDGET_ERROR_NONE on success,
+ *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
+ * @retval #WIDGET_ERROR_NONE Successfully destroyed
+ * @pre Handle must be created by widget_service_pkglist_create().
+ * @post You have not to use the handle again after destroy it.
+ * @see widget_service_pkglist_create()
+ */
+extern int widget_service_destroy_widget_list(widget_list_h handle);
 
 #ifdef __cplusplus
 }

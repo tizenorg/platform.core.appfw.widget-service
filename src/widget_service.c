@@ -71,7 +71,7 @@ static struct supported_size_list SIZE_LIST[WIDGET_NR_OF_SIZE_LIST] = {
 	{ 720, 1280 }, /*!< 0x0 */
 };
 
-struct widget_pkglist_handle {
+struct widget_list_handle {
 	enum pkglist_type {
 		PKGLIST_TYPE_WIDGET_LIST = 0x00beef00,
 		PKGLIST_TYPE_UNKNOWN = 0x00dead00
@@ -652,7 +652,7 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 	return ret;
 }
 
-EAPI widget_pkglist_h widget_service_create_pkglist(const char *pkgid, widget_pkglist_h handle)
+EAPI widget_list_h widget_service_create_widget_list(const char *pkgid, widget_list_h handle)
 {
 	int ret;
 
@@ -721,7 +721,7 @@ EAPI widget_pkglist_h widget_service_create_pkglist(const char *pkgid, widget_pk
 	return handle;
 }
 
-EAPI int widget_service_get_pkglist_item(widget_pkglist_h handle, char **appid, char **pkgname, int *is_prime)
+EAPI int widget_service_get_item_from_widget_list(widget_list_h handle, char **appid, char **pkgname, int *is_prime)
 {
 	const char *tmp;
 	char *_appid = NULL;
@@ -773,7 +773,7 @@ EAPI int widget_service_get_pkglist_item(widget_pkglist_h handle, char **appid, 
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_service_destroy_pkglist(widget_pkglist_h handle)
+EAPI int widget_service_destroy_widget_list(widget_list_h handle)
 {
 	if (!handle || handle->type != PKGLIST_TYPE_WIDGET_LIST) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -787,7 +787,7 @@ EAPI int widget_service_destroy_pkglist(widget_pkglist_h handle)
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI int widget_service_get_pkglist(int (*cb)(const char *appid, const char *pkgname, int is_prime, void *data), void *data)
+EAPI int widget_service_get_widget_list(widget_list_cb cb, void *data)
 {
 	int ret;
 	sqlite3_stmt *stmt;
@@ -844,7 +844,7 @@ out:
 	return ret;
 }
 
-EAPI int widget_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *widgetid, int is_prime, void *data), void *data)
+EAPI int widget_service_get_widget_list_by_pkgid(const char *pkgid, widget_list_by_pkgid_cb cb, void *data)
 {
 	int ret;
 	sqlite3_stmt *stmt;
@@ -903,7 +903,7 @@ out:
 	return ret;
 }
 
-EAPI int widget_service_get_pkglist_by_category(const char *category, int (*cb)(const char *widgetid, void *data), void *data)
+EAPI int widget_service_get_widget_list_by_category(const char *category, int (*cb)(const char *widgetid, void *data), void *data)
 {
 	int ret;
 	sqlite3_stmt *stmt;
@@ -1883,7 +1883,7 @@ out:
 	return icon;
 }
 
-EAPI char *widget_service_get_i18n_name(const char *pkgid, const char *lang)
+EAPI char *widget_service_get_name(const char *pkgid, const char *lang)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;

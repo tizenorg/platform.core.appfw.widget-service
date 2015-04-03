@@ -34,13 +34,6 @@ extern "C" {
  * @{
  */
 
-
-/**
- * @brief Definition for count of supported widget size type.
- * @since_tizen 2.3.1
- */
-#define WIDGET_COUNT_OF_SIZE_TYPE 13
-
 /**
  * @brief Enumeration for list of supporting widget size types.
  * @since_tizen 2.3.1
@@ -93,8 +86,7 @@ typedef enum widget_event_type {
 } widget_event_type_e;
 
 /**
- * @brief
- * Text signal & Content event uses this data structure.
+ * @brief Text signal & Content event uses this data structure.
  * @since_tizen 2.3.1
  */
 typedef struct widget_event_info {
@@ -110,31 +102,33 @@ typedef struct widget_event_info {
 		double ex; /**< Pressed object's right bottom X */
 		double ey; /**< Pressed object's right bottom Y */
 	} part;
-} *widget_event_info_t;
+} *widget_event_info_s;
 
-#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON    "edit,on"
-#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF   "edit,off"
+/**
+ * @brief Names of text signals
+ * @since_tizen 2.3.1
+ * @see #widget_text_signal_s
+ */
+#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON    "edit,on"   /**< Text signal for edit mode on*/
+#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF   "edit,off"  /**< Text signal for edit mode off*/
 
 /**
  * @brief Text signal information
  * @since_tizen 2.3.1
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
+ * @see #widget_event_info_s
  */
 typedef struct widget_text_signal {
-    const char *signal_name;
-    const char *source;
+    const char *signal_name;    /**< A name of a text signal */
+    const char *source;         /**< A source name of this text signal */
     struct {
-        double sx;
-        double sy;
-        double ex;
-        double ey;
-    } geometry;
+        double sx;              /**< X-axis value of left-top corner for this text signal */
+        double sy;              /**< Y-axis value of left-top corner for this text signal */
+        double ex;              /**< X-axis value of right-bottom corner for this text signal */
+        double ey;              /**< Y-axis value of right-bottom corner for this text signal  */
+    } geometry;                 /**< Region information of this text signal */
 } *widget_text_signal_s;
-
-/**
- * @brief Package list handle.
- * @since_tizen 2.3.1
- */
-typedef struct widget_pkglist_handle *widget_pkglist_h;
 
 /**
  * @brief Gets the pixel size of given size type.
@@ -309,17 +303,27 @@ extern int widget_service_trigger_update(const char *widgetid, const char *insta
  */
 extern int widget_service_change_period(const char *widgetid, const char *instance_id, double period);
 
+
 /**
- * @brief Gets synchronous package list.
- * @details
- *        callback (appid, widgetid, is_prime)\n
- *        pkgid == Package ID (pkgname)\n
- *        widgetid = widget AppId\n
- *        is_prime = 1 if the widget is default one for associated application package\n
- *        If the callback returns negative value, the list crawling will be stopped.
+ * @brief Callback function for getting result of widget_service_get_widget_list
+ * @since_tizen 2.3.1
+ * @param[in] pkgid package id
+ * @param[in] widgetid widget app id
+ * @param[in] is_prime will be sent as 1 if the widget is a default widget
+ * @param[in] data user data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
+ * @return WIDGET_ERROR_NONE to continue with the next iteration of the loop, other error values to break out of the loop
+ * @see #widget_service_get_pkglist
+ */
+typedef int (*widget_list_cb)(const char *pkgid, const char *widgetid, int is_prime, void *data);
+
+/**
+ * @brief Gets a list of all widgets.
  * @since_tizen 2.3.1
  * @param[in] cb Callback function
- * @param[in] data Callback data
+ * @param[in] data user data for callback function
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @feature http://tizen.org/feature/shell.appwidget
@@ -329,9 +333,10 @@ extern int widget_service_change_period(const char *widgetid, const char *instan
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval count Count of widget packages
- * @see widget_service_get_pkglist_by_pkgid()
+ * @see #widget_service_get_widget_list_by_pkgid
+ * @see #widget_service_get_widget_list_cb
  */
-extern int widget_service_get_pkglist(int (*cb)(const char *pkgid, const char *widgetid, int is_prime, void *data), void *data);
+extern int widget_service_get_widget_list(widget_list_cb cb, void *data);
 
 /**
  * @brief Gets the MAIN application Id of given widget package Id.
@@ -343,17 +348,26 @@ extern int widget_service_get_pkglist(int (*cb)(const char *pkgid, const char *w
  * @return char * type
  * @retval @c NULL If it fails to get main application Id (UI-APPID), get_last_result() will returns reason of failure.
  * @retval appid Main application Id
- * @see get_last_result()
+ * @see #get_last_result
  */
 extern char *widget_service_get_main_app_id(const char *widgetid);
 
 /**
- * @brief Gets synchronous package list.
- * @details
- *      callback (widgetid, is_prime)\n
- *      widgetid == widget AppId\n
- *      is_prime = 1 if the widget is default one for selected package\n
- *      If the callback returns negative value, the list crawling will be stopped.
+ * @brief Callback function for getting result of widget_service_get_widget_list_by_pkgid
+ * @since_tizen 2.3.1
+ * @param[in] widgetid widget app id
+ * @param[in] is_prime will be sent as 1 if the widget is a default widget
+ * @param[in] data user data
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @feature http://tizen.org/feature/shell.appwidget
+ * @return WIDGET_ERROR_NONE to continue with the next iteration of the loop, other error values to break out of the loop
+ * @see #widget_service_get_widget_list_by_pkgid
+ */
+typedef int (*widget_list_by_pkgid_cb)(const char *widgetid, int is_prime, void *data);
+
+/**
+ * @brief Gets a list of widgets included in the given package id
  * @since_tizen 2.3.1
  * @param[in] pkgid Package Id (Not the UI App Id)
  * @param[in] cb Callback function
@@ -367,31 +381,10 @@ extern char *widget_service_get_main_app_id(const char *widgetid);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
- * @see widget_service_get_pkglist()
+ * @see #widget_service_get_widget_list
+ * @see #widget_service_get_widget_list_by_pkgid_cb
  */
-extern int widget_service_get_pkglist_by_pkgid(const char *pkgid, int (*cb)(const char *widgetid, int is_prime, void *data), void *data);
-
-/**
- * @brief Gets synchronous package list.
- * @details
- *      callback (widgetid)\n
- *      widgetid == widget AppId\n
- *        If the callback returns negative value, the list crawling will be stopped
- * @since_tizen 2.3.1
- * @param[in] category Name of category
- * @param[in] cb Callback function
- * @param[in] data Callback data
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @feature http://tizen.org/feature/shell.appwidget
- * @return int count
- * @retval Count of widget packages
- * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
- * @see widget_service_get_pkglist_by_pkgid()
- */
-extern int widget_service_get_pkglist_by_category(const char *category, int (*cb)(const char *widgetid, void *data), void *data);
+extern int widget_service_get_widget_list_by_pkgid(const char *pkgid, widget_list_by_pkgid_cb cb, void *data);
 
 /**
  * @brief Gets the id of a widget by the given id of package or UI app.
@@ -429,7 +422,7 @@ extern char *widget_service_get_widget_id(const char *id);
 extern char *widget_service_get_app_id_of_setup_app(const char *widgetid);
 
 /**
- * @brief Gets the Package Id (Not the UI App Id) of given widget, &lt;manifest package="AAA"&gt; tag.
+ * @brief Gets the package id of the given widget.
  * @since_tizen 2.3.1
  * @param[in] widgetid appid of widget provider
  * @privlevel public
@@ -444,7 +437,7 @@ extern char *widget_service_get_app_id_of_setup_app(const char *widgetid);
 extern char *widget_service_get_package_id(const char *widgetid);
 
 /**
- * @brief Gives Internationalized name of widget package.
+ * @brief Gives the name of the given widget.
  * @since_tizen 2.3.1
  * @param[in] widgetid appid of widget provider
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
@@ -458,11 +451,11 @@ extern char *widget_service_get_package_id(const char *widgetid);
  * @see widget_service_i18n_icon()
  * @see widget_service_preview()
  */
-extern char *widget_service_get_i18n_name(const char *widgetid, const char *lang);
+extern char *widget_service_get_name(const char *widgetid, const char *lang);
 
 /**
  * @brief Gets the preview image path of given size type.
- * @details This function will returns i18nized preview image path.
+ * @details This function will return the preview image path.
  * @since_tizen 2.3.1
  * @param[in] widgetid appid of widget provider
  * @param[in] size_type widget size type
@@ -510,15 +503,10 @@ extern char *widget_service_get_icon(const char *pkgid, const char *lang);
  */
 extern int widget_service_get_nodisplay(const char *widgetid);
 
-
-
 /**
  * @brief Gets the supported size list.
  * @since_tizen 2.3.1
  * @param[in] widgetid appid of widget provider
- * @param[in] cnt Count of array w and h
- * @param[in] w Width array
- * @param[in] h Height array
  * @param[out] cnt Count of array w and h
  * @param[out] w Width array
  * @param[out] h Height array
@@ -534,84 +522,6 @@ extern int widget_service_get_nodisplay(const char *widgetid);
  * @see widget_service_get_supported_size_types()
  */
 extern int widget_service_get_supported_sizes(const char *widgetid, int *cnt, int **w, int **h);
-
-
-
-/**
- * @brief Creates a handle for getting the package list.
- * @details
- *    If you want get the record one by one from DB, use this.\n
- *    This function will create a iterator.\n
- *    Then you can get the records one by one, but there is no backward iterator.\n
- *    You can only get a forward iterator.\n
- *    After calling this function the iterator will be moved to the next record automatically.
- * @since_tizen 2.3.1
- * @remarks
- *    If you call this function again using created pkglist handle, it will be reset.
- *    So you can get records from the first one again.
- * @param[in] widgetid appid of widget provider
- * @param[in] handle @c NULL if you call this first, or it will be reset
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @feature http://tizen.org/feature/shell.appwidget
- * @return handle
- * @retval @c NULL If it fails, get_last_result() will returns reason of failure if it fails.
- * @retval handle If it successfully create the package list iterator
- * @see widget_service_pkglist_destroy()
- */
-extern widget_pkglist_h widget_service_create_pkglist(const char *widgetid, widget_pkglist_h handle);
-
-/**
- * @brief Gets the widgetid & package name & is_prime flag.
- * @since_tizen 2.3.1
- * @param[in] handle Handle which is created by widget_service_pkglist_create() function
- * @param[out] widgetid  widget Id
- * @param[out] pkgname Package Id which includes widgetes
- * @param[out] is_prime If the returned widgetid is primary, this will be 1 or 0
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
- * @retval #WIDGET_ERROR_NONE Successfully get the record
- * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_ERROR_NOT_EXIST Reach to the end of result set. you can rewind the iterator call widget_service_pkglist_create() again with current handle
- * @retval #WIDGET_ERROR_MEMORY Not enough memory
- * @post You must release the widgetid, pkgname manually.
- * @see widget_service_pkglist_create()
- * @see widget_service_pkglist_destroy()
- */
-extern int widget_service_get_pkglist_item(widget_pkglist_h handle, char **widgetid, char **pkgname, int *is_prime);
-
-/**
- * @brief Destroys the iterator of pkglist.
- * @since_tizen 2.3.1
- * @param[in] handle Package list handle
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_ERROR_NONE on success, 
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
- * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
- * @retval #WIDGET_ERROR_NONE Successfully destroyed
- * @pre Handle must be created by widget_service_pkglist_create().
- * @post You have not to use the handle again after destroy it.
- * @see widget_service_pkglist_create()
- */
-extern int widget_service_destroy_pkglist(widget_pkglist_h handle);
-
-/**
-* @brief Gets the base file path of the current widget
-* @since_tizen 2.3.1
-* @param[out] base_file_path base file path
-* @privlevel public
-* @privilege %http://tizen.org/privilege/widget.viewer
-* @feature http://tizen.org/feature/shell.appwidget
- * @return #WIDGET_ERROR_NONE on success,
- *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
- * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
-*/
-extern int widget_service_get_base_file_path(char **base_file_path);
 
 /**
  * @}
