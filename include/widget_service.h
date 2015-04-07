@@ -334,7 +334,7 @@ typedef int (*widget_list_cb)(const char *pkgid, const char *widgetid, int is_pr
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval count Count of widget packages
  * @see #widget_service_get_widget_list_by_pkgid
- * @see #widget_service_get_widget_list_cb
+ * @see #widget_list_cb
  */
 extern int widget_service_get_widget_list(widget_list_cb cb, void *data);
 
@@ -382,7 +382,7 @@ typedef int (*widget_list_by_pkgid_cb)(const char *widgetid, int is_prime, void 
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see #widget_service_get_widget_list
- * @see #widget_service_get_widget_list_by_pkgid_cb
+ * @see #widget_list_by_pkgid_cb
  */
 extern int widget_service_get_widget_list_by_pkgid(const char *pkgid, widget_list_by_pkgid_cb cb, void *data);
 
