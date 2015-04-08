@@ -34,7 +34,9 @@ extern "C" {
  */
 
 
-#define TIZEN_ERROR_WIDGET -0x02FE0000
+#ifndef TIZEN_ERROR_WIDGET
+#define TIZEN_ERROR_WIDGET -0x02F40000
+#endif
 
 
 /* widget_status_e will be replaced with widget_error_e */
