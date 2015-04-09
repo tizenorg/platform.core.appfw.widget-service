@@ -110,7 +110,7 @@ unsigned long util_free_space(const char *path)
 	return space;
 }
 
-char *util_replace_string(const char *src, const char *pattern, const char *replace)
+EAPI char *widget_util_replace_string(const char *src, const char *pattern, const char *replace)
 {
 	int s_idx;
 	int p_idx;
@@ -241,9 +241,13 @@ char *util_replace_string(const char *src, const char *pattern, const char *repl
 	return result;
 }
 
-const char *util_uri_to_path(const char *uri)
+EAPI const char *widget_util_uri_to_path(const char *uri)
 {
 	int len;
+
+	if (!uri) {
+		return NULL;
+	}
 
 	len = strlen(SCHEMA_FILE);
 	if (strncasecmp(uri, SCHEMA_FILE, len)) {

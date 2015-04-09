@@ -17,6 +17,8 @@
 #ifndef __WIDGET_BUFFER_H
 #define __WIDGET_BUFFER_H
 
+#include <widget_service_internal.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,7 +47,7 @@ typedef enum widget_fb_type { /*!< Must have to be sync with libwidget-provider,
 /**
  * @internal
  * @brief ADT for widget Buffer
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef struct widget_fb { /*!< Must has to be sync with slave & provider */
     enum widget_fb_state {
@@ -61,7 +63,7 @@ typedef struct widget_fb { /*!< Must has to be sync with slave & provider */
 /**
  * @internal
  * @brief This enumeration value has to be sync'd with the libwidget interface. (only for inhouse widget)
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef enum widget_target_type {
     WIDGET_TYPE_WIDGET, /**< widget */
@@ -72,7 +74,7 @@ typedef enum widget_target_type {
 /**
  * @internal
  * @brief widget Frame Buffer Info
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 struct fb_info {
     char *id;
@@ -90,7 +92,7 @@ struct fb_info {
 /**
  * @internal
  * @brief Locking type - Read/Write
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef enum widget_lock_type {
     WIDGET_LOCK_READ = 0x01,
@@ -100,7 +102,7 @@ typedef enum widget_lock_type {
 /**
  * @internal
  * @brief Locking info
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef struct widget_lock_info {
     char *filename;
@@ -112,7 +114,7 @@ typedef struct widget_lock_info {
 /**
  * @internal
  * @brief widget Buffer structure
- * @since_tizen 2.3
+ * @since_tizen 2.3.1
  */
 typedef struct widget_buffer {
     enum {
@@ -168,9 +170,9 @@ extern widget_lock_info_t widget_service_create_lock(const char *uri, widget_tar
  * @brief Destroy a lock instance
  * @param[in] info Lock information handler
  * @return status
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER invalid paramter
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR Failed to manage the lock file
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully destroyed
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to manage the lock file
+ * @retval #WIDGET_ERROR_NONE Successfully destroyed
  */
 extern int widget_service_destroy_lock(widget_lock_info_t info);
 
@@ -179,8 +181,8 @@ extern int widget_service_destroy_lock(widget_lock_info_t info);
  * @brief Acquire a lock instance
  * @param[in] info Lock information handler
  * @return status
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER invalid paramter
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully destroyed
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #WIDGET_ERROR_NONE Successfully destroyed
  */
 extern int widget_service_acquire_lock(widget_lock_info_t info);
 
@@ -189,8 +191,8 @@ extern int widget_service_acquire_lock(widget_lock_info_t info);
  * @brief Acquire a lock instance
  * @param[in] info Lock information handler
  * @return status
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER invalid paramter
- * @retval #WIDGET_STATUS_ERROR_NONE Successfully destroyed
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER invalid paramter
+ * @retval #WIDGET_ERROR_NONE Successfully destroyed
  */
 extern int widget_service_release_lock(widget_lock_info_t info);
 

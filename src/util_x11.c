@@ -15,6 +15,7 @@
 #include "widget_errno.h"
 #include "util.h"
 #include "widget_service.h"
+#include "widget_service_internal.h"
 #include "debug.h"
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/resolution.ini"
@@ -96,7 +97,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 	fp = fopen(info->conf_file, "r");
 	if (!fp) {
 		ErrPrint("Open failed: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	updated = 0;
@@ -297,7 +298,7 @@ int util_screen_size_get(unsigned int *width, unsigned int *height)
 	disp = XOpenDisplay(NULL);
 	if (!disp) {
 		ErrPrint("Failed to open a display\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 	root = XDefaultRootWindow(disp);
@@ -305,19 +306,19 @@ int util_screen_size_get(unsigned int *width, unsigned int *height)
 	XCloseDisplay(disp);
 	if (!ret) {
 		ErrPrint("Failed to get geometry\n");
-		return WIDGET_STATUS_ERROR_FAULT;
+		return WIDGET_ERROR_FAULT;
 	}
 
 out:
 	*width = s_info.w;
 	*height = s_info.h;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST)
 {
 	if (s_info.res_resolved) {
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	if (!info->conf_file) {
@@ -330,7 +331,7 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 		unsigned int height;
 
 		i = util_screen_size_get(&width, &height);
-		if (i != WIDGET_STATUS_ERROR_NONE) {
+		if (i != WIDGET_ERROR_NONE) {
 			return i;
 		}
 
@@ -349,7 +350,7 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	}
 
 	s_info.res_resolved = 1;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 /* End of a file */

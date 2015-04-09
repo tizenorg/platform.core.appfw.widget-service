@@ -1139,21 +1139,21 @@ EAPI int widget_conf_load(void)
 
 	if (s_info.conf_loaded) {
 		ErrPrint("Already loaded\n");
-		return WIDGET_STATUS_ERROR_ALREADY;
+		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
 	util_screen_size_get(&s_conf.width, &s_conf.height);
 
 	conf_file = conf_path();
 	if (!conf_file) {
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	fp = fopen(conf_file, "rt");
 	free(conf_file);
 	if (!fp) {
 		ErrPrint("Error: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	state = START;
@@ -1325,7 +1325,7 @@ EAPI int widget_conf_load(void)
 	s_conf.scale_height_factor = (double)s_conf.height / (double)WIDGET_CONF_BASE_H;
 	s_info.conf_loaded = 1;
 
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 EAPI void widget_conf_reset(void)

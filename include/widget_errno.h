@@ -34,68 +34,53 @@ extern "C" {
  */
 
 
-#define TIZEN_ERROR_WIDGET -0x02FE0000
+#ifndef TIZEN_ERROR_WIDGET
+#define TIZEN_ERROR_WIDGET -0x02F40000
+#endif
 
-/**
- * @brief Enumeration for the result status of widget operation.
- * @since_tizen 2.3
- */
-typedef enum widget_status {
-    WIDGET_STATUS_ERROR_NONE = TIZEN_ERROR_NONE, /**< Operation is successfully completed */
-    WIDGET_STATUS_ERROR = TIZEN_ERROR_WIDGET, /**< This will be OR'd with other specific error value */
-    WIDGET_STATUS_ERROR_INVALID_PARAMETER = WIDGET_STATUS_ERROR | 0x0001, /**< Invalid request */
-    WIDGET_STATUS_ERROR_FAULT = WIDGET_STATUS_ERROR | 0x0002, /**< Fault - Unable to recover from the error */
-    WIDGET_STATUS_ERROR_OUT_OF_MEMORY = WIDGET_STATUS_ERROR | 0x0004, /**< Memory is not enough to do this operation */
-    WIDGET_STATUS_ERROR_EXIST = WIDGET_STATUS_ERROR | 0x0008, /**< Already exists */
-    WIDGET_STATUS_ERROR_BUSY = WIDGET_STATUS_ERROR | 0x0010, /**< Busy so the operation is not started(accepted), try again */
-    WIDGET_STATUS_ERROR_PERMISSION_DENIED = WIDGET_STATUS_ERROR | 0x0020, /**< Permission error */
-    WIDGET_STATUS_ERROR_ALREADY = WIDGET_STATUS_ERROR | 0x0040, /**< Operation is already started */
-    WIDGET_STATUS_ERROR_CANCEL = WIDGET_STATUS_ERROR | 0x0080, /**< Operation is canceled */
-    WIDGET_STATUS_ERROR_IO_ERROR = WIDGET_STATUS_ERROR | 0x0100, /**< I/O Error */
-    WIDGET_STATUS_ERROR_NOT_EXIST = WIDGET_STATUS_ERROR | 0x0200, /**< Not exists */
-    WIDGET_STATUS_ERROR_TIMEOUT = WIDGET_STATUS_ERROR | 0x0400, /**< Timeout */
-    WIDGET_STATUS_ERROR_NOT_IMPLEMENTED = WIDGET_STATUS_ERROR | 0x0800, /**< Operation is not implemented */
-    WIDGET_STATUS_ERROR_NO_SPACE = WIDGET_STATUS_ERROR | 0x1000, /**< No space to operate */
-    WIDGET_STATUS_ERROR_DISABLED = WIDGET_STATUS_ERROR | 0x2000 /**< Disabled */
+
+/* widget_status_e will be replaced with widget_error_e */
+typedef enum widget_status  {
+    WIDGET_STATUS_ERROR_NONE = TIZEN_ERROR_NONE,
+    WIDGET_STATUS_ERROR = TIZEN_ERROR_WIDGET,
+    WIDGET_STATUS_ERROR_INVALID_PARAMETER = WIDGET_STATUS_ERROR | 0x0001,
+    WIDGET_STATUS_ERROR_FAULT = WIDGET_STATUS_ERROR | 0x0002,
+    WIDGET_STATUS_ERROR_OUT_OF_MEMORY = WIDGET_STATUS_ERROR | 0x0004,
+    WIDGET_STATUS_ERROR_EXIST = WIDGET_STATUS_ERROR | 0x0008,
+    WIDGET_STATUS_ERROR_BUSY = WIDGET_STATUS_ERROR | 0x0010,
+    WIDGET_STATUS_ERROR_PERMISSION_DENIED = WIDGET_STATUS_ERROR | 0x0020,
+    WIDGET_STATUS_ERROR_ALREADY = WIDGET_STATUS_ERROR | 0x0040,
+    WIDGET_STATUS_ERROR_CANCEL = WIDGET_STATUS_ERROR | 0x0080,
+    WIDGET_STATUS_ERROR_IO_ERROR = WIDGET_STATUS_ERROR | 0x0100,
+    WIDGET_STATUS_ERROR_NOT_EXIST = WIDGET_STATUS_ERROR | 0x0200,
+    WIDGET_STATUS_ERROR_TIMEOUT = WIDGET_STATUS_ERROR | 0x0400,
+    WIDGET_STATUS_ERROR_NOT_IMPLEMENTED = WIDGET_STATUS_ERROR | 0x0800,
+    WIDGET_STATUS_ERROR_NO_SPACE = WIDGET_STATUS_ERROR | 0x1000,
+    WIDGET_STATUS_ERROR_DISABLED = WIDGET_STATUS_ERROR | 0x2000
 } widget_status_e;
 
 /**
- * @brief Definition for macro function to check whether given code value indicates error or not.
- * @since_tizen 2.3
+ * @brief Enumeration for the result status of widget operation.
+ * @since_tizen 2.3.1
  */
-#define WIDGET_STATUS_IS_ERROR(s)    (!!((s) & WIDGET_STATUS_ERROR))
-
-/**
- * @internal
- * @brief Set the status for the last operation
- * @param[in] status widget_status_e status
- * @since_tizen 2.3
- * @return void
- * @see widget_last_status()
- */
-extern void widget_set_last_status(widget_status_e status);
-
-/**
- * @brief Get the last error status
- * @since_tizen 2.3
- * @return int widget error status
- * @retval #WIDGET_STATUS_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #WIDGET_STATUS_ERROR_NONE successfully operated
- * @retval #WIDGET_STATUS_ERROR_OUT_OF_MEMORY Memory is not enough
- * @retval #WIDGET_STATUS_ERROR_ALREADY Already exists or operated
- * @retval #WIDGET_STATUS_ERROR_BUSY Too busy to handles request, try it again
- * @retval #WIDGET_STATUS_ERROR_FAULT Fault - Unable to recover from the error
- * @retval #WIDGET_STATUS_ERROR_EXIST Already exists
- * @retval #WIDGET_STATUS_ERROR_PERMISSION_DENIED Permission error
- * @retval #WIDGET_STATUS_ERROR_CANCEL Operation is canceled
- * @retval #WIDGET_STATUS_ERROR_IO_ERROR I/O Error
- * @retval #WIDGET_STATUS_ERROR_NOT_EXIST Not exists
- * @retval #WIDGET_STATUS_ERROR_TIMEOUT Timeout
- * @retval #WIDGET_STATUS_ERROR_NOT_IMPLEMENTED Operation is not implemented
- * @retval #WIDGET_STATUS_ERROR_NO_SPACE No space to operate
- * @retval #WIDGET_STATUS_ERROR_DISABLED Disabled
- */
-extern widget_status_e widget_last_status(void);
+typedef enum widget_error
+{
+	WIDGET_ERROR_NONE = TIZEN_ERROR_NONE, /**< Operation is successfully completed */
+	WIDGET_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER, /**< Invalid function parameter */
+	WIDGET_ERROR_OUT_OF_MEMORY = TIZEN_ERROR_OUT_OF_MEMORY, /**< Out of memory */
+	WIDGET_ERROR_RESOURCE_BUSY = TIZEN_ERROR_RESOURCE_BUSY, /**< Device or resource busy */
+	WIDGET_ERROR_PERMISSION_DENIED = TIZEN_ERROR_PERMISSION_DENIED, /**< Permission denied */
+	WIDGET_ERROR_CANCELED = TIZEN_ERROR_CANCELED, /**< Operation Canceled */
+	WIDGET_ERROR_IO_ERROR = TIZEN_ERROR_IO_ERROR, /**< I/O error */
+	WIDGET_ERROR_TIMED_OUT = TIZEN_ERROR_TIMED_OUT, /**< Time out */
+	WIDGET_ERROR_NOT_SUPPORTED = TIZEN_ERROR_NOT_SUPPORTED, /**< Not supported */
+	WIDGET_ERROR_FILE_NO_SPACE_ON_DEVICE = TIZEN_ERROR_FILE_NO_SPACE_ON_DEVICE, /**< No space left on device */
+	WIDGET_ERROR_FAULT = TIZEN_ERROR_WIDGET | 0x0001, /**< Fault - Unable to recover from the error */
+	WIDGET_ERROR_ALREADY_EXIST = TIZEN_ERROR_WIDGET | 0x0002, /**< Already exists */
+	WIDGET_ERROR_ALREADY_STARTED = TIZEN_ERROR_WIDGET | 0x0004, /**< Operation is already started */
+	WIDGET_ERROR_NOT_EXIST = TIZEN_ERROR_WIDGET | 0x0008, /**< Not exists */
+	WIDGET_ERROR_DISABLED = TIZEN_ERROR_WIDGET | 0x0010,  /**< Disabled */
+} widget_error_e;
 
 /**
  * @}

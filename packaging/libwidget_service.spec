@@ -2,7 +2,7 @@
 
 Name: libwidget_service
 Summary: Service API for gathering installed widget information
-Version: 1.0.0
+Version: 1.1.1
 Release: 1
 Group: HomeTF/widget
 License: Flora
@@ -89,11 +89,14 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
 %{_includedir}/widget_service/widget_service.h
+%{_includedir}/widget_service/widget_service_internal.h
 %{_includedir}/widget_service/widget_errno.h
 %{_includedir}/widget_service/widget_cmd_list.h
 %{_includedir}/widget_service/widget_buffer.h
 %{_includedir}/widget_service/widget_script.h
 %{_includedir}/widget_service/widget_conf.h
+%{_includedir}/widget_service/widget_abi.h
+%{_includedir}/widget_service/widget_util.h
 %{_libdir}/pkgconfig/widget_service.pc
 
 # End of a file

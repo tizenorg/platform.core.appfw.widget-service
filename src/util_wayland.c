@@ -79,7 +79,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 	fp = fopen(info->conf_file, "r");
 	if (!fp) {
 		ErrPrint("Open failed: %s\n", strerror(errno));
-		return WIDGET_STATUS_ERROR_IO_ERROR;
+		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	updated = 0;
@@ -218,7 +218,7 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	static int res_resolved = 0;
 
 	if (res_resolved) {
-		return WIDGET_STATUS_ERROR_NONE;
+		return WIDGET_ERROR_NONE;
 	}
 
 	if (update_from_file(info, SIZE_LIST) == 0) {
@@ -226,12 +226,12 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	}
 
 	res_resolved = 1;
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 int util_screen_size_get(unsigned int *width, unsigned int *height)
 {
-	return WIDGET_STATUS_ERROR_NONE;
+	return WIDGET_ERROR_NONE;
 }
 
 /* End of a file */

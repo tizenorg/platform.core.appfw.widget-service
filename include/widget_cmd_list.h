@@ -89,6 +89,8 @@ extern "C" {
 #define CMD_CTRL               0x00001501
 #define CMD_ACQUIRE_XBUFFER    0x00001601 // eXtra Buffer
 #define CMD_RELEASE_XBUFFER    0x00001701 // eXtra Buffer
+#define CMD_HELLO_SYNC         0x00001801
+#define CMD_HELLO_SYNC_PREPARE 0x00001901
 
 #define CMD_STR_CALL            "call"
 #define CMD_STR_RET             "ret"
@@ -100,6 +102,8 @@ extern "C" {
 #define CMD_STR_CTRL            "ctrl"
 #define CMD_STR_ACQUIRE_XBUFFER "acquire_xbuffer"
 #define CMD_STR_RELEASE_XBUFFER "release_xbuffer"
+#define CMD_STR_HELLO_SYNC      "hello_sync"
+#define CMD_STR_HELLO_SYNC_PREPARE "hello_sync_prepare"
 
 
 /**
@@ -168,7 +172,7 @@ extern "C" {
 #define CMD_STR_VIEWER_DISCONNECTED "v_disconnected"
 
 /**
- * @brief liveinfo to master
+ * @brief widget-mgr to master
  */
 #define CMD_INFO_HELLO         0x00000001
 #define CMD_INFO_SLAVE_LIST    0x00000101
@@ -178,7 +182,7 @@ extern "C" {
 #define CMD_INFO_PKG_CTRL      0x00000501
 #define CMD_INFO_MASTER_CTRL   0x00000601
 
-#define CMD_STR_INFO_HELLO       "liveinfo_hello"
+#define CMD_STR_INFO_HELLO       "widget_mgr_hello"
 #define CMD_STR_INFO_SLAVE_LIST  "slave_list"
 #define CMD_STR_INFO_PKG_LIST    "pkg_list"
 #define CMD_STR_INFO_INST_LIST   "inst_list"
