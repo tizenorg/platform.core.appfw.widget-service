@@ -72,6 +72,7 @@ static const char *CONF_DEFAULT_EMPTY_TITLE = "";
 static const char *CONF_DEFAULT_REPLACE_TAG = "/APPID/";
 static const char *CONF_DEFAULT_PROVIDER_METHOD = "pixmap";
 static const char *CONF_DEFAULT_CATEGORY_LIST = "com.samsung.wmanager.WATCH_CLOCK";
+static const char *CONF_DEFAULT_APP_ABI = "app";
 static const int CONF_DEFAULT_WIDTH = 0;
 static const int CONF_DEFAULT_HEIGHT = 0;
 static const int CONF_DEFAULT_BASE_WIDTH = 720;
@@ -214,6 +215,7 @@ struct widget_conf {
 	double fault_detect_in_time;
 	int fault_detect_count;
 	int reactivate_on_pause;
+	char *app_abi;
 };
 
 static struct widget_conf s_conf;
@@ -223,6 +225,14 @@ static struct info {
 } s_info = {
 	.conf_loaded = 0,
 };
+
+static void app_abi_handler(char *buffer)
+{
+	s_conf.app_abi = strdup(buffer);
+	if (!s_conf.app_abi) {
+		ErrPrint("strdup: %s\n", strerror(errno));
+	}
+}
 
 static void detect_fault_handler(char *buffer)
 {
@@ -894,6 +904,7 @@ EAPI void widget_conf_init(void)
 	s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
 	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
 	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
+	s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
 }
 
 /*
@@ -1163,6 +1174,10 @@ EAPI int widget_conf_load(void)
 			.handler = reactivate_on_pause_handler,
 		},
 		{
+			.name = "app_abi",
+			.handler = app_abi_handler,
+		},
+		{
 			.name = NULL,
 			.handler = NULL,
 		},
@@ -1401,6 +1416,11 @@ EAPI void widget_conf_reset(void)
 	s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
 	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
 	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
+
+	if (s_conf.app_abi != CONF_DEFAULT_APP_ABI) {
+		free(s_conf.app_abi);
+		s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
+	}
 
 	if (s_conf.category_list != CONF_DEFAULT_CATEGORY_LIST) {
 		free(s_conf.category_list);
@@ -1863,6 +1883,11 @@ EAPI int widget_conf_fault_detect_count(void)
 EAPI int widget_conf_reactivate_on_pause(void)
 {
 	return s_conf.reactivate_on_pause;
+}
+
+EAPI const char * const widget_conf_app_abi(void)
+{
+	return s_conf.app_abi;
 }
 
 /* End of a file */
