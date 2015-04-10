@@ -72,6 +72,7 @@ static const char *CONF_DEFAULT_EMPTY_TITLE = "";
 static const char *CONF_DEFAULT_REPLACE_TAG = "/APPID/";
 static const char *CONF_DEFAULT_PROVIDER_METHOD = "pixmap";
 static const char *CONF_DEFAULT_CATEGORY_LIST = "com.samsung.wmanager.WATCH_CLOCK";
+static const char *CONF_DEFAULT_APP_ABI = "app";
 static const int CONF_DEFAULT_WIDTH = 0;
 static const int CONF_DEFAULT_HEIGHT = 0;
 static const int CONF_DEFAULT_BASE_WIDTH = 720;
@@ -109,6 +110,9 @@ static const int CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF = 0;
 static const double CONF_DEFAULT_EVENT_FILTER = 0.5f;
 static const int CONF_DEFAULT_SLAVE_LIMIT_TO_TTL = 0;
 static const int CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH = 0;
+static const int CONF_DEFAULT_REACTIVATE_ON_PAUSE = 1;
+static const double CONF_DEFAULT_FAULT_DETECT_IN_TIME = 0.0f;
+static const int CONF_DEFAULT_FAULT_DETECT_COUNT = 0;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -208,6 +212,10 @@ struct widget_conf {
 	int frame_skip;
 	int slave_auto_cache_flush;
 	char *category_list;
+	double fault_detect_in_time;
+	int fault_detect_count;
+	int reactivate_on_pause;
+	char *app_abi;
 };
 
 static struct widget_conf s_conf;
@@ -217,6 +225,28 @@ static struct info {
 } s_info = {
 	.conf_loaded = 0,
 };
+
+static void app_abi_handler(char *buffer)
+{
+	s_conf.app_abi = strdup(buffer);
+	if (!s_conf.app_abi) {
+		ErrPrint("strdup: %s\n", strerror(errno));
+	}
+}
+
+static void detect_fault_handler(char *buffer)
+{
+	if (sscanf(buffer, "%d,%lf", &s_conf.fault_detect_count, &s_conf.fault_detect_in_time) != 2) {
+		ErrPrint("Unable to parse the detect_fault [%s]\n", buffer);
+		s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
+		s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
+	}
+}
+
+static void reactivate_on_pause_handler(char *buffer)
+{
+	s_conf.reactivate_on_pause = !strcasecmp(buffer, "true");
+}
 
 static void category_list_handler(char *buffer)
 {
@@ -871,6 +901,10 @@ EAPI void widget_conf_init(void)
 	s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
 	s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
 	s_conf.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
+	s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
+	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
+	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
+	s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
 }
 
 /*
@@ -1132,6 +1166,18 @@ EAPI int widget_conf_load(void)
 			.handler = category_list_handler,
 		},
 		{
+			.name = "detect_fault",
+			.handler = detect_fault_handler,
+		},
+		{
+			.name = "reactivate_on_pause",
+			.handler = reactivate_on_pause_handler,
+		},
+		{
+			.name = "app_abi",
+			.handler = app_abi_handler,
+		},
+		{
 			.name = NULL,
 			.handler = NULL,
 		},
@@ -1367,6 +1413,14 @@ EAPI void widget_conf_reset(void)
 	s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
 	s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
 	s_conf.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
+	s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
+	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
+	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
+
+	if (s_conf.app_abi != CONF_DEFAULT_APP_ABI) {
+		free(s_conf.app_abi);
+		s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
+	}
 
 	if (s_conf.category_list != CONF_DEFAULT_CATEGORY_LIST) {
 		free(s_conf.category_list);
@@ -1814,6 +1868,26 @@ EAPI const int const widget_conf_slave_auto_cache_flush(void)
 EAPI const char * const widget_conf_category_list(void)
 {
 	return s_conf.category_list;
+}
+
+EAPI double widget_conf_fault_detect_in_time(void)
+{
+	return s_conf.fault_detect_in_time;
+}
+
+EAPI int widget_conf_fault_detect_count(void)
+{
+	return s_conf.fault_detect_count;
+}
+
+EAPI int widget_conf_reactivate_on_pause(void)
+{
+	return s_conf.reactivate_on_pause;
+}
+
+EAPI const char * const widget_conf_app_abi(void)
+{
+	return s_conf.app_abi;
 }
 
 /* End of a file */

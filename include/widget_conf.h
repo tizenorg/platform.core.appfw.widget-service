@@ -459,6 +459,11 @@ extern const int const widget_conf_slave_auto_cache_flush(void);
  */
 extern const char * const widget_conf_category_list(void);
 
+extern double widget_conf_fault_detect_in_time(void);
+extern int widget_conf_fault_detect_count(void);
+extern int widget_conf_reactivate_on_pause(void);
+extern const char * const widget_conf_app_abi(void);
+
 #define WIDGET_CONF_BASE_W               widget_conf_base_width()
 #define WIDGET_CONF_BASE_H               widget_conf_base_height()
 
@@ -547,8 +552,12 @@ extern const char * const widget_conf_category_list(void);
 #define WIDGET_CONF_SLAVE_EVENT_BOOST_OFF widget_conf_slave_event_boost_off()
 #define WIDGET_CONF_EVENT_FILTER	      widget_conf_event_filter()
 #define WIDGET_CONF_SLAVE_LIMIT_TO_TTL    widget_conf_slave_limit_to_ttl()
-#define WIDGET_CONF_FRAME_SKIP	      widget_conf_frame_skip()
-#define WIDGET_CONF_SLAVE_AUTO_CACHE_FLUSH widget_conf_slave_auto_cache_flush()
+#define WIDGET_CONF_FRAME_SKIP              widget_conf_frame_skip()
+#define WIDGET_CONF_SLAVE_AUTO_CACHE_FLUSH  widget_conf_slave_auto_cache_flush()
+#define WIDGET_CONF_FAULT_DETECT_COUNT      widget_conf_fault_detect_count()
+#define WIDGET_CONF_FAULT_DETECT_IN_TIME    widget_conf_fault_detect_in_time()
+#define WIDGET_CONF_REACTIVATE_ON_PAUSE     widget_conf_reactivate_on_pause()
+#define WIDGET_CONF_APP_ABI                 widget_conf_app_abi()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"

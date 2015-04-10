@@ -95,6 +95,20 @@ typedef enum widget_delete_type {
 
 /**
  * @internal
+ * @brief
+ * @since_tizen 2.3.1
+ */
+typedef enum widget_pre_callback {
+	WIDGET_PRE_CREATE_CALLBACK = 1,
+	WIDGET_PRE_DESTROY_CALLBACK = 2,
+	WIDGET_PRE_RESIZE_CALLBACK = 3,
+	WIDGET_PRE_CALLBACK_COUNT = 4
+} widget_pre_callback_e;
+
+typedef int (*widget_pre_callback_t)(const char *id, void *data);
+
+/**
+ * @internal
  * @brief Enumeration for result of accessibility event processing.
  * @details Reference the libprovider & libwidget-viewer.
  * @since_tizen 2.3.1
