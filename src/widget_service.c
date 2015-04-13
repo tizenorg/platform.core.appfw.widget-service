@@ -2328,10 +2328,7 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	pkgmgrinfo_appinfo_destroy_appinfo(handle);
 
 	if (!widget_pkgname) {
-		widget_pkgname = strdup(appid);
-		if (!widget_pkgname) {
-			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		}
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 	}
 
 	return widget_pkgname;
