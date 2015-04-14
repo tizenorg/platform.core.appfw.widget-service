@@ -569,7 +569,7 @@ extern char *widget_service_get_widget_id_by_libexec(const char *libexec);
  *          otherwise an error code (see #WIDGET_ERROR_XXX) on failure
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
 */
-extern int widget_service_get_base_file_path(char **base_file_path);
+extern char *widget_service_get_base_file_path(const char *widget_id);
 
 /**
  * @brief Get the category using given widgetid.

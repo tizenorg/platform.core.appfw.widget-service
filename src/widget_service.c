@@ -216,19 +216,29 @@ static int pkgmgr_cb(const pkgmgrinfo_appinfo_h handle, void *user_data)
 static inline char *pkgmgr_get_mainapp(const char *pkgid)
 {
 	pkgmgrinfo_pkginfo_h handle;
-	char *ret = NULL;
+	char *ret;
 
 	if (pkgmgrinfo_pkginfo_get_pkginfo(pkgid, &handle) != PMINFO_R_OK) {
 		ErrPrint("Unable to get mainapp: %s\n", pkgid);
+		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
 	}
 
+	ret = NULL;
 	if (pkgmgrinfo_pkginfo_get_mainappid(handle, &ret) == PMINFO_R_OK) {
-		ret = strdup(ret);
+		if (ret) {
+			ret = strdup(ret);
+			if (!ret) {
+				ErrPrint("strdup: %s\n", strerror(errno));
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
+			} else {
+				set_last_result(WIDGET_ERROR_NONE);
+			}
+		}
 	} else {
 		ErrPrint("Failed to get mainappid\n");
 		ret = NULL; /* I cannot believe the pkgmgrinfo_pkginfo_get_mainappid. it maybe able to touch my "ret" even though it fails */
-
+		set_last_result(WIDGET_ERROR_FAULT);
 	}
 
 	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
@@ -3317,10 +3327,51 @@ EAPI int widget_service_release_lock(widget_lock_info_t info)
 	return WIDGET_ERROR_NONE;
 }
 
-extern int widget_service_get_base_file_path(char **base_file_path)
+EAPI char *widget_service_get_base_file_path(const char *widget_id)
 {
-	int ret = WIDGET_ERROR_NONE;
+	pkgmgrinfo_pkginfo_h handle;
+	char *appid;
+	char *ret;
+	int status;
 
+	if (!widget_id) {
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	appid = widget_service_get_package_id(widget_id);
+	if (!appid) {
+		ErrPrint("Failed to get the appid using widget_id: %s\n", widget_id);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
+		return NULL;
+	}
+
+	status = pkgmgrinfo_pkginfo_get_pkginfo(appid, &handle);
+	free(appid);
+	if (status != PMINFO_R_OK) {
+		ErrPrint("Unable to get mainapp: %s\n", widget_id);
+		set_last_result(WIDGET_ERROR_FAULT);
+		return NULL;
+	}
+
+	ret = NULL;
+	if (pkgmgrinfo_pkginfo_get_root_path(handle, &ret) == PMINFO_R_OK) {
+		if (ret) {
+			ret = strdup(ret);
+			if (!ret) {
+				ErrPrint("strdup: %s\n", strerror(errno));
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
+			} else {
+				set_last_result(WIDGET_ERROR_NONE);
+			}
+		}
+	} else {
+		ErrPrint("Failed to get root path for %s\n", widget_id);
+		ret = NULL; /* I cannot believe the pkgmgrinfo_pkginfo_get_mainappid. it maybe able to touch my "ret" even though it fails */
+		set_last_result(WIDGET_ERROR_FAULT);
+	}
+
+	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
 	return ret;
 }
 
