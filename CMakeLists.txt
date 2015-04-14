@@ -24,7 +24,6 @@ pkg_check_modules(pkgs REQUIRED
 	pkgmgr
 	pkgmgr-info
 	vconf
-	ail
 	icu-uc
 )
 
