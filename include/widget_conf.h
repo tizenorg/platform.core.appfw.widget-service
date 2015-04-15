@@ -463,6 +463,7 @@ extern double widget_conf_fault_detect_in_time(void);
 extern int widget_conf_fault_detect_count(void);
 extern int widget_conf_reactivate_on_pause(void);
 extern const char * const widget_conf_app_abi(void);
+extern double widget_conf_visibility_change_delay(void);
 
 #define WIDGET_CONF_BASE_W               widget_conf_base_width()
 #define WIDGET_CONF_BASE_H               widget_conf_base_height()
@@ -558,6 +559,7 @@ extern const char * const widget_conf_app_abi(void);
 #define WIDGET_CONF_FAULT_DETECT_IN_TIME    widget_conf_fault_detect_in_time()
 #define WIDGET_CONF_REACTIVATE_ON_PAUSE     widget_conf_reactivate_on_pause()
 #define WIDGET_CONF_APP_ABI                 widget_conf_app_abi()
+#define WIDGET_CONF_VISIBILITY_CHANGE_DELAY widget_conf_visibility_change_delay()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"

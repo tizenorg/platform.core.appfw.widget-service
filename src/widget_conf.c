@@ -113,6 +113,7 @@ static const int CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH = 0;
 static const int CONF_DEFAULT_REACTIVATE_ON_PAUSE = 1;
 static const double CONF_DEFAULT_FAULT_DETECT_IN_TIME = 0.0f;
 static const int CONF_DEFAULT_FAULT_DETECT_COUNT = 0;
+static const double CONF_DEFAULT_VISIBILITY_CHANGE_DELAY = 0.0f;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -216,6 +217,7 @@ struct widget_conf {
 	int fault_detect_count;
 	int reactivate_on_pause;
 	char *app_abi;
+	double visibility_change_delay;
 };
 
 static struct widget_conf s_conf;
@@ -225,6 +227,14 @@ static struct info {
 } s_info = {
 	.conf_loaded = 0,
 };
+
+static void visibility_change_delay_handler(char *buffer)
+{
+	if (sscanf(buffer, "%lf", &s_conf.visibility_change_delay) != 1) {
+		ErrPrint("Unable to parse the visibility change delay [%s]\n", buffer);
+		s_conf.visibility_change_delay = 0.0f;
+	}
+}
 
 static void app_abi_handler(char *buffer)
 {
@@ -905,6 +915,7 @@ EAPI void widget_conf_init(void)
 	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
 	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
 	s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
+	s_conf.visibility_change_delay = CONF_DEFAULT_VISIBILITY_CHANGE_DELAY;
 }
 
 /*
@@ -1176,6 +1187,10 @@ EAPI int widget_conf_load(void)
 		{
 			.name = "app_abi",
 			.handler = app_abi_handler,
+		},
+		{
+			.name = "visibility_change_delay",
+			.handler = visibility_change_delay_handler,
 		},
 		{
 			.name = NULL,
@@ -1888,6 +1903,11 @@ EAPI int widget_conf_reactivate_on_pause(void)
 EAPI const char * const widget_conf_app_abi(void)
 {
 	return s_conf.app_abi;
+}
+
+EAPI double widget_conf_visibility_change_delay(void)
+{
+	return s_conf.visibility_change_delay;
 }
 
 /* End of a file */
