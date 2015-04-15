@@ -3225,12 +3225,13 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 		return NULL;
 	}
 
+	info->state = LOCK_CREATED;
 	return info;
 }
 
 EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 {
-	if (!info || !info->filename || info->fd < 0) {
+	if (!info || info->state != LOCK_CREATED || !info->filename || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3243,6 +3244,7 @@ EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 		ErrPrint("unlink: %s\n", strerror(errno));
 	}
 
+	info->state = LOCK_DESTROYED;
 	free(info->filename);
 	free(info);
 	return WIDGET_ERROR_NONE;
@@ -3253,7 +3255,7 @@ EAPI int widget_service_acquire_lock(widget_lock_info_t info)
 	struct flock flock;
 	int ret;
 
-	if (!info || info->fd < 0) {
+	if (!info || info->state != LOCK_CREATED || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3283,7 +3285,7 @@ EAPI int widget_service_release_lock(widget_lock_info_t info)
 	struct flock flock;
 	int ret;
 
-	if (info->fd < 0) {
+	if (!info || info->state != LOCK_CREATED || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 

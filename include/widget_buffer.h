@@ -105,6 +105,11 @@ typedef enum widget_lock_type {
  * @since_tizen 2.3.1
  */
 typedef struct widget_lock_info {
+	enum {
+		LOCK_INITIALIZED = 0xb0e0e0f0,
+		LOCK_CREATED = 0x0beef000,
+		LOCK_DESTROYED = 0x0dead000
+	} state;
     char *filename;
     int fd;
     widget_lock_type_e type;
@@ -120,7 +125,7 @@ typedef struct widget_buffer {
     enum {
         BUFFER_INITIALIZED = 0x0b0e0e0f,
         BUFFER_CREATED = 0x00beef00,
-        BUFFER_DESTROYED = 0x00dead00,
+        BUFFER_DESTROYED = 0x00dead00
     } state;
 
     widget_target_type_e type;
