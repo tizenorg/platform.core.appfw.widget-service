@@ -606,7 +606,7 @@ EAPI int widget_service_get_instance_count(const char *pkgname, const char *clus
 	return ret;
 }
 
-EAPI int widget_service_trigger_update(const char *pkgname, const char *id, const char *content, int force)
+EAPI int widget_service_trigger_update(const char *widget_id, const char *id, const char *content, int force)
 {
 	struct packet *packet;
 	struct packet *result;
@@ -614,7 +614,7 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 	char *uri;
 	int ret;
 
-	if (!pkgname) {
+	if (!widget_id) {
 		ErrPrint("Invalid argument\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -633,7 +633,7 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 		uri = NULL;
 	}
 
-	packet = packet_create((const char *)&cmd, "sssssi", pkgname, uri, "user,created", "default", content, force);
+	packet = packet_create((const char *)&cmd, "sssssi", widget_id, uri, "user,created", "default", content, force);
 	/*!
 	 * \note
 	 * "free" function accepts NULL
