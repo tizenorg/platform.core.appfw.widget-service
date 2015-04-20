@@ -90,7 +90,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 
 	fp = fopen(info->conf_file, "r");
 	if (!fp) {
-		ErrPrint("Open failed: %s\n", strerror(errno));
+		ErrPrint("Open failed: %d\n", errno);
 		return WIDGET_ERROR_IO_ERROR;
 	}
 
@@ -214,7 +214,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 	} while (!feof(fp));
 
 	if (fclose(fp) != 0) {
-		ErrPrint("fclose: %s\n", strerror(errno));
+		ErrPrint("fclose: %d\n", errno);
 	}
 
 	return WIDGET_NR_OF_SIZE_LIST - updated;
@@ -231,7 +231,7 @@ static char *conf_path(void)
 	length = strlen(CONF_PATH_FORMAT) + 12;    // 12 == RESERVED SPACE
 	path = calloc(1, length);
 	if (!path) {
-		ErrPrint("calloc: %s\n", strerror(errno));
+		ErrPrint("calloc: %d\n", errno);
 		return NULL;
 	}
 
@@ -243,10 +243,10 @@ static char *conf_path(void)
 	snprintf(path, length, CONF_PATH_FORMAT, s_info.w, s_info.h);
 	DbgPrint("Selected conf file: %s\n", path);
 	if (access(path, F_OK) != 0) {
-		ErrPrint("Fallback to default, access: %s\n", strerror(errno));
+		ErrPrint("Fallback to default, access: %d\n", errno);
 		strncpy(path, RESOLUTION_FILE, length);
 		if (access(path, F_OK) != 0) {
-			ErrPrint("Serious error - there is no conf file, use default setting: %s\n", strerror(errno));
+			ErrPrint("Serious error - there is no conf file, use default setting: %d\n", errno);
 			free(path);
 			path = NULL;
 		}

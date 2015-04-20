@@ -240,7 +240,7 @@ static void app_abi_handler(char *buffer)
 {
 	s_conf.app_abi = strdup(buffer);
 	if (!s_conf.app_abi) {
-		ErrPrint("strdup: %s\n", strerror(errno));
+		ErrPrint("strdup: %d\n", errno);
 	}
 }
 
@@ -262,7 +262,7 @@ static void category_list_handler(char *buffer)
 {
 	s_conf.category_list = strdup(buffer);
 	if (!s_conf.category_list) {
-		ErrPrint("strdup: %s\n", strerror(errno));
+		ErrPrint("strdup: %d\n", errno);
 		s_conf.category_list = (char *)CONF_DEFAULT_CATEGORY_LIST;
 	}
 }
@@ -321,7 +321,7 @@ static void emergency_disk_handler(char *buffer)
 {
 	s_conf.emergency_disk = strdup(buffer);
 	if (!s_conf.emergency_disk) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -349,7 +349,7 @@ static void services_handler(char *buffer)
 {
 	s_conf.services = strdup(buffer);
 	if (!s_conf.services) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -362,7 +362,7 @@ static void provider_method_handler(char *buffer)
 {
 	s_conf.provider_method = strdup(buffer);
 	if (!s_conf.provider_method) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -425,7 +425,7 @@ static void script_handler(char *buffer)
 {
 	s_conf.default_conf.script = strdup(buffer);
 	if (!s_conf.default_conf.script) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -433,7 +433,7 @@ static void default_abi_handler(char *buffer)
 {
 	s_conf.default_conf.abi = strdup(buffer);
 	if (!s_conf.default_conf.abi) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -441,7 +441,7 @@ static void default_group_handler(char *buffer)
 {
 	s_conf.default_conf.gbar_group = strdup(buffer);
 	if (!s_conf.default_conf.gbar_group) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -465,7 +465,7 @@ static void default_content_handler(char *buffer)
 {
 	s_conf.default_content = strdup(buffer);
 	if (!s_conf.default_content) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -473,7 +473,7 @@ static void default_title_handler(char *buffer)
 {
 	s_conf.default_title = strdup(buffer);
 	if (!s_conf.default_title) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -488,7 +488,7 @@ static void replace_tag_handler(char *buffer)
 {
 	s_conf.replace_tag = strdup(buffer);
 	if (!s_conf.replace_tag) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -548,7 +548,7 @@ static void db_path_handler(char *buffer)
 {
 	s_conf.path.db = strdup(buffer);
 	if (!s_conf.path.db) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -556,7 +556,7 @@ static void reader_path_handler(char *buffer)
 {
 	s_conf.path.reader = strdup(buffer);
 	if (!s_conf.path.reader) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -564,7 +564,7 @@ static void always_path_handler(char *buffer)
 {
 	s_conf.path.always = strdup(buffer);
 	if (!s_conf.path.always) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -572,7 +572,7 @@ static void log_path_handler(char *buffer)
 {
 	s_conf.path.slave_log = strdup(buffer);
 	if (!s_conf.path.slave_log) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -580,7 +580,7 @@ static void script_port_path_handler(char *buffer)
 {
 	s_conf.path.script_port = strdup(buffer);
 	if (!s_conf.path.script_port) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -588,7 +588,7 @@ static void share_path_handler(char *buffer)
 {
 	s_conf.path.image = strdup(buffer);
 	if (!s_conf.path.image) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -615,7 +615,7 @@ static char *parse_handler(const char *buffer)
 
 					len = snprintf(node, node_len - 1, DEV_PATH "%s%d", node_prefix, node_idx);
 					if (len < 0) {
-						ErrPrint("snprintf: %s\n", strerror(errno));
+						ErrPrint("snprintf: %d\n", errno);
 						free(node);
 						node = NULL;
 					} else {
@@ -623,7 +623,7 @@ static char *parse_handler(const char *buffer)
 						DbgPrint("NODE FOUND: %s\n", node);
 					}
 				} else {
-					ErrPrint("malloc: %s\n", strerror(errno));
+					ErrPrint("malloc: %d\n", errno);
 				}
 
 				break;
@@ -665,7 +665,7 @@ static char *find_input_device(const char *name)
 
 	fd = open(PROC_INPUT_DEVICES, O_RDONLY);
 	if (fd < 0) {
-		ErrPrint("open: %s\n", strerror(errno));
+		ErrPrint("open: %d\n", errno);
 		return NULL;
 	}
 
@@ -782,7 +782,7 @@ static char *find_input_device(const char *name)
 	}
 
 	if (close(fd) < 0) {
-		ErrPrint("close: %s\n", strerror(errno));
+		ErrPrint("close: %d\n", errno);
 	}
 
 	return node;
@@ -794,7 +794,7 @@ static void input_path_handler(char *buffer)
 		DbgPrint("Specifying the input device\n");
 		s_conf.path.input = strdup(buffer);
 		if (!s_conf.path.input) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 	} else {
 		DbgPrint("Find the input device\n");
@@ -803,7 +803,7 @@ static void input_path_handler(char *buffer)
 			ErrPrint("Fallback to raw string\n");
 			s_conf.path.input = strdup(buffer);
 			if (!s_conf.path.input) {
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 			}
 		}
 	}
@@ -929,17 +929,17 @@ static char *conf_path(void)
 	length = strlen(CONF_PATH_FORMAT) + 12;    // 12 == RESERVED SPACE
 	path = calloc(1, length);
 	if (!path) {
-		ErrPrint("calloc: %s\n", strerror(errno));
+		ErrPrint("calloc: %d\n", errno);
 		return NULL;
 	}
 
 	snprintf(path, length, CONF_PATH_FORMAT, s_conf.width, s_conf.height);
 	DbgPrint("Selected conf file: %s\n", path);
 	if (access(path, F_OK) != 0) {
-		ErrPrint("Fallback to default, access: %s\n", strerror(errno));
+		ErrPrint("Fallback to default, access: %d\n", errno);
 		strncpy(path, DEFAULT_MASTER_CONF, length);
 		if (access(path, F_OK) != 0) {
-			ErrPrint("Serious error - there is no conf file, use default setting: %s\n", strerror(errno));
+			ErrPrint("Serious error - there is no conf file, use default setting: %d\n", errno);
 			free(path);
 			path = NULL;
 		}
@@ -1213,7 +1213,7 @@ EAPI int widget_conf_load(void)
 	fp = fopen(conf_file, "rt");
 	free(conf_file);
 	if (!fp) {
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		return WIDGET_ERROR_IO_ERROR;
 	}
 
@@ -1379,7 +1379,7 @@ EAPI int widget_conf_load(void)
 	} while (c != EOF);
 
 	if (fclose(fp) != 0) {
-		ErrPrint("fclose: %s\n", strerror(errno));
+		ErrPrint("fclose: %d\n", errno);
 	}
 
 	s_conf.scale_width_factor = (double)s_conf.width / (double)WIDGET_CONF_BASE_W;
