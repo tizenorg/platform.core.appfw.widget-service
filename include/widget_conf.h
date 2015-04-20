@@ -25,7 +25,7 @@ extern "C" {
  * @internal
  * @brief Load a configuration file to the memory
  * @since_tizen 2.3.1
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE Successfully loaded
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access the configuration file
  * @see widget_conf_reset()
@@ -36,7 +36,6 @@ extern int widget_conf_load(void);
  * @internal
  * @brief Reset configuration data to its default values
  * @since_tizen 2.3.1
- * @return void
  * @see widget_conf_init()
  */
 extern void widget_conf_reset(void);
@@ -45,7 +44,6 @@ extern void widget_conf_reset(void);
  * @internal
  * @brief setup the configuration data using default values
  * @since_tizen 2.3.1
- * @return void
  * @see widget_conf_reset()
  */
 extern void widget_conf_init(void);
@@ -92,7 +90,7 @@ extern const char * const widget_conf_emergency_disk(void);
  * @brief if the master service provider should need to check the lcd status to pause/resume the service providers,
  *        this function will returns 1, or 0.
  * @since_tizen 2.3.1
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval 1 need to care the lcd status by master service provider
  * @retval 0 do not care it even if the lcd is off/on, do not send any pause/resume event to the service providers.
  */
@@ -104,7 +102,7 @@ extern const int const widget_conf_check_lcd(void);
  *        if this returns 1, the master service provider should keep its timestamp of each event data,
  *        or use the logical timestamp that is get by service provider.
  * @since_tizen 2.3.1
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval 1 use the timestamp of event data
  * @retval 0 use the system timestamp instead of event data of device
  */
@@ -144,7 +142,7 @@ extern const char * const widget_conf_services(void);
  * @brief Get the configuration value of "use_sw_backend"
  *        if this returns 1, the provider should not use the Graphics buffer.
  * @since_tizen 2.3.1
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval 1 true Use the S/W buffer such as heap instead of graphics buffer
  * @retval 0 false You can choose S/W buffer or Graphics buffer
  * @see widget_conf_provider_method()
@@ -173,7 +171,7 @@ extern const char * const widget_conf_provider_method(void);
  *        so the developer should launch the service provider with correct bundle data.
  *        and it should send the "hello" message to the master provider
  * @since_tizen 2.3.1
- * @return int
+ * @return 0 on success, otherwise a negative error value
  * @retval 1 master will turn on the debug mode
  * @retval 0 master will turn off the debug mode
  */
@@ -463,6 +461,7 @@ extern double widget_conf_fault_detect_in_time(void);
 extern int widget_conf_fault_detect_count(void);
 extern int widget_conf_reactivate_on_pause(void);
 extern const char * const widget_conf_app_abi(void);
+extern double widget_conf_visibility_change_delay(void);
 
 #define WIDGET_CONF_BASE_W               widget_conf_base_width()
 #define WIDGET_CONF_BASE_H               widget_conf_base_height()
@@ -558,6 +557,7 @@ extern const char * const widget_conf_app_abi(void);
 #define WIDGET_CONF_FAULT_DETECT_IN_TIME    widget_conf_fault_detect_in_time()
 #define WIDGET_CONF_REACTIVATE_ON_PAUSE     widget_conf_reactivate_on_pause()
 #define WIDGET_CONF_APP_ABI                 widget_conf_app_abi()
+#define WIDGET_CONF_VISIBILITY_CHANGE_DELAY widget_conf_visibility_change_delay()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"

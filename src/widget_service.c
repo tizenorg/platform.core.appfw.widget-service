@@ -33,13 +33,13 @@
 #include <pkgmgr-info.h>
 #include <vconf.h>
 #include <vconf-keys.h>
-#include <ail.h>
 #include <unicode/uloc.h>
 
 #include "widget_errno.h"
 #include "dlist.h"
 #include "util.h"
 #include "debug.h"
+#include "widget_conf.h"
 #include "widget_service.h"
 #include "widget_service_internal.h"
 #include "widget_cmd_list.h"
@@ -216,19 +216,29 @@ static int pkgmgr_cb(const pkgmgrinfo_appinfo_h handle, void *user_data)
 static inline char *pkgmgr_get_mainapp(const char *pkgid)
 {
 	pkgmgrinfo_pkginfo_h handle;
-	char *ret = NULL;
+	char *ret;
 
 	if (pkgmgrinfo_pkginfo_get_pkginfo(pkgid, &handle) != PMINFO_R_OK) {
 		ErrPrint("Unable to get mainapp: %s\n", pkgid);
+		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
 	}
 
+	ret = NULL;
 	if (pkgmgrinfo_pkginfo_get_mainappid(handle, &ret) == PMINFO_R_OK) {
-		ret = strdup(ret);
+		if (ret) {
+			ret = strdup(ret);
+			if (!ret) {
+				ErrPrint("strdup: %s\n", strerror(errno));
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
+			} else {
+				set_last_result(WIDGET_ERROR_NONE);
+			}
+		}
 	} else {
 		ErrPrint("Failed to get mainappid\n");
 		ret = NULL; /* I cannot believe the pkgmgrinfo_pkginfo_get_mainappid. it maybe able to touch my "ret" even though it fails */
-
+		set_last_result(WIDGET_ERROR_FAULT);
 	}
 
 	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
@@ -2505,29 +2515,6 @@ EAPI char *widget_service_get_provider_name(const char *widgetid)
 EAPI int widget_service_is_enabled(const char *widgetid)
 {
 	return 1;
-	/*
-	   ail_appinfo_h ai;
-	   char *pkgname;
-	   bool enabled;
-	   int ret;
-
-	   pkgname = widget_service_package_id(widgetid);
-	   if (!pkgname)
-	   return 0;
-
-	   ret = ail_get_appinfo(pkgname, &ai);
-	   if (ret != AIL_ERROR_OK) {
-	   free(pkgname);
-	   return 0;
-	   }
-
-	   if (ail_appinfo_get_bool(ai, AIL_PROP_X_SLP_ENABLED_BOOL, &enabled) != AIL_ERROR_OK)
-	   enabled = false;
-
-	   ail_destroy_appinfo(ai);
-	   free(pkgname);
-	   return enabled == true;
-	 */
 }
 
 EAPI int widget_service_is_primary(const char *widgetid)
@@ -3238,12 +3225,13 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 		return NULL;
 	}
 
+	info->state = LOCK_CREATED;
 	return info;
 }
 
 EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 {
-	if (!info || !info->filename || info->fd < 0) {
+	if (!info || info->state != LOCK_CREATED || !info->filename || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3256,6 +3244,7 @@ EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 		ErrPrint("unlink: %s\n", strerror(errno));
 	}
 
+	info->state = LOCK_DESTROYED;
 	free(info->filename);
 	free(info);
 	return WIDGET_ERROR_NONE;
@@ -3266,7 +3255,7 @@ EAPI int widget_service_acquire_lock(widget_lock_info_t info)
 	struct flock flock;
 	int ret;
 
-	if (!info || info->fd < 0) {
+	if (!info || info->state != LOCK_CREATED || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3296,7 +3285,7 @@ EAPI int widget_service_release_lock(widget_lock_info_t info)
 	struct flock flock;
 	int ret;
 
-	if (info->fd < 0) {
+	if (!info || info->state != LOCK_CREATED || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -3317,10 +3306,71 @@ EAPI int widget_service_release_lock(widget_lock_info_t info)
 	return WIDGET_ERROR_NONE;
 }
 
-extern int widget_service_get_base_file_path(char **base_file_path)
+EAPI char *widget_service_get_base_file_path(const char *widget_id)
 {
-	int ret = WIDGET_ERROR_NONE;
+	pkgmgrinfo_pkginfo_h handle;
+	char *ret;
+	int status;
 
+	if (!widget_id) {
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	/**
+	 * Validate caller
+	 */
+	ret = widget_service_get_abi(widget_id);
+	if (!ret) {
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("Failed to get ABI: %s\n", widget_id);
+		return NULL;
+	}
+
+	status = !strcasecmp(ret, WIDGET_CONF_DEFAULT_ABI);
+	free(ret);
+	if (status != 1) {
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		ErrPrint("Inhouse widget only be able to use this\n");
+		return NULL;
+	}
+
+	/**
+	 * Get the package Id
+	 */
+	ret = widget_service_get_package_id(widget_id);
+	if (!ret) {
+		ErrPrint("Failed to get the appid using widget_id: %s\n", widget_id);
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
+		return NULL;
+	}
+
+	status = pkgmgrinfo_pkginfo_get_pkginfo(ret, &handle);
+	free(ret);
+	if (status != PMINFO_R_OK) {
+		ErrPrint("Unable to get mainapp: %s\n", widget_id);
+		set_last_result(WIDGET_ERROR_FAULT);
+		return NULL;
+	}
+
+	ret = NULL;
+	if (pkgmgrinfo_pkginfo_get_root_path(handle, &ret) == PMINFO_R_OK) {
+		if (ret) {
+			ret = strdup(ret);
+			if (!ret) {
+				ErrPrint("strdup: %s\n", strerror(errno));
+				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
+			} else {
+				set_last_result(WIDGET_ERROR_NONE);
+			}
+		}
+	} else {
+		ErrPrint("Failed to get root path for %s\n", widget_id);
+		ret = NULL; /* I cannot believe the pkgmgrinfo_pkginfo_get_mainappid. it maybe able to touch my "ret" even though it fails */
+		set_last_result(WIDGET_ERROR_FAULT);
+	}
+
+	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
 	return ret;
 }
 

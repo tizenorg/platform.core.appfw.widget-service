@@ -18,7 +18,6 @@ BuildRequires: pkgconfig(db-util)
 BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(vconf)
-BuildRequires: pkgconfig(ail)
 BuildRequires: pkgconfig(icu-uc)
 BuildRequires: model-build-features
 
