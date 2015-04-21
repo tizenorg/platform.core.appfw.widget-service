@@ -24,6 +24,9 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <sys/ioctl.h>
+#include <linux/input.h>
 
 #include <dlog.h>
 #include <widget_errno.h>
@@ -116,6 +119,10 @@ static const int CONF_DEFAULT_FAULT_DETECT_COUNT = 0;
 static const double CONF_DEFAULT_VISIBILITY_CHANGE_DELAY = 0.0f;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
+
+#if !defined(EVIOCGNAME)
+	#define EVIOCGNAME(len)              _IOC(_IOC_READ, 'E', 0x06, len)
+#endif
 
 int errno;
 
@@ -641,6 +648,72 @@ static char *parse_handler(const char *buffer)
 	return node;
 }
 
+static char *find_input_device_by_path(const char *name)
+{
+	DIR *dir;
+	struct dirent *entry;
+	char path[PATH_MAX];
+	char *ptr;
+	int len;
+	int fd;
+	char dev_name[PATH_MAX];
+	char *return_path = NULL;
+	int ret;
+
+	dir = opendir(DEV_PATH);
+	if (!dir) {
+		ErrPrint("opendir: %d\n", errno);
+		return NULL;
+	}
+
+	strcpy(path, DEV_PATH);
+	len = strlen(DEV_PATH);
+	ptr = path + len;
+	len = PATH_MAX - len - 1;
+
+	while ((entry = readdir(dir))) {
+		if (entry->d_name[0] == '.' &&
+			(entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')))
+		{
+			continue;
+		}
+
+		strncpy(ptr, entry->d_name, len);
+		ptr[len] = '\0';
+
+		fd = open(path, O_RDONLY);
+		if (fd < 0) {
+			ErrPrint("open[%s]: %d\n", path, errno);
+			continue;
+		}
+
+		ret = ioctl(fd, EVIOCGNAME(sizeof(dev_name) - 1), &dev_name);
+		if (ret < 0) {
+			ErrPrint("ioctl: %d\n", errno);
+		}
+
+		if (close(fd) < 0) {
+			ErrPrint("close: %d\n", errno);
+		}
+
+		if (ret == 0 && !strcasecmp(name, dev_name)) {
+			return_path = strdup(path);
+			if (!return_path) {
+				ErrPrint("strdup: %d\n", errno);
+			}
+
+			DbgPrint("Found node: [%s]\n", return_path);
+			break;
+		}
+	}
+
+	if (closedir(dir) < 0) {
+		ErrPrint("closedir: %d\n", errno);
+	}
+
+	return return_path;
+}
+
 static char *find_input_device(const char *name)
 {
 	int fd;
@@ -800,10 +873,14 @@ static void input_path_handler(char *buffer)
 		DbgPrint("Find the input device\n");
 		s_conf.path.input = find_input_device(buffer);
 		if (s_conf.path.input == NULL) {
-			ErrPrint("Fallback to raw string\n");
-			s_conf.path.input = strdup(buffer);
+			ErrPrint("Fallback to find node by path\n");
+			s_conf.path.input = find_input_device_by_path(buffer);
 			if (!s_conf.path.input) {
-				ErrPrint("Heap: %d\n", errno);
+				ErrPrint("Fallback to raw string\n");
+				s_conf.path.input = strdup(buffer);
+				if (!s_conf.path.input) {
+					ErrPrint("Heap: %d\n", errno);
+				}
 			}
 		}
 	}
