@@ -143,19 +143,19 @@ extern "C" {
  * @brief Following list should be started after the common list of client_cmd_list
  *        Master to Provider
  */
-#define CMD_GBAR_SHOW      0x00003B01
-#define CMD_GBAR_HIDE      0x00003C01
-#define CMD_WIDGET_PAUSE     0x00003D01
-#define CMD_WIDGET_RESUME    0x00003E01
-#define CMD_SCRIPT         0x00003F01
-#define CMD_RENEW          0x00004001
-#define CMD_PINUP          0x00004101
-#define CMD_UPDATE_CONTENT 0x00004201
-#define CMD_PAUSE          0x00004301
-#define CMD_RESUME         0x00004401
-#define CMD_DISCONNECT     0x00004501
-#define CMD_VIEWER_CONNECTED 0x00004601
-#define CMD_VIEWER_DISCONNECTED 0x00004701
+#define CMD_GBAR_SHOW      0x00003C01
+#define CMD_GBAR_HIDE      0x00003D01
+#define CMD_WIDGET_PAUSE   0x00003E01
+#define CMD_WIDGET_RESUME  0x00003F01
+#define CMD_SCRIPT         0x00004001
+#define CMD_RENEW          0x00004101
+#define CMD_PINUP          0x00004201
+#define CMD_UPDATE_CONTENT 0x00004301
+#define CMD_PAUSE          0x00004401
+#define CMD_RESUME         0x00004501
+#define CMD_DISCONNECT     0x00004601
+#define CMD_VIEWER_CONNECTED 0x00004701
+#define CMD_VIEWER_DISCONNECTED 0x00004801
 
 #define CMD_STR_GBAR_SHOW      "gbar_show"
 #define CMD_STR_GBAR_HIDE      "gbar_hide"
@@ -254,6 +254,7 @@ extern "C" {
 #define CMD_WIDGET_MOUSE_UNSET      0x00003801
 #define CMD_GBAR_MOUSE_SET        0x00003901
 #define CMD_GBAR_MOUSE_UNSET      0x00003A01
+#define CMD_ORIENTATION           0x00003B01
 
 #define CMD_STR_GBAR_MOUSE_MOVE          "gbar_mouse_move"
 #define CMD_STR_WIDGET_MOUSE_MOVE          "widget_mouse_move"
@@ -314,38 +315,39 @@ extern "C" {
 #define CMD_STR_WIDGET_MOUSE_UNSET	 "widget_mouse_unset"
 #define CMD_STR_GBAR_MOUSE_SET		 "gbar_mouse_set"
 #define CMD_STR_GBAR_MOUSE_UNSET	 "gbar_mouse_unset"
+#define CMD_STR_ORIENTATION          "orientation"
 
 /**
  * @internal
  * @brief viewer to master
  */
-#define CMD_CHANGE_VISIBILITY     0x00003B01
-#define CMD_WIDGET_ACQUIRE_PIXMAP   0x00003C01
-#define CMD_WIDGET_RELEASE_PIXMAP   0x00003D01
-#define CMD_GBAR_ACQUIRE_PIXMAP   0x00003E01
-#define CMD_GBAR_RELEASE_PIXMAP   0x00003F01
-#define CMD_ACQUIRE               0x00004001
-#define CMD_RELEASE               0x00004101
-#define CMD_PINUP_CHANGED         0x00004201
-#define CMD_CREATE_GBAR           0x00004301
-#define CMD_DESTROY_GBAR          0x00004401
-#define CMD_ACTIVATE_PACKAGE      0x00004501
-#define CMD_SUBSCRIBE             0x00004601
-#define CMD_UNSUBSCRIBE           0x00004701
-#define CMD_DELETE_CLUSTER        0x00004801
-#define CMD_DELETE_CATEGORY       0x00004901
-#define CMD_REFRESH_GROUP         0x00004A01
-#define CMD_UPDATE                0x00004B01
-#define CMD_WIDGET_KEY_SET          0x00004C01
-#define CMD_WIDGET_KEY_UNSET        0x00004D01
-#define CMD_GBAR_KEY_SET          0x00004E01
-#define CMD_GBAR_KEY_UNSET        0x00004F01
-#define CMD_CLIENT_PAUSED         0x00005001
-#define CMD_CLIENT_RESUMED        0x00005101
-#define CMD_WIDGET_ACQUIRE_XPIXMAP  0x00005201
-#define CMD_GBAR_ACQUIRE_XPIXMAP  0x00005301
-#define CMD_SUBSCRIBE_CATEGORY    0x00005401
-#define CMD_UNSUBSCRIBE_CATEGORY  0x00005501
+#define CMD_CHANGE_VISIBILITY     0x00003C01
+#define CMD_WIDGET_ACQUIRE_PIXMAP   0x00003D01
+#define CMD_WIDGET_RELEASE_PIXMAP   0x00003E01
+#define CMD_GBAR_ACQUIRE_PIXMAP   0x00003F01
+#define CMD_GBAR_RELEASE_PIXMAP   0x00004001
+#define CMD_ACQUIRE               0x00004101
+#define CMD_RELEASE               0x00004201
+#define CMD_PINUP_CHANGED         0x00004301
+#define CMD_CREATE_GBAR           0x00004401
+#define CMD_DESTROY_GBAR          0x00004501
+#define CMD_ACTIVATE_PACKAGE      0x00004601
+#define CMD_SUBSCRIBE             0x00004701
+#define CMD_UNSUBSCRIBE           0x00004801
+#define CMD_DELETE_CLUSTER        0x00004901
+#define CMD_DELETE_CATEGORY       0x00004A01
+#define CMD_REFRESH_GROUP         0x00004B01
+#define CMD_UPDATE                0x00004C01
+#define CMD_WIDGET_KEY_SET        0x00004D01
+#define CMD_WIDGET_KEY_UNSET      0x00004E01
+#define CMD_GBAR_KEY_SET          0x00004F01
+#define CMD_GBAR_KEY_UNSET        0x00005001
+#define CMD_CLIENT_PAUSED         0x00005101
+#define CMD_CLIENT_RESUMED        0x00005201
+#define CMD_WIDGET_ACQUIRE_XPIXMAP  0x00005301
+#define CMD_GBAR_ACQUIRE_XPIXMAP  0x00005401
+#define CMD_SUBSCRIBE_CATEGORY    0x00005501
+#define CMD_UNSUBSCRIBE_CATEGORY  0x00005601
 
 #define CMD_STR_CHANGE_VISIBILITY   "change,visibility"
 #define CMD_STR_WIDGET_ACQUIRE_PIXMAP "widget_acquire_pixmap"

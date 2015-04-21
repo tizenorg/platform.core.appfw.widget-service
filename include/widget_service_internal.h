@@ -102,7 +102,8 @@ typedef enum widget_pre_callback {
 	WIDGET_PRE_CREATE_CALLBACK = 1,
 	WIDGET_PRE_DESTROY_CALLBACK = 2,
 	WIDGET_PRE_RESIZE_CALLBACK = 3,
-	WIDGET_PRE_CALLBACK_COUNT = 4
+	WIDGET_PRE_ORIENTATION_CALLBACK = 4,
+	WIDGET_PRE_CALLBACK_COUNT = 5
 } widget_pre_callback_e;
 
 typedef int (*widget_pre_callback_t)(const char *id, void *data);
