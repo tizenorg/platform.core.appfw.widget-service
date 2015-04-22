@@ -870,11 +870,11 @@ static void input_path_handler(char *buffer)
 			ErrPrint("Heap: %d\n", errno);
 		}
 	} else {
-		DbgPrint("Find the input device\n");
-		s_conf.path.input = find_input_device(buffer);
+		DbgPrint("Find the input device (%s)\n", buffer);
+		s_conf.path.input = find_input_device_by_path(buffer);
 		if (s_conf.path.input == NULL) {
 			ErrPrint("Fallback to find node by path\n");
-			s_conf.path.input = find_input_device_by_path(buffer);
+			s_conf.path.input = find_input_device(buffer);
 			if (!s_conf.path.input) {
 				ErrPrint("Fallback to raw string\n");
 				s_conf.path.input = strdup(buffer);
