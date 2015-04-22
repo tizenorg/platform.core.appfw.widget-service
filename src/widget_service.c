@@ -2652,6 +2652,58 @@ out:
 	return category;
 }
 
+EAPI int widget_service_get_widget_max_count(const char *widget_id)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret = WIDGET_ERROR_FAULT;
+
+	if (!widget_id) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return WIDGET_ERROR_IO_ERROR;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT count FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s, widget(%s), ret(%d)\n", sqlite3_errmsg(handle), widget_id, ret);
+		ret = WIDGET_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s, widget(%s), ret(%d)\n", sqlite3_errmsg(handle), widget_id, ret);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		if (ret == SQLITE_DONE) {
+			ret = WIDGET_ERROR_NOT_EXIST;
+		} else {
+			ret = WIDGET_ERROR_IO_ERROR;
+		}
+		ErrPrint("Error: %s, widget(%s), ret(%d)\n", sqlite3_errmsg(handle), widget_id, ret);
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_column_int(stmt, 0);
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
+}
+
 EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 {
 	sqlite3_stmt *stmt;

@@ -639,6 +639,20 @@ extern int widget_service_get_item_from_widget_list(widget_list_h handle, char *
  */
 extern int widget_service_destroy_widget_list(widget_list_h handle);
 
+/**
+ * @brief Get the maximum creatable count of widgets\n
+ *        Widget devleoper should describe the maximum count of createable widget instances to its Package manifest file.
+ * @since_tizen 2.3.1
+ * @param[in] widget_id widget application id
+ * @privlevel public
+ * @privlege %http://tizen.org/privilege/widget.viewer
+ * @return count positive value on success, otherwise a negative error value
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #WIDGET_ERROR_IO_ERROR Input/Output error (failed to access database)
+ * @retval #WIDGET_ERROR_FAULT Unrecorvarable error occurred
+ */
+extern int widget_service_get_widget_max_count(const char *widget_id);
+
 #ifdef __cplusplus
 }
 #endif
