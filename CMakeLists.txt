@@ -63,6 +63,7 @@ SET(BUILD_SOURCE
 	src/util.c
 	src/widget_conf.c
 	src/widget_abi.c
+	src/widget_monitor.c
 )
 
 IF (X11_SUPPORT)

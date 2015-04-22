@@ -500,18 +500,16 @@ extern int widget_service_get_nodisplay(const char *widgetid);
  */
 extern int widget_service_get_supported_sizes(const char *widgetid, int *cnt, int **w, int **h);
 
-
 /**
  * @brief Callback function for getting result of widget_service_get_widget_instance_list
  * @since_tizen 2.3.1
  * @param[in] widget_id widget app id
  * @param[in] widget_instance_id widget instance id
- * @param[in] content content information of the widget
  * @param[in] data user data
  * @return WIDGET_ERROR_NONE to continue with the next iteration of the loop, other error values to break out of the loop
  * @see #widget_service_get_widget_instance_list
  */
-typedef int (*widget_instance_list_cb)(const char *widget_id, const char *instance_id, const char *content, void *data);
+typedef int (*widget_instance_list_cb)(const char *widget_id, const char *instance_id, void *data);
 
 /**
  * @brief Gets widget instances of given widget_id.
@@ -534,12 +532,15 @@ extern int widget_service_get_widget_instance_list(const char *widget_id, widget
  */
 typedef enum widget_lifecycle_event {
 	WIDGET_LIFE_CYCLE_EVENT_CREATE  = 1,
-	WIDGET_LIFE_CYCLE_EVENT_DESTROY = 2
+	WIDGET_LIFE_CYCLE_EVENT_DESTROY = 2,
+	WIDGET_LIFE_CYCLE_EVENT_PAUSE = 3,
+	WIDGET_LIFE_CYCLE_EVENT_RESUME = 4,
+	WIDGET_LIFE_CYCLE_EVENT_MAX = 5
 } widget_lifecycle_event_e;
 
 /**
  * @brief Called when a widget is created or destroyed
- * @since_tizen 2.3.1
+ * @since_tizen 2.3.
  * @param[in] widget_id widget app id
  * @param[in] lifecycle_event type of event
  * @param[in] widget_instance_id widget instance id
@@ -548,7 +549,6 @@ typedef enum widget_lifecycle_event {
  * @see #widget_service_set_lifecycle_event_cb
  */
 typedef int (*widget_lifecycle_event_cb)(const char *widget_id, widget_lifecycle_event_e lifecycle_event, const char *widget_instance_id, void *data);
-
 
 /**
  * @brief Registers event handler callback function for life-cycle events of widgets
@@ -568,12 +568,13 @@ extern int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_l
  * @brief Unregisters event handler callback function for life-cycle events of widgets
  * @since_tizen 2.3.1
  * @param[in] widget_id widget app id
+ * @param[out] user_data user callback data
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see #widget_service_set_lifecycle_event_cb
  */
-extern int widget_service_unset_lifecycle_event_cb(const char *widget_id);
+extern int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **user_data);
 
 /**
  * @brief Gets content of the widget instance
@@ -585,7 +586,7 @@ extern int widget_service_unset_lifecycle_event_cb(const char *widget_id);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
-extern int widget_service_get_content_of_widget_instance(const char *widget_instance_id, char **content);
+extern int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, char **content);
 /**
  * @}
  */

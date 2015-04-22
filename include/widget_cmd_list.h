@@ -384,10 +384,32 @@ extern "C" {
 #define CMD_SERVICE_UPDATE        0x00000001
 #define CMD_SERVICE_CHANGE_PERIOD 0x00000101
 #define CMD_SERVICE_INST_CNT      0x00000201
+#define CMD_MONITOR_REGISTER      0x00000301
+#define CMD_MONITOR_UNREGISTER    0x00000401
+#define CMD_SERVICE_GET_CONTENT   0x00000501
+#define CMD_SERVICE_GET_INST_LIST 0x00000601
 
 #define CMD_STR_SERVICE_UPDATE        "service_update"
 #define CMD_STR_SERVICE_CHANGE_PERIOD "service_change_period"
 #define CMD_STR_SERVICE_INST_CNT      "service_inst_cnt"
+#define CMD_STR_MONITOR_REGISTER      "monitor_register"
+#define CMD_STR_MONITOR_UNREGISTER    "monitor_unregister"
+#define CMD_STR_SERVICE_GET_CONTENT   "service_get_content"
+#define CMD_STR_SERVICE_GET_INST_LIST "service_get_inst_list"
+
+/**
+ * @internal
+ * @brief Master to Service (Monitor)
+ */
+#define CMD_MONITOR_CREATE      0x00000001
+#define CMD_MONITOR_DESTROY     0x00000101
+#define CMD_MONITOR_PAUSE       0x00000201
+#define CMD_MONITOR_RESUME      0x00000301
+
+#define CMD_STR_MONITOR_CREATE  "monitor_create"
+#define CMD_STR_MONITOR_DESTROY "monitor_destroy"
+#define CMD_STR_MONITOR_PAUSE   "monitor_pause"
+#define CMD_STR_MONITOR_RESUME  "monitor_resume"
 
 #ifdef __cplusplus
 }

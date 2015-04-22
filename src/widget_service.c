@@ -47,7 +47,6 @@
 #include "widget_util.h"
 
 #define WIDGET_ID_PREFIX    "org.tizen."
-#define DEFAULT_TIMEOUT 2.0
 
 /* "/shared/res/" */
 #define RESOURCE_PATH	"/"
