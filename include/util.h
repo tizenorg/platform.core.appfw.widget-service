@@ -34,7 +34,7 @@ struct service_info {
     int base_h;
 
     int base_parse;
-    widget_status_e last_status;
+    widget_error_e last_status;
 };
 
 extern double util_timestamp(void);

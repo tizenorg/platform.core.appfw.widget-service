@@ -56,24 +56,11 @@ typedef enum widget_size_type {
 } widget_size_type_e;
 
 /**
- * @brief Destroy type of widget instance
- * @since_tizen 2.3.1
- */
-typedef enum widget_destroy_type {
-	WIDGET_DESTROY_TYPE_DEFAULT = 0x00,   /**< Deleted */
-	WIDGET_DESTROY_TYPE_UPGRADE = 0x01,   /**< Deleted for upgrading */
-	WIDGET_DESTROY_TYPE_UNINSTALL = 0x02, /**< Deleted by uninstalling */
-	WIDGET_DESTROY_TYPE_TERMINATE = 0x03, /**< Deleted for reboot device */
-	WIDGET_DESTROY_TYPE_FAULT = 0x04,     /**< Deleted by system-fault */
-	WIDGET_DESTROY_TYPE_TEMPORARY = 0x05, /**< Temporarly deleted, will be created again */
-	WIDGET_DESTROY_TYPE_UNKNOWN = 0x06    /**< Undefined reason */
-} widget_destroy_type_e; /**< Delete type */
-
-/**
  * @brief Enumeration for widget event type.
  * @details These events will be sent from the provider.
  * @since_tizen 2.3.1
  */
+
 typedef enum widget_event_type {
     WIDGET_EVENT_WIDGET_UPDATED = 0,                      /**< Contents of the given widget is updated */
     WIDGET_EVENT_WIDGET_EXTRA_UPDATED = 1,
@@ -200,7 +187,7 @@ extern int widget_service_get_size_type(int width, int height, widget_size_type_
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widget_id widget app id
+ * @param[in] widget_id appid of widget application
  * @param[in] size_type widget size type
  * @param[out] need_of_mouse_event the need of mouse event
  * @return 0 on success, otherwise a negative error value
@@ -221,7 +208,7 @@ extern int widget_service_get_need_of_mouse_event(const char *widget_id, widget_
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widget_id appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @param[in] size_type Size type
  * @param[out] need_of_touch_event the need of touch effect
  * @return 0 on success, otherwise a negative error value
@@ -242,7 +229,7 @@ extern int widget_service_get_need_of_touch_effect(const char *widget_id, widget
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widget_id widget app id
+ * @param[in] widget_id appid of widget application
  * @param[in] size_type Size type
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter was given.
@@ -255,7 +242,7 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
 /**
  * @brief Triggers the update event for given widget instance.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @param[in] instance_id Set @c NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
  * @param[in] content New content information, Default @c NULL
  * @param[in] force 1 if you want to update your widget even if the provider is paused or 0. 0 is default
@@ -270,12 +257,12 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
  * @retval #WIDGET_ERROR_NONE Successfully requested
  * @see widget_service_trigger_update()
  */
-extern int widget_service_trigger_update(const char *widgetid, const char *instance_id, const char *content, int force);
+extern int widget_service_trigger_update(const char *widget_id, const char *instance_id, const char *content, int force);
 
 /**
  * @brief Changes the update period of given widget instance.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @param[in] instance_id widget instance id
  * @param[in] period New update period in sec
  * @privlevel public
@@ -287,14 +274,14 @@ extern int widget_service_trigger_update(const char *widgetid, const char *insta
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval #WIDGET_ERROR_MEMORY Not enough memory
  */
-extern int widget_service_change_period(const char *widgetid, const char *instance_id, double period);
+extern int widget_service_change_period(const char *widget_id, const char *instance_id, double period);
 
 
 /**
  * @brief Callback function for getting result of widget_service_get_widget_list
  * @since_tizen 2.3.1
  * @param[in] pkgid package id
- * @param[in] widgetid widget app id
+ * @param[in] widget_id appid of widget application
  * @param[in] is_prime will be sent as 1 if the widget is a default widget
  * @param[in] data user data
  * @privlevel public
@@ -302,7 +289,7 @@ extern int widget_service_change_period(const char *widgetid, const char *instan
  * @return WIDGET_ERROR_NONE to continue with the next iteration of the loop, other error values to break out of the loop
  * @see #widget_service_get_pkglist
  */
-typedef int (*widget_list_cb)(const char *pkgid, const char *widgetid, int is_prime, void *data);
+typedef int (*widget_list_cb)(const char *pkgid, const char *widget_id, int is_prime, void *data);
 
 /**
  * @brief Gets a list of all widgets.
@@ -327,18 +314,18 @@ extern int widget_service_get_widget_list(widget_list_cb cb, void *data);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @remarks Result string should be freed by free()
- * @param[in] widgetid widget Package Id
+ * @param[in] widget_id appid of widget application
  * @return char * type
  * @retval @c NULL If it fails to get main application Id (UI-APPID), get_last_result() will returns reason of failure.
  * @retval appid Main application Id
  * @see #get_last_result
  */
-extern char *widget_service_get_main_app_id(const char *widgetid);
+extern char *widget_service_get_main_app_id(const char *widget_id);
 
 /**
  * @brief Callback function for getting result of widget_service_get_widget_list_by_pkgid
  * @since_tizen 2.3.1
- * @param[in] widgetid widget app id
+ * @param[in] widget_id appid of widget application
  * @param[in] is_prime will be sent as 1 if the widget is a default widget
  * @param[in] data user data
  * @privlevel public
@@ -346,7 +333,7 @@ extern char *widget_service_get_main_app_id(const char *widgetid);
  * @return WIDGET_ERROR_NONE to continue with the next iteration of the loop, other error values to break out of the loop
  * @see #widget_service_get_widget_list_by_pkgid
  */
-typedef int (*widget_list_by_pkgid_cb)(const char *widgetid, int is_prime, void *data);
+typedef int (*widget_list_by_pkgid_cb)(const char *widget_id, int is_prime, void *data);
 
 /**
  * @brief Gets a list of widgets included in the given package id
@@ -375,8 +362,8 @@ extern int widget_service_get_widget_list_by_pkgid(const char *pkgid, widget_lis
  * @remarks Result string should be freed by free()
  * @param[in] id Package Id or UI App Id
  * @return char * type
- * @retval @c NULL Failed to get primary widgetid, get_last_result() will returns reason of failure.
- * @retval widgetid Primary widget Id. which is allocated in the heap
+ * @retval @c NULL Failed to get primary widget id, get_last_result() will returns reason of failure.
+ * @retval widget_id Primary widget Id.
  * @pre Must be released returned string by manually.
  * @see widget_service_package_id()
  */
@@ -392,14 +379,14 @@ extern char *widget_service_get_widget_id(const char *id);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @remarks Result string should be freed by free()
- * @param[in] widgetid appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @return char * type
  * @retval @c NULL There is no setup application or error occurred, you can check it using get_last_result()
  * @retval appid AppId if exists or @c NULL
  * @post Returned string must be free'd manually.
  * @see get_last_result()
  */
-extern char *widget_service_get_app_id_of_setup_app(const char *widgetid);
+extern char *widget_service_get_app_id_of_setup_app(const char *widget_id);
 
 /**
  * @brief Gets the package id of the given widget.
@@ -407,14 +394,14 @@ extern char *widget_service_get_app_id_of_setup_app(const char *widgetid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @remarks Result string should be freed by free()
- * @param[in] widgetid appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @return char * type
  * @retval appid String which is allocated in the heap
  * @retval @c NULL Invalid appid, get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  * @see widget_service_widget_id()
  */
-extern char *widget_service_get_package_id(const char *widgetid);
+extern char *widget_service_get_package_id(const char *widget_id);
 
 /**
  * @brief Gets the name of the given widget.
@@ -422,7 +409,7 @@ extern char *widget_service_get_package_id(const char *widgetid);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @remarks Result string should be freed by free()
- * @param[in] widgetid appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @return char * type
  * @retval name If it fails to get name
@@ -431,7 +418,7 @@ extern char *widget_service_get_package_id(const char *widgetid);
  * @see widget_service_i18n_icon()
  * @see widget_service_preview()
  */
-extern char *widget_service_get_name(const char *widgetid, const char *lang);
+extern char *widget_service_get_name(const char *widget_id, const char *lang);
 
 /**
  * @brief Gets the preview image path of given size type.
@@ -440,7 +427,7 @@ extern char *widget_service_get_name(const char *widgetid, const char *lang);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @remarks Result string should be freed by free()
- * @param[in] widgetid appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @param[in] size_type widget size type
  * @return char * type
  * @retval path Preview image path
@@ -449,7 +436,7 @@ extern char *widget_service_get_name(const char *widgetid, const char *lang);
  * @see #widget_service_get_icon
  * @see #widget_service_get_name
  */
-extern char *widget_service_get_preview_image_path(const char *widgetid, int size_type);
+extern char *widget_service_get_preview_image_path(const char *widget_id, int size_type);
 
 /**
  * @brief Gets icon path of given widget package.
@@ -458,7 +445,7 @@ extern char *widget_service_get_preview_image_path(const char *widgetid, int siz
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @remarks Result string should be freed by free()
- * @param[in] pkgid package id of widget provider
+ * @param[in] pkgid package id of widget application
  * @param[in] lang Locale(en-us, ko-kr, ...), if it is @c NULL, function will use the system locale automatically
  * @return char * type
  * @retval name Allocated heap address
@@ -473,21 +460,21 @@ extern char *widget_service_get_icon(const char *pkgid, const char *lang);
  * @brief Gets the "nodisplay" value.
  * @since_tizen 2.3.1
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widgetid appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @privlevel public
  * @return the "nodisplay" value of given widget.
  * @retval 1 The box should not be listed by the widget list app
  * @retval 0 Box should be listed, get_last_result() will returns reason of failure if it fails.
  * @pre widget tag includes "nodisplay" attribute.
  */
-extern int widget_service_get_nodisplay(const char *widgetid);
+extern int widget_service_get_nodisplay(const char *widget_id);
 
 /**
  * @brief Gets the supported size list.
  * @since_tizen 2.3.1
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widgetid appid of widget provider
+ * @param[in] widget_id appid of widget application
  * @param[out] cnt Count of array w and h
  * @param[out] w Width array
  * @param[out] h Height array
@@ -498,7 +485,7 @@ extern int widget_service_get_nodisplay(const char *widgetid);
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see widget_service_get_supported_size_types()
  */
-extern int widget_service_get_supported_sizes(const char *widgetid, int *cnt, int **w, int **h);
+extern int widget_service_get_supported_sizes(const char *widget_id, int *cnt, int **w, int **h);
 
 /**
  * @brief Callback function for getting result of widget_service_get_widget_instance_list
@@ -514,7 +501,7 @@ typedef int (*widget_instance_list_cb)(const char *widget_id, const char *instan
 /**
  * @brief Gets widget instances of given widget_id.
  * @since_tizen 2.3.1
- * @param[in] widget_id widget app id
+ * @param[in] widget_id appid of widget application
  * @param[in] cb Callback function
  * @param[in] data user data for callback function
  * @return 0 on success, otherwise a negative error value
@@ -541,7 +528,7 @@ typedef enum widget_lifecycle_event {
 /**
  * @brief Called when a widget is created or destroyed
  * @since_tizen 2.3.
- * @param[in] widget_id widget app id
+ * @param[in] widget_id appid of widget application
  * @param[in] lifecycle_event type of event
  * @param[in] widget_instance_id widget instance id
  * @param[in] data user data
@@ -553,7 +540,7 @@ typedef int (*widget_lifecycle_event_cb)(const char *widget_id, widget_lifecycle
 /**
  * @brief Registers event handler callback function for life-cycle events of widgets
  * @since_tizen 2.3.1
- * @param[in] widget_id widget app id
+ * @param[in] widget_id appid of widget application
  * @param[in] cb Callback function
  * @param[in] data user data
  * @return 0 on success, otherwise a negative error value
@@ -567,7 +554,7 @@ extern int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_l
 /**
  * @brief Unregisters event handler callback function for life-cycle events of widgets
  * @since_tizen 2.3.1
- * @param[in] widget_id widget app id
+ * @param[in] widget_id appid of widget application
  * @param[out] user_data user callback data
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
