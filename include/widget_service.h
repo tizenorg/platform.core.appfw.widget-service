@@ -18,6 +18,7 @@
 #define __WIDGET_SERVICE_H
 
 #include <tizen_type.h>
+#include <bundle.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -244,7 +245,7 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
  * @since_tizen 2.3.1
  * @param[in] widget_id appid of widget application
  * @param[in] instance_id Set @c NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
- * @param[in] content New content information, Default @c NULL
+ * @param[in] b bundle data will be passed to the widget application via widget_update handler, default is @c NULL
  * @param[in] force 1 if you want to update your widget even if the provider is paused or 0. 0 is default
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.provider
@@ -257,7 +258,7 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
  * @retval #WIDGET_ERROR_NONE Successfully requested
  * @see widget_service_trigger_update()
  */
-extern int widget_service_trigger_update(const char *widget_id, const char *instance_id, const char *content, int force);
+extern int widget_service_trigger_update(const char *widget_id, const char *instance_id, bundle *b, int force);
 
 /**
  * @brief Changes the update period of given widget instance.
@@ -567,13 +568,14 @@ extern int widget_service_unset_lifecycle_event_cb(const char *widget_id, void *
  * @brief Gets content of the widget instance
  * @since_tizen 2.3.1
  * @param[in] widget_instance_id widget instance id
- * @param[out] content content information of the given widget instance
+ * @param[out] b bundle(content) data of the given widget instance, it should be released by caller.
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @post caller should have to release the bundle
  */
-extern int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, char **content);
+extern int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, bundle **b);
 /**
  * @}
  */

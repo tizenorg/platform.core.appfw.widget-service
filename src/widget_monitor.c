@@ -277,7 +277,7 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 	return WIDGET_ERROR_NOT_EXIST;
 }
 
-EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, char **content)
+EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, bundle **b)
 {
 	struct packet *packet;
 	struct packet *result;
@@ -286,7 +286,7 @@ EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, co
 	const char *_content;
 	int ret;
 
-	if (!widget_instance_id || !content) {
+	if (!widget_instance_id || !b) {
 		ErrPrint("Invalid argument\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -311,9 +311,9 @@ EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, co
 			ErrPrint("Failed to parse a result packet\n");
 			ret = WIDGET_ERROR_INVALID_PARAMETER;
 		} else if (ret == WIDGET_ERROR_NONE) {
-			*content = strdup(_content);
-			if (!*content) {
-				ErrPrint("strdup: %s [%d]\n", _content, errno);
+			*b = bundle_decode((bundle_raw *)_content, strlen(_content));
+			if (!*b) {
+				ErrPrint("bundle_decode: %s\n", _content);
 			}
 		} else {
 			ErrPrint("ret: %d\n", ret);

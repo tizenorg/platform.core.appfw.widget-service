@@ -25,6 +25,7 @@ pkg_check_modules(pkgs REQUIRED
 	pkgmgr-info
 	vconf
 	icu-uc
+	bundle
 )
 
 IF (X11_SUPPORT)

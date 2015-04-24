@@ -34,6 +34,7 @@
 #include <vconf.h>
 #include <vconf-keys.h>
 #include <unicode/uloc.h>
+#include <bundle.h>
 
 #include "widget_errno.h"
 #include "dlist.h"
@@ -605,13 +606,15 @@ EAPI int widget_service_get_instance_count(const char *pkgname, const char *clus
 	return ret;
 }
 
-EAPI int widget_service_trigger_update(const char *widget_id, const char *id, const char *content, int force)
+EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bundle *b, int force)
 {
 	struct packet *packet;
 	struct packet *result;
 	unsigned int cmd = CMD_SERVICE_UPDATE;
 	char *uri;
 	int ret;
+	char *content = NULL;
+	int content_len = 0;
 
 	if (!widget_id) {
 		ErrPrint("Invalid argument\n");
@@ -632,7 +635,15 @@ EAPI int widget_service_trigger_update(const char *widget_id, const char *id, co
 		uri = NULL;
 	}
 
+	if (b) {
+		ret = bundle_encode(b, (bundle_raw **)&content, &content_len);
+		if (ret != BUNDLE_ERROR_NONE) {
+			ErrPrint("Unable to encode bundle: %d\n", ret);
+		}
+	}
+
 	packet = packet_create((const char *)&cmd, "sssssi", widget_id, uri, "user,created", "default", content, force);
+	free(content);
 	/*!
 	 * \note
 	 * "free" function accepts NULL

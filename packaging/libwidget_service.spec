@@ -19,6 +19,7 @@ BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(icu-uc)
+BuildRequires: pkgconfig(bundle)
 BuildRequires: model-build-features
 
 %if %{with wayland}
