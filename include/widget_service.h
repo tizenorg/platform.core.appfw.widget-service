@@ -514,16 +514,16 @@ typedef int (*widget_instance_list_cb)(const char *widget_id, const char *instan
 extern int widget_service_get_widget_instance_list(const char *widget_id, widget_instance_list_cb cb, void *data);
 
 /**
- * @brief Enumerations for life cycle widget
+ * @brief Enumerations for life cycle event of widgets
  * @since_tizen 2.3.1
  * @see widget_lifecycle_event_cb
  */
 typedef enum widget_lifecycle_event {
-	WIDGET_LIFE_CYCLE_EVENT_CREATE  = 1,
-	WIDGET_LIFE_CYCLE_EVENT_DESTROY = 2,
-	WIDGET_LIFE_CYCLE_EVENT_PAUSE = 3,
-	WIDGET_LIFE_CYCLE_EVENT_RESUME = 4,
-	WIDGET_LIFE_CYCLE_EVENT_MAX = 5
+	WIDGET_LIFE_CYCLE_EVENT_CREATE  = 1,    /**< The widget is created */
+	WIDGET_LIFE_CYCLE_EVENT_DESTROY = 2,    /**< The widget is destroyed */
+	WIDGET_LIFE_CYCLE_EVENT_PAUSE   = 3,    /**< The widget is paused */
+	WIDGET_LIFE_CYCLE_EVENT_RESUME  = 4,    /**< The widget is resumed */
+	WIDGET_LIFE_CYCLE_EVENT_MAX     = 5
 } widget_lifecycle_event_e;
 
 /**
