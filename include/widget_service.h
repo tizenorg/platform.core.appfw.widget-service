@@ -74,51 +74,6 @@ typedef enum widget_event_type {
 } widget_event_type_e;
 
 /**
- * @brief Text signal & Content event uses this data structure.
- * @since_tizen 2.3.1
- */
-typedef struct widget_event_info {
-	struct _pointer {
-		double x; /**< X value of current mouse(touch) position */
-		double y; /**< Y value of current mouse(touch) position */
-		int down; /**< Is it pressed(1) or not(0) */
-	} pointer;
-
-	struct _part {
-		double sx; /**< Pressed object's left top X */
-		double sy; /**< Pressed object's left top Y */
-		double ex; /**< Pressed object's right bottom X */
-		double ey; /**< Pressed object's right bottom Y */
-	} part;
-} *widget_event_info_s;
-
-/**
- * @brief Names of text signals
- * @since_tizen 2.3.1
- * @see #widget_text_signal_s
- */
-#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON    "edit,on"   /**< Text signal for edit mode on*/
-#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF   "edit,off"  /**< Text signal for edit mode off*/
-
-/**
- * @brief Text signal information
- * @since_tizen 2.3.1
- * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
- * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
- * @see #widget_event_info_s
- */
-typedef struct widget_text_signal {
-    const char *signal_name;    /**< A name of a text signal */
-    const char *source;         /**< A source name of this text signal */
-    struct {
-        double sx;              /**< X-axis value of left-top corner for this text signal */
-        double sy;              /**< Y-axis value of left-top corner for this text signal */
-        double ex;              /**< X-axis value of right-bottom corner for this text signal */
-        double ey;              /**< Y-axis value of right-bottom corner for this text signal  */
-    } geometry;                 /**< Region information of this text signal */
-} *widget_text_signal_s;
-
-/**
  * @brief Gets the pixel size of given size type.
  * @details
  *  Size types would be\n
@@ -137,7 +92,7 @@ typedef struct widget_text_signal {
  *  #WIDGET_SIZE_TYPE_EASY_3x3.
  * @since_tizen 2.3.1
  * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
+ * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] type Size type
  * @param[out] width Pixel size width
  * @param[out] height Pixel size height
@@ -169,6 +124,8 @@ extern int widget_service_get_size(widget_size_type_e type, int *width, int *hei
  *  or\n
  *  #WIDGET_SIZE_TYPE_UNKNOWN for error.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] width Pixel size width
  * @param[in] height Pixel size height
  * @param[out] size_type Widget size type\n
@@ -248,7 +205,7 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
  * @param[in] b bundle data will be passed to the widget application via widget_update handler, default is @c NULL
  * @param[in] force 1 if you want to update your widget even if the provider is paused or 0. 0 is default
  * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.provider
+ * @privilege %http://tizen.org/privilege/widget.service
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_CANCELED Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
@@ -263,11 +220,11 @@ extern int widget_service_trigger_update(const char *widget_id, const char *inst
 /**
  * @brief Changes the update period of given widget instance.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_id appid of widget application
  * @param[in] instance_id widget instance id
  * @param[in] period New update period in sec
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.provider
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_NONE Successfully changed(requested)
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
@@ -502,6 +459,8 @@ typedef int (*widget_instance_list_cb)(const char *widget_id, const char *instan
 /**
  * @brief Gets widget instances of given widget_id.
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_id appid of widget application
  * @param[in] cb Callback function
  * @param[in] data user data for callback function
@@ -541,6 +500,8 @@ typedef int (*widget_lifecycle_event_cb)(const char *widget_id, widget_lifecycle
 /**
  * @brief Registers event handler callback function for life-cycle events of widgets
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_id appid of widget application
  * @param[in] cb Callback function
  * @param[in] data user data
@@ -555,6 +516,8 @@ extern int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_l
 /**
  * @brief Unregisters event handler callback function for life-cycle events of widgets
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_id appid of widget application
  * @param[out] user_data user callback data
  * @return 0 on success, otherwise a negative error value
@@ -567,6 +530,8 @@ extern int widget_service_unset_lifecycle_event_cb(const char *widget_id, void *
 /**
  * @brief Gets content of the widget instance
  * @since_tizen 2.3.1
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_instance_id widget instance id
  * @param[out] b bundle(content) data of the given widget instance, it should be released by caller.
  * @return 0 on success, otherwise a negative error value

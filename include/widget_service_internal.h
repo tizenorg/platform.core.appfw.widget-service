@@ -272,6 +272,50 @@ typedef enum widget_status  {
     WIDGET_STATUS_ERROR_DISABLED = WIDGET_STATUS_ERROR | 0x2000
 } widget_status_e;
 
+/**
+ * @brief Text signal & Content event uses this data structure.
+ * @since_tizen 2.3.1
+ */
+typedef struct widget_event_info {
+	struct _pointer {
+		double x; /**< X value of current mouse(touch) position */
+		double y; /**< Y value of current mouse(touch) position */
+		int down; /**< Is it pressed(1) or not(0) */
+	} pointer;
+
+	struct _part {
+		double sx; /**< Pressed object's left top X */
+		double sy; /**< Pressed object's left top Y */
+		double ex; /**< Pressed object's right bottom X */
+		double ey; /**< Pressed object's right bottom Y */
+	} part;
+} *widget_event_info_s;
+
+/**
+ * @brief Names of text signals
+ * @since_tizen 2.3.1
+ * @see #widget_text_signal_s
+ */
+#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON    "edit,on"   /**< Text signal for edit mode on*/
+#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF   "edit,off"  /**< Text signal for edit mode off*/
+
+/**
+ * @brief Text signal information
+ * @since_tizen 2.3.1
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
+ * @see #widget_event_info_s
+ */
+typedef struct widget_text_signal {
+    const char *signal_name;    /**< A name of a text signal */
+    const char *source;         /**< A source name of this text signal */
+    struct {
+        double sx;              /**< X-axis value of left-top corner for this text signal */
+        double sy;              /**< Y-axis value of left-top corner for this text signal */
+        double ex;              /**< X-axis value of right-bottom corner for this text signal */
+        double ey;              /**< Y-axis value of right-bottom corner for this text signal  */
+    } geometry;                 /**< Region information of this text signal */
+} *widget_text_signal_s;
 
 /**
  * @internal
