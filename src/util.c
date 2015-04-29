@@ -51,13 +51,13 @@ double util_timestamp(void)
 			return ts.tv_sec + ts.tv_nsec / 1000000000.0f;
 		}
 
-		ErrPrint("%d: %s\n", s_info.type, strerror(errno));
+		ErrPrint("%d: %s\n", s_info.type, errno);
 		if (s_info.type == CLOCK_MONOTONIC) {
 			s_info.type = CLOCK_REALTIME;
 		} else if (s_info.type == CLOCK_REALTIME) {
 			struct timeval tv;
 			if (gettimeofday(&tv, NULL) < 0) {
-				ErrPrint("gettimeofday: %s\n", strerror(errno));
+				ErrPrint("gettimeofday: %d\n", errno);
 				break;
 			}
 
@@ -70,7 +70,7 @@ double util_timestamp(void)
 	struct timeval tv;
 
 	if (gettimeofday(&tv, NULL) < 0) {
-		ErrPrint("gettimeofday: %s\n", strerror(errno));
+		ErrPrint("gettimeofday: %d\n", errno);
 		tv.tv_sec = 0;
 		tv.tv_usec = 0;
 	}
@@ -98,7 +98,7 @@ unsigned long util_free_space(const char *path)
 	unsigned long space;
 
 	if (statvfs(path, &st) < 0) {
-		ErrPrint("statvfs: %s\n", strerror(errno));
+		ErrPrint("statvfs: %d\n", errno);
 		return 0lu;
 	}
 
@@ -132,7 +132,7 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 	len = strlen(src);
 	result = malloc(len + 1);
 	if (!result) {
-		ErrPrint("Heap:%s\n", strerror(errno));
+		ErrPrint("Heap:%d\n", errno);
 		return NULL;
 	}
 
@@ -146,7 +146,7 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 			len += (rlen > len ? rlen : len);
 			tmp = realloc(result, len + 1);
 			if (!tmp) {
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 				free(result);
 				return NULL;
 			}
@@ -163,7 +163,7 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 				len += (rlen > len ? rlen : len);
 				tmp = realloc(result, len + 1);
 				if (!tmp) {
-					ErrPrint("Heap: %s\n", strerror(errno));
+					ErrPrint("Heap: %d\n", errno);
 					free(result);
 					return NULL;
 				}
@@ -182,7 +182,7 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 								len += (rlen > len ? rlen : len);
 								tmp = realloc(result, len + 1);
 								if (!tmp) {
-									ErrPrint("Heap: %s\n", strerror(errno));
+									ErrPrint("Heap: %d\n", errno);
 									free(result);
 									return NULL;
 								}
@@ -197,11 +197,13 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 					continue;
 				}
 
+#if 0	/* Not used value? */
 				if (n_idx < 0) {
 					s_idx = t_idx;
 				} else {
 					s_idx = n_idx;
 				}
+#endif
 
 				break;
 			}
@@ -212,14 +214,14 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 					len += (rlen > len ? rlen : len);
 					tmp = realloc(result, len + 1);
 					if (!tmp) {
-						ErrPrint("Heap: %s\n", strerror(errno));
+						ErrPrint("Heap: %d\n", errno);
 						free(result);
 						return NULL;
 					}
 					result = tmp;
 					matched++;
 				}
-				strcpy(result + idx, replace);
+				strncpy(result + idx, replace, len + 1);
 				idx += strlen(replace);
 				s_idx = t_idx - 1;
 			} else {
@@ -264,7 +266,7 @@ char *util_id_to_uri(const char *id)
 	if (!id) {
 		uri = strdup("");
 		if (!uri) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 			return NULL;
 		}
 	} else if (strncmp(id, SCHEMA_FILE, strlen(SCHEMA_FILE))) {
@@ -272,7 +274,7 @@ char *util_id_to_uri(const char *id)
 		len = strlen(SCHEMA_FILE) + strlen(id) + 2;
 		uri = malloc(len);
 		if (!uri) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 			return NULL;
 		}
 
@@ -280,7 +282,7 @@ char *util_id_to_uri(const char *id)
 	} else {
 		uri = strdup(id);
 		if (!uri) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 			return NULL;
 		}
 	}

@@ -57,14 +57,14 @@ static int abi_add_entry(const char *abi, const char *pkgname)
 
 	item->abi = strdup(abi);
 	if (!item->abi) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		free(item);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
 	}
 
 	item->pkgname = strdup(pkgname);
 	if (!item->pkgname) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		free(item->abi);
 		free(item);
 		return WIDGET_ERROR_OUT_OF_MEMORY;
@@ -235,7 +235,7 @@ static int abi_load_table(void)
 	}
 
 	if (fclose(fp) != 0) {
-		ErrPrint("fclose: %s\n", strerror(errno));
+		ErrPrint("fclose: %d\n", errno);
 	}
 	return WIDGET_ERROR_NONE;
 }

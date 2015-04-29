@@ -24,6 +24,9 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <sys/ioctl.h>
+#include <linux/input.h>
 
 #include <dlog.h>
 #include <widget_errno.h>
@@ -71,7 +74,7 @@ static const char *CONF_DEFAULT_EMPTY_CONTENT = "";
 static const char *CONF_DEFAULT_EMPTY_TITLE = "";
 static const char *CONF_DEFAULT_REPLACE_TAG = "/APPID/";
 static const char *CONF_DEFAULT_PROVIDER_METHOD = "pixmap";
-static const char *CONF_DEFAULT_CATEGORY_LIST = "com.samsung.wmanager.WATCH_CLOCK";
+static const char *CONF_DEFAULT_CATEGORY_LIST = "http://tizen.org/category/wearable_clock";
 static const char *CONF_DEFAULT_APP_ABI = "app";
 static const int CONF_DEFAULT_WIDTH = 0;
 static const int CONF_DEFAULT_HEIGHT = 0;
@@ -116,6 +119,10 @@ static const int CONF_DEFAULT_FAULT_DETECT_COUNT = 0;
 static const double CONF_DEFAULT_VISIBILITY_CHANGE_DELAY = 0.0f;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
+
+#if !defined(EVIOCGNAME)
+	#define EVIOCGNAME(len)              _IOC(_IOC_READ, 'E', 0x06, len)
+#endif
 
 int errno;
 
@@ -240,7 +247,7 @@ static void app_abi_handler(char *buffer)
 {
 	s_conf.app_abi = strdup(buffer);
 	if (!s_conf.app_abi) {
-		ErrPrint("strdup: %s\n", strerror(errno));
+		ErrPrint("strdup: %d\n", errno);
 	}
 }
 
@@ -262,7 +269,7 @@ static void category_list_handler(char *buffer)
 {
 	s_conf.category_list = strdup(buffer);
 	if (!s_conf.category_list) {
-		ErrPrint("strdup: %s\n", strerror(errno));
+		ErrPrint("strdup: %d\n", errno);
 		s_conf.category_list = (char *)CONF_DEFAULT_CATEGORY_LIST;
 	}
 }
@@ -321,7 +328,7 @@ static void emergency_disk_handler(char *buffer)
 {
 	s_conf.emergency_disk = strdup(buffer);
 	if (!s_conf.emergency_disk) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -349,7 +356,7 @@ static void services_handler(char *buffer)
 {
 	s_conf.services = strdup(buffer);
 	if (!s_conf.services) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -362,7 +369,7 @@ static void provider_method_handler(char *buffer)
 {
 	s_conf.provider_method = strdup(buffer);
 	if (!s_conf.provider_method) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -425,7 +432,7 @@ static void script_handler(char *buffer)
 {
 	s_conf.default_conf.script = strdup(buffer);
 	if (!s_conf.default_conf.script) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -433,7 +440,7 @@ static void default_abi_handler(char *buffer)
 {
 	s_conf.default_conf.abi = strdup(buffer);
 	if (!s_conf.default_conf.abi) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -441,7 +448,7 @@ static void default_group_handler(char *buffer)
 {
 	s_conf.default_conf.gbar_group = strdup(buffer);
 	if (!s_conf.default_conf.gbar_group) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -465,7 +472,7 @@ static void default_content_handler(char *buffer)
 {
 	s_conf.default_content = strdup(buffer);
 	if (!s_conf.default_content) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -473,7 +480,7 @@ static void default_title_handler(char *buffer)
 {
 	s_conf.default_title = strdup(buffer);
 	if (!s_conf.default_title) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -488,7 +495,7 @@ static void replace_tag_handler(char *buffer)
 {
 	s_conf.replace_tag = strdup(buffer);
 	if (!s_conf.replace_tag) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -548,7 +555,7 @@ static void db_path_handler(char *buffer)
 {
 	s_conf.path.db = strdup(buffer);
 	if (!s_conf.path.db) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -556,7 +563,7 @@ static void reader_path_handler(char *buffer)
 {
 	s_conf.path.reader = strdup(buffer);
 	if (!s_conf.path.reader) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -564,7 +571,7 @@ static void always_path_handler(char *buffer)
 {
 	s_conf.path.always = strdup(buffer);
 	if (!s_conf.path.always) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -572,7 +579,7 @@ static void log_path_handler(char *buffer)
 {
 	s_conf.path.slave_log = strdup(buffer);
 	if (!s_conf.path.slave_log) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -580,7 +587,7 @@ static void script_port_path_handler(char *buffer)
 {
 	s_conf.path.script_port = strdup(buffer);
 	if (!s_conf.path.script_port) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -588,7 +595,7 @@ static void share_path_handler(char *buffer)
 {
 	s_conf.path.image = strdup(buffer);
 	if (!s_conf.path.image) {
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 }
 
@@ -615,7 +622,7 @@ static char *parse_handler(const char *buffer)
 
 					len = snprintf(node, node_len - 1, DEV_PATH "%s%d", node_prefix, node_idx);
 					if (len < 0) {
-						ErrPrint("snprintf: %s\n", strerror(errno));
+						ErrPrint("snprintf: %d\n", errno);
 						free(node);
 						node = NULL;
 					} else {
@@ -623,7 +630,7 @@ static char *parse_handler(const char *buffer)
 						DbgPrint("NODE FOUND: %s\n", node);
 					}
 				} else {
-					ErrPrint("malloc: %s\n", strerror(errno));
+					ErrPrint("malloc: %d\n", errno);
 				}
 
 				break;
@@ -639,6 +646,72 @@ static char *parse_handler(const char *buffer)
 	}
 
 	return node;
+}
+
+static char *find_input_device_by_path(const char *name)
+{
+	DIR *dir;
+	struct dirent *entry;
+	char path[PATH_MAX];
+	char *ptr;
+	int len;
+	int fd;
+	char dev_name[PATH_MAX];
+	char *return_path = NULL;
+	int ret;
+
+	dir = opendir(DEV_PATH);
+	if (!dir) {
+		ErrPrint("opendir: %d\n", errno);
+		return NULL;
+	}
+
+	strcpy(path, DEV_PATH);
+	len = strlen(DEV_PATH);
+	ptr = path + len;
+	len = PATH_MAX - len - 1;
+
+	while ((entry = readdir(dir))) {
+		if (entry->d_name[0] == '.' &&
+			(entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')))
+		{
+			continue;
+		}
+
+		strncpy(ptr, entry->d_name, len);
+		ptr[len] = '\0';
+
+		fd = open(path, O_RDONLY);
+		if (fd < 0) {
+			ErrPrint("open[%s]: %d\n", path, errno);
+			continue;
+		}
+
+		ret = ioctl(fd, EVIOCGNAME(sizeof(dev_name) - 1), &dev_name);
+		if (ret < 0) {
+			ErrPrint("ioctl: %d\n", errno);
+		}
+
+		if (close(fd) < 0) {
+			ErrPrint("close: %d\n", errno);
+		}
+
+		if (ret == 0 && !strcasecmp(name, dev_name)) {
+			return_path = strdup(path);
+			if (!return_path) {
+				ErrPrint("strdup: %d\n", errno);
+			}
+
+			DbgPrint("Found node: [%s]\n", return_path);
+			break;
+		}
+	}
+
+	if (closedir(dir) < 0) {
+		ErrPrint("closedir: %d\n", errno);
+	}
+
+	return return_path;
 }
 
 static char *find_input_device(const char *name)
@@ -665,7 +738,7 @@ static char *find_input_device(const char *name)
 
 	fd = open(PROC_INPUT_DEVICES, O_RDONLY);
 	if (fd < 0) {
-		ErrPrint("open: %s\n", strerror(errno));
+		ErrPrint("open: %d\n", errno);
 		return NULL;
 	}
 
@@ -782,7 +855,7 @@ static char *find_input_device(const char *name)
 	}
 
 	if (close(fd) < 0) {
-		ErrPrint("close: %s\n", strerror(errno));
+		ErrPrint("close: %d\n", errno);
 	}
 
 	return node;
@@ -794,16 +867,20 @@ static void input_path_handler(char *buffer)
 		DbgPrint("Specifying the input device\n");
 		s_conf.path.input = strdup(buffer);
 		if (!s_conf.path.input) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 	} else {
-		DbgPrint("Find the input device\n");
-		s_conf.path.input = find_input_device(buffer);
+		DbgPrint("Find the input device (%s)\n", buffer);
+		s_conf.path.input = find_input_device_by_path(buffer);
 		if (s_conf.path.input == NULL) {
-			ErrPrint("Fallback to raw string\n");
-			s_conf.path.input = strdup(buffer);
+			ErrPrint("Fallback to find node by path\n");
+			s_conf.path.input = find_input_device(buffer);
 			if (!s_conf.path.input) {
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Fallback to raw string\n");
+				s_conf.path.input = strdup(buffer);
+				if (!s_conf.path.input) {
+					ErrPrint("Heap: %d\n", errno);
+				}
 			}
 		}
 	}
@@ -929,17 +1006,17 @@ static char *conf_path(void)
 	length = strlen(CONF_PATH_FORMAT) + 12;    // 12 == RESERVED SPACE
 	path = calloc(1, length);
 	if (!path) {
-		ErrPrint("calloc: %s\n", strerror(errno));
+		ErrPrint("calloc: %d\n", errno);
 		return NULL;
 	}
 
 	snprintf(path, length, CONF_PATH_FORMAT, s_conf.width, s_conf.height);
 	DbgPrint("Selected conf file: %s\n", path);
 	if (access(path, F_OK) != 0) {
-		ErrPrint("Fallback to default, access: %s\n", strerror(errno));
+		ErrPrint("Fallback to default, access: %d\n", errno);
 		strncpy(path, DEFAULT_MASTER_CONF, length);
 		if (access(path, F_OK) != 0) {
-			ErrPrint("Serious error - there is no conf file, use default setting: %s\n", strerror(errno));
+			ErrPrint("Serious error - there is no conf file, use default setting: %d\n", errno);
 			free(path);
 			path = NULL;
 		}
@@ -1213,7 +1290,7 @@ EAPI int widget_conf_load(void)
 	fp = fopen(conf_file, "rt");
 	free(conf_file);
 	if (!fp) {
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		return WIDGET_ERROR_IO_ERROR;
 	}
 
@@ -1379,7 +1456,7 @@ EAPI int widget_conf_load(void)
 	} while (c != EOF);
 
 	if (fclose(fp) != 0) {
-		ErrPrint("fclose: %s\n", strerror(errno));
+		ErrPrint("fclose: %d\n", errno);
 	}
 
 	s_conf.scale_width_factor = (double)s_conf.width / (double)WIDGET_CONF_BASE_W;

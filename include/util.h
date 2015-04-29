@@ -34,7 +34,7 @@ struct service_info {
     int base_h;
 
     int base_parse;
-    widget_status_e last_status;
+    widget_error_e last_status;
 };
 
 extern double util_timestamp(void);
@@ -44,6 +44,7 @@ extern char *util_id_to_uri(const char *id);    /* For FILENAME id */
 extern int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST);
 extern int util_screen_size_get(unsigned int *width, unsigned int *height);
 
+#define DEFAULT_TIMEOUT 2.0
 #define SCHEMA_FILE    "file://"
 #define SCHEMA_PIXMAP    "pixmap://"
 #define SCHEMA_SHM    "shm://"

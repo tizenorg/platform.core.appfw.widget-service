@@ -34,6 +34,7 @@
 #include <vconf.h>
 #include <vconf-keys.h>
 #include <unicode/uloc.h>
+#include <bundle.h>
 
 #include "widget_errno.h"
 #include "dlist.h"
@@ -47,7 +48,6 @@
 #include "widget_util.h"
 
 #define WIDGET_ID_PREFIX    "org.tizen."
-#define DEFAULT_TIMEOUT 2.0
 
 /* "/shared/res/" */
 #define RESOURCE_PATH	"/"
@@ -229,7 +229,7 @@ static inline char *pkgmgr_get_mainapp(const char *pkgid)
 		if (ret) {
 			ret = strdup(ret);
 			if (!ret) {
-				ErrPrint("strdup: %s\n", strerror(errno));
+				ErrPrint("strdup: %d\n", errno);
 				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			} else {
 				set_last_result(WIDGET_ERROR_NONE);
@@ -294,7 +294,7 @@ static char *cur_locale(void)
 		language = strdup("en-us");
 		if (!language) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 	}
 
@@ -336,7 +336,7 @@ static char *get_default_name(const char *pkgid)
 		if (tmp && strlen(tmp)) {
 			name = strdup(tmp);
 			if (!name) {
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 			}
 		}
 		set_last_result(WIDGET_ERROR_NONE);
@@ -388,7 +388,7 @@ static char *get_default_icon(const char *pkgid)
 			icon = strdup(tmp);
 			if (!icon) {
 				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 			}
 		}
 	} else if (ret == SQLITE_DONE) {
@@ -462,7 +462,7 @@ static char *get_widget_pkgname_by_appid(const char *appid)
 		pkgid = strdup(tmp);
 		if (!pkgid) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		} else {
 			set_last_result(WIDGET_ERROR_NONE);
 		}
@@ -606,15 +606,17 @@ EAPI int widget_service_get_instance_count(const char *pkgname, const char *clus
 	return ret;
 }
 
-EAPI int widget_service_trigger_update(const char *pkgname, const char *id, const char *content, int force)
+EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bundle *b, int force)
 {
 	struct packet *packet;
 	struct packet *result;
 	unsigned int cmd = CMD_SERVICE_UPDATE;
 	char *uri;
 	int ret;
+	char *content = NULL;
+	int content_len = 0;
 
-	if (!pkgname) {
+	if (!widget_id) {
 		ErrPrint("Invalid argument\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -633,7 +635,15 @@ EAPI int widget_service_trigger_update(const char *pkgname, const char *id, cons
 		uri = NULL;
 	}
 
-	packet = packet_create((const char *)&cmd, "sssssi", pkgname, uri, "user,created", "default", content, force);
+	if (b) {
+		ret = bundle_encode(b, (bundle_raw **)&content, &content_len);
+		if (ret != BUNDLE_ERROR_NONE) {
+			ErrPrint("Unable to encode bundle: %d\n", ret);
+		}
+	}
+
+	packet = packet_create((const char *)&cmd, "sssssi", widget_id, uri, "user,created", "default", content, force);
+	free(content);
 	/*!
 	 * \note
 	 * "free" function accepts NULL
@@ -686,7 +696,7 @@ EAPI widget_list_h widget_service_create_widget_list(const char *pkgid, widget_l
 	handle = calloc(1, sizeof(*handle));
 	if (!handle) {
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		return NULL;
 	}
 
@@ -750,7 +760,7 @@ EAPI int widget_service_get_item_from_widget_list(widget_list_h handle, char **a
 		if (tmp && strlen(tmp)) {
 			_appid = strdup(tmp);
 			if (!_appid) {
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 				return WIDGET_ERROR_OUT_OF_MEMORY;
 			}
 		}
@@ -761,7 +771,7 @@ EAPI int widget_service_get_item_from_widget_list(widget_list_h handle, char **a
 		if (tmp && strlen(tmp)) {
 			_pkgname = strdup(tmp);
 			if (!_pkgname) {
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 				free(_appid);
 				return WIDGET_ERROR_OUT_OF_MEMORY;
 			}
@@ -1025,7 +1035,7 @@ EAPI int widget_service_get_applist(const char *widgetid, void (*cb)(const char 
 
 	pkgid = strdup(tmp);
 	if (!pkgid) {
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		ret = WIDGET_ERROR_OUT_OF_MEMORY;
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -1112,7 +1122,7 @@ EAPI char *widget_service_get_main_app_id(const char *widgetid)
 	} else {
 		ret = strdup(pkgid);
 		if (!ret) {
-			ErrPrint("Error: %s\n", strerror(errno));
+			ErrPrint("Error: %d\n", errno);
 		}
 	}
 
@@ -1223,7 +1233,7 @@ EAPI char *widget_service_get_content_string(const char *pkgid)
 			content = strdup(tmp);
 			if (!content) {
 				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 			}
 		} else {
 			set_last_result(WIDGET_ERROR_NONE);
@@ -1288,7 +1298,7 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widgetid)
 		appid = strdup(tmp);
 		if (!appid) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("Error: %s\n", strerror(errno));
+			ErrPrint("Error: %d\n", errno);
 		}
 	} else {
 		set_last_result(WIDGET_ERROR_NOT_EXIST);
@@ -1623,12 +1633,12 @@ static char *convert_to_abspath(const char *appid, const char *tmp, const char *
 	abspath_len = strlen(tmp) + strlen(path) + strlen(mid_path) + 1;
 	abspath = malloc(abspath_len);
 	if (!abspath) {
-		ErrPrint("malloc: %s\n", strerror(errno));
+		ErrPrint("malloc: %d\n", errno);
 		goto out;
 	}
 
 	if (snprintf(abspath, abspath_len, "%s%s%s", path, mid_path, tmp) < 0) {
-		ErrPrint("snprintf: %s\n", strerror(errno));
+		ErrPrint("snprintf: %d\n", errno);
 		free(abspath);
 		abspath = NULL;
 		goto out;
@@ -1754,7 +1764,7 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 		abspath = strdup(tmp);
 		if (!abspath) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("strdup: %s\n", strerror(errno));
+			ErrPrint("strdup: %d\n", errno);
 			goto out;
 		}
 	}
@@ -1762,7 +1772,7 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 	if (update_lang_info() != 0) {
 		preview = abspath;
 		if (!preview) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 		goto out;
 	}
@@ -1771,7 +1781,7 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 	preview = malloc(buf_len + 1);
 	if (!preview) {
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		free(abspath);
 		goto out;
 	}
@@ -1787,7 +1797,7 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 	}
 
 	if (access(preview, R_OK) != 0) {
-		DbgPrint("Access failed: %s, %s\n", preview, strerror(errno));
+		DbgPrint("Access failed: %s, %d\n", preview, errno);
 		free(preview);
 
 		preview = abspath;
@@ -1821,7 +1831,7 @@ EAPI char *widget_service_get_icon(const char *pkgid, const char *lang)
 		language = strdup(lang);
 		if (!language) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 			return NULL;
 		}
 	} else {
@@ -1870,7 +1880,7 @@ EAPI char *widget_service_get_icon(const char *pkgid, const char *lang)
 			icon = strdup(tmp);
 			if (!icon) {
 				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 			}
 		}
 	} else {
@@ -1910,7 +1920,7 @@ EAPI char *widget_service_get_name(const char *pkgid, const char *lang)
 		language = strdup(lang);
 		if (!language) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("Error: %s\n", strerror(errno));
+			ErrPrint("Error: %d\n", errno);
 			return NULL;
 		}
 	} else {
@@ -1959,7 +1969,7 @@ EAPI char *widget_service_get_name(const char *pkgid, const char *lang)
 			name = strdup(tmp);
 			if (!name) {
 				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-				ErrPrint("Heap: %s\n", strerror(errno));
+				ErrPrint("Heap: %d\n", errno);
 			}
 		}
 	} else {
@@ -2102,7 +2112,7 @@ EAPI char *widget_service_get_abi(const char *widgetid)
 	abi = strdup(tmp);
 	if (!abi) {
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		ErrPrint("strdup: %s\n", strerror(errno));
+		ErrPrint("strdup: %d\n", errno);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2145,7 +2155,7 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 	_libexec = malloc(len);
 	if (!_libexec) {
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		close_db(handle);
 		return NULL;
 	}
@@ -2192,7 +2202,7 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 	pkgid = strdup(tmp);
 	if (!pkgid) {
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 	}
 
 	DbgPrint("pkgid: %s\n", pkgid);
@@ -2285,7 +2295,7 @@ EAPI char *widget_service_get_libexec(const char *pkgid)
 		libexec = strdup(path);
 		if (!libexec) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 	}
 
@@ -2420,7 +2430,7 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 		appid = strdup(new_appid);
 		if (!appid) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 
 		pkgmgrinfo_appinfo_destroy_appinfo(pkg_handle);
@@ -2439,7 +2449,7 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 	appid = strdup(tmp);
 	if (!appid) {
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2504,7 +2514,7 @@ EAPI char *widget_service_get_provider_name(const char *widgetid)
 	ret = strdup(widgetid + stage);
 	if (!ret) {
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		ErrPrint("Error: %s\n", strerror(errno));
+		ErrPrint("Error: %d\n", errno);
 		return NULL;
 	}
 
@@ -2639,7 +2649,7 @@ EAPI char *widget_service_get_category(const char *widgetid)
 	category = strdup(tmp);
 	if (!category) {
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-		ErrPrint("Heap: %s\n", strerror(errno));
+		ErrPrint("Heap: %d\n", errno);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -2650,6 +2660,58 @@ EAPI char *widget_service_get_category(const char *widgetid)
 out:
 	close_db(handle);
 	return category;
+}
+
+EAPI int widget_service_get_widget_max_count(const char *widget_id)
+{
+	sqlite3_stmt *stmt;
+	sqlite3 *handle;
+	int ret = WIDGET_ERROR_FAULT;
+
+	if (!widget_id) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	handle = open_db();
+	if (!handle) {
+		return WIDGET_ERROR_IO_ERROR;
+	}
+
+	ret = sqlite3_prepare_v2(handle, "SELECT count FROM provider WHERE pkgid = ?", -1, &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s, widget(%s), ret(%d)\n", sqlite3_errmsg(handle), widget_id, ret);
+		ret = WIDGET_ERROR_IO_ERROR;
+		goto out;
+	}
+
+	ret = sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_TRANSIENT);
+	if (ret != SQLITE_OK) {
+		ErrPrint("Error: %s, widget(%s), ret(%d)\n", sqlite3_errmsg(handle), widget_id, ret);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		if (ret == SQLITE_DONE) {
+			ret = WIDGET_ERROR_NOT_EXIST;
+		} else {
+			ret = WIDGET_ERROR_IO_ERROR;
+		}
+		ErrPrint("Error: %s, widget(%s), ret(%d)\n", sqlite3_errmsg(handle), widget_id, ret);
+		sqlite3_reset(stmt);
+		sqlite3_finalize(stmt);
+		goto out;
+	}
+
+	ret = sqlite3_column_int(stmt, 0);
+
+	sqlite3_reset(stmt);
+	sqlite3_finalize(stmt);
+
+out:
+	close_db(handle);
+	return ret;
 }
 
 EAPI char *widget_service_get_widget_script_path(const char *pkgid)
@@ -2795,7 +2857,7 @@ EAPI char *widget_service_get_widget_script_group(const char *pkgid)
 		group = strdup(tmp);
 		if (!group) {
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 		}
 	}
 
@@ -2884,7 +2946,7 @@ EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 	if (!path) {
 		path = strdup(gbar_src);
 		if (!path) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		}
 	}
@@ -2945,7 +3007,7 @@ EAPI char *widget_service_get_gbar_script_group(const char *pkgid)
 	if (tmp && strlen(tmp)) {
 		group = strdup(tmp);
 		if (!group) {
-			ErrPrint("Heap: %s\n", strerror(errno));
+			ErrPrint("Heap: %d\n", errno);
 			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		}
 	}
@@ -3179,7 +3241,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 
 	info = malloc(sizeof(*info));
 	if (!info) {
-		ErrPrint("malloc: %s\n", strerror(errno));
+		ErrPrint("malloc: %d\n", errno);
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
 	}
@@ -3187,7 +3249,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 	len = strlen(uri);
 	info->filename = malloc(len + 20);
 	if (!info->filename) {
-		ErrPrint("malloc: %s\n", strerror(errno));
+		ErrPrint("malloc: %d\n", errno);
 		free(info);
 		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		return NULL;
@@ -3195,7 +3257,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 
 	len = snprintf(info->filename, len + 20, "%s.%s.lck", widget_util_uri_to_path(uri), type == WIDGET_TYPE_GBAR ? "gbar" : "widget");
 	if (len < 0) {
-		ErrPrint("snprintf: %s\n", strerror(errno));
+		ErrPrint("snprintf: %d\n", errno);
 		free(info->filename);
 		free(info);
 		set_last_result(WIDGET_ERROR_FAULT);
@@ -3218,7 +3280,7 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 
 	info->fd = open(info->filename, flags, 0644);
 	if (info->fd < 0) {
-		ErrPrint("open: %s\n", strerror(errno));
+		ErrPrint("open: %d\n", errno);
 		free(info->filename);
 		free(info);
 		set_last_result(WIDGET_ERROR_IO_ERROR);
@@ -3236,12 +3298,12 @@ EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 	}
 
 	if (close(info->fd) < 0) {
-		ErrPrint("close: %s\n", strerror(errno));
+		ErrPrint("close: %d\n", errno);
 		return WIDGET_ERROR_IO_ERROR;
 	}
 
 	if (unlink(info->filename) < 0) {
-		ErrPrint("unlink: %s\n", strerror(errno));
+		ErrPrint("unlink: %d\n", errno);
 	}
 
 	info->state = LOCK_DESTROYED;
@@ -3273,7 +3335,7 @@ EAPI int widget_service_acquire_lock(widget_lock_info_t info)
 		ret = fcntl(info->fd, F_SETLKW, &flock);
 		if (ret < 0) {
 			ret = errno;
-			ErrPrint("fcntl: %s\n", strerror(errno));
+			ErrPrint("fcntl: %d\n", errno);
 		}
 	} while (ret == EINTR);
 
@@ -3299,7 +3361,7 @@ EAPI int widget_service_release_lock(widget_lock_info_t info)
 		ret = fcntl(info->fd, F_SETLKW, &flock);
 		if (ret < 0) {
 			ret = errno;
-			ErrPrint("fcntl: %s\n", strerror(errno));
+			ErrPrint("fcntl: %d\n", errno);
 		}
 	} while (ret == EINTR);
 
@@ -3358,7 +3420,7 @@ EAPI char *widget_service_get_base_file_path(const char *widget_id)
 		if (ret) {
 			ret = strdup(ret);
 			if (!ret) {
-				ErrPrint("strdup: %s\n", strerror(errno));
+				ErrPrint("strdup: %d\n", errno);
 				set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 			} else {
 				set_last_result(WIDGET_ERROR_NONE);

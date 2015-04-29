@@ -102,7 +102,8 @@ typedef enum widget_pre_callback {
 	WIDGET_PRE_CREATE_CALLBACK = 1,
 	WIDGET_PRE_DESTROY_CALLBACK = 2,
 	WIDGET_PRE_RESIZE_CALLBACK = 3,
-	WIDGET_PRE_CALLBACK_COUNT = 4
+	WIDGET_PRE_ORIENTATION_CALLBACK = 4,
+	WIDGET_PRE_CALLBACK_COUNT = 5
 } widget_pre_callback_e;
 
 typedef int (*widget_pre_callback_t)(const char *id, void *data);
@@ -159,6 +160,21 @@ typedef enum widget_gbar_type {
 	GBAR_TYPE_BUFFER,     /**< Buffer base */
 	GBAR_TYPE_UIFW        /**< UIFW supported type */
 } widget_gbar_type_e;
+
+/**
+ * @internal
+ * @brief Destroy type of widget instance
+ * @since_tizen 2.3.1
+ */
+typedef enum widget_destroy_type {
+	WIDGET_DESTROY_TYPE_DEFAULT = 0x00,   /**< Deleted */
+	WIDGET_DESTROY_TYPE_UPGRADE = 0x01,   /**< Deleted for upgrading */
+	WIDGET_DESTROY_TYPE_UNINSTALL = 0x02, /**< Deleted by uninstalling */
+	WIDGET_DESTROY_TYPE_TERMINATE = 0x03, /**< Deleted for reboot device */
+	WIDGET_DESTROY_TYPE_FAULT = 0x04,     /**< Deleted by system-fault */
+	WIDGET_DESTROY_TYPE_TEMPORARY = 0x05, /**< Temporarly deleted, will be created again */
+	WIDGET_DESTROY_TYPE_UNKNOWN = 0x06    /**< Undefined reason */
+} widget_destroy_type_e; /**< Delete type */
 
 /**
  * @internal
@@ -236,6 +252,71 @@ typedef struct widget_buffer_event_data {
  */
 typedef struct widget_list_handle *widget_list_h;
 
+/* widget_status_e will be replaced with widget_error_e */
+typedef enum widget_status  {
+    WIDGET_STATUS_ERROR_NONE = TIZEN_ERROR_NONE,
+    WIDGET_STATUS_ERROR = TIZEN_ERROR_WIDGET,
+    WIDGET_STATUS_ERROR_INVALID_PARAMETER = WIDGET_STATUS_ERROR | 0x0001,
+    WIDGET_STATUS_ERROR_FAULT = WIDGET_STATUS_ERROR | 0x0002,
+    WIDGET_STATUS_ERROR_OUT_OF_MEMORY = WIDGET_STATUS_ERROR | 0x0004,
+    WIDGET_STATUS_ERROR_EXIST = WIDGET_STATUS_ERROR | 0x0008,
+    WIDGET_STATUS_ERROR_BUSY = WIDGET_STATUS_ERROR | 0x0010,
+    WIDGET_STATUS_ERROR_PERMISSION_DENIED = WIDGET_STATUS_ERROR | 0x0020,
+    WIDGET_STATUS_ERROR_ALREADY = WIDGET_STATUS_ERROR | 0x0040,
+    WIDGET_STATUS_ERROR_CANCEL = WIDGET_STATUS_ERROR | 0x0080,
+    WIDGET_STATUS_ERROR_IO_ERROR = WIDGET_STATUS_ERROR | 0x0100,
+    WIDGET_STATUS_ERROR_NOT_EXIST = WIDGET_STATUS_ERROR | 0x0200,
+    WIDGET_STATUS_ERROR_TIMEOUT = WIDGET_STATUS_ERROR | 0x0400,
+    WIDGET_STATUS_ERROR_NOT_IMPLEMENTED = WIDGET_STATUS_ERROR | 0x0800,
+    WIDGET_STATUS_ERROR_NO_SPACE = WIDGET_STATUS_ERROR | 0x1000,
+    WIDGET_STATUS_ERROR_DISABLED = WIDGET_STATUS_ERROR | 0x2000
+} widget_status_e;
+
+/**
+ * @brief Text signal & Content event uses this data structure.
+ * @since_tizen 2.3.1
+ */
+typedef struct widget_event_info {
+	struct _pointer {
+		double x; /**< X value of current mouse(touch) position */
+		double y; /**< Y value of current mouse(touch) position */
+		int down; /**< Is it pressed(1) or not(0) */
+	} pointer;
+
+	struct _part {
+		double sx; /**< Pressed object's left top X */
+		double sy; /**< Pressed object's left top Y */
+		double ex; /**< Pressed object's right bottom X */
+		double ey; /**< Pressed object's right bottom Y */
+	} part;
+} *widget_event_info_s;
+
+/**
+ * @brief Names of text signals
+ * @since_tizen 2.3.1
+ * @see #widget_text_signal_s
+ */
+#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON    "edit,on"   /**< Text signal for edit mode on*/
+#define WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF   "edit,off"  /**< Text signal for edit mode off*/
+
+/**
+ * @brief Text signal information
+ * @since_tizen 2.3.1
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_ON
+ * @see #WIDGET_TEXT_SIGNAL_NAME_EDIT_MODE_OFF
+ * @see #widget_event_info_s
+ */
+typedef struct widget_text_signal {
+    const char *signal_name;    /**< A name of a text signal */
+    const char *source;         /**< A source name of this text signal */
+    struct {
+        double sx;              /**< X-axis value of left-top corner for this text signal */
+        double sy;              /**< Y-axis value of left-top corner for this text signal */
+        double ex;              /**< X-axis value of right-bottom corner for this text signal */
+        double ey;              /**< Y-axis value of right-bottom corner for this text signal  */
+    } geometry;                 /**< Region information of this text signal */
+} *widget_text_signal_s;
+
 /**
  * @internal
  * @brief Gets the name of the provider (provider name == widget appid), you have to release the return value after use it.
@@ -260,7 +341,7 @@ extern char *widget_service_get_provider_name(const char *widgetid);
  *        This function will retrieve all UI Apps in a package which has given widget appid(widgetid).\n
  *        If you need to get all ui-app list, using a widget appid, this function is able to help you.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @param[in] cb Callback function
  * @param[in] data Callback Data
  * @privlevel public
@@ -279,7 +360,7 @@ extern int widget_service_get_applist(const char *widgetid, void (*cb)(const cha
  * @internal
  * @brief Checks the primary flag of given widget Id.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return the primary flag of given widget id.
@@ -295,7 +376,7 @@ extern int widget_service_is_primary(const char *widgetid);
  *    If the user defines the default content string in the manifest file (.xml),\n
  *    this API will return it.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return char * type
@@ -310,7 +391,7 @@ extern char *widget_service_get_content_string(const char *widgetid);
  * @internal
  * @brief Gets the "ABI" of given package.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return char * type
@@ -326,7 +407,7 @@ extern char *widget_service_get_abi(const char *widgetid);
  * @details Currently this API is not implemented. It just returns 1 all the time.
  * @since_tizen 2.3.1
  * @remarks This API is not implemented. It will always return 1.
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return the status of the widget.
@@ -339,7 +420,7 @@ extern int widget_service_is_enabled(const char *widgetid);
  * @internal
  * @brief Gets the script file of widget.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return char * type
@@ -355,7 +436,7 @@ extern char *widget_service_get_widget_script_path(const char *widgetid);
  * @internal
  * @brief Gets the script group of widget.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return char * type
@@ -371,7 +452,7 @@ extern char *widget_service_get_widget_script_group(const char *widgetid);
  * @internal
  * @brief Gets the script file path of given widget package.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return char * type
@@ -386,7 +467,7 @@ extern char *widget_service_get_gbar_script_path(const char *widgetid);
  * @internal
  * @brief Gets the group name for script file to load it.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return char * type
@@ -401,7 +482,7 @@ extern char *widget_service_get_gbar_script_group(const char *widgetid);
  * @internal
  * @brief Gets the supported size list of given pkgid.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @param[in] cnt Size of types array
  * @param[out] cnt Result count of types array
  * @param[out] types Array of types
@@ -490,7 +571,7 @@ extern int widget_service_fini(void);
  * @internal
  * @brief Gets the activated instance count.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider, if you want to get whole instances list, use NULL.
+ * @param[in] widgetid appid of widget application, if you want to get whole instances list, use NULL.
  * @param[in] cluster Cluster name if you don't know what this is, use NULL.
  * @param[in] category Sub-cluster(category) name if you don't know what this is, use NULL.
  * @privlevel public
@@ -506,7 +587,7 @@ extern int widget_service_get_instance_count(const char *widgetid, const char *c
  * @internal
  * @brief Gets the path of the plug-in module.
  * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return char * type
@@ -592,7 +673,7 @@ extern int widget_service_get_widget_list_by_category(const char *category, int 
  * @remarks
  *    If you call this function again using created pkglist handle, it will be reset.
  *    So you can get records from the first one again.
- * @param[in] widgetid appid of widget provider
+ * @param[in] widgetid appid of widget application
  * @param[in] handle @c NULL if you call this first, or it will be reset
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
@@ -637,6 +718,20 @@ extern int widget_service_get_item_from_widget_list(widget_list_h handle, char *
  * @see widget_service_pkglist_create()
  */
 extern int widget_service_destroy_widget_list(widget_list_h handle);
+
+/**
+ * @brief Get the maximum creatable count of widgets\n
+ *        Widget devleoper should describe the maximum count of createable widget instances to its Package manifest file.
+ * @since_tizen 2.3.1
+ * @param[in] widget_id widget application id
+ * @privlevel public
+ * @privlege %http://tizen.org/privilege/widget.viewer
+ * @return count positive value on success, otherwise a negative error value
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #WIDGET_ERROR_IO_ERROR Input/Output error (failed to access database)
+ * @retval #WIDGET_ERROR_FAULT Unrecorvarable error occurred
+ */
+extern int widget_service_get_widget_max_count(const char *widget_id);
 
 #ifdef __cplusplus
 }

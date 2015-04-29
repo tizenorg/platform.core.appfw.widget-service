@@ -12,7 +12,19 @@
 #include "widget_service.h"
 #include "debug.h"
 
+#define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/resolution.ini"
+
 int errno;
+
+static struct {
+	unsigned int w;
+	unsigned int h;
+	int res_resolved;
+} s_info = {
+	.w = 0,
+	.h = 0,
+	.res_resolved = 0,
+};
 
 static int update_info(struct supported_size_list *SIZE_LIST, int width_type, int height_type, int width, int height)
 {
@@ -78,7 +90,7 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 
 	fp = fopen(info->conf_file, "r");
 	if (!fp) {
-		ErrPrint("Open failed: %s\n", strerror(errno));
+		ErrPrint("Open failed: %d\n", errno);
 		return WIDGET_ERROR_IO_ERROR;
 	}
 
@@ -202,35 +214,87 @@ static inline int update_from_file(struct service_info *info, struct supported_s
 	} while (!feof(fp));
 
 	if (fclose(fp) != 0) {
-		ErrPrint("fclose: %s\n", strerror(errno));
+		ErrPrint("fclose: %d\n", errno);
 	}
 
 	return WIDGET_NR_OF_SIZE_LIST - updated;
 }
 
-int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST)
+/*
+ * Find proper configuration and install(link) it to conf path.
+ */
+static char *conf_path(void)
 {
-	unsigned int width;
-	unsigned int height;
-	unsigned int border;
-	unsigned int depth;
-	register int i;
-	static int res_resolved = 0;
+	char *path;
+	int length;
 
-	if (res_resolved) {
-		return WIDGET_ERROR_NONE;
+	length = strlen(CONF_PATH_FORMAT) + 12;    // 12 == RESERVED SPACE
+	path = calloc(1, length);
+	if (!path) {
+		ErrPrint("calloc: %d\n", errno);
+		return NULL;
 	}
 
-	if (update_from_file(info, SIZE_LIST) == 0) {
-		DbgPrint("Resolution info is all updated by file\n");
+	if (s_info.w == 0 || s_info.h == 0) {
+		/* Try to update resolution first if it is not initialized */
+		util_screen_size_get(NULL, NULL);
 	}
 
-	res_resolved = 1;
-	return WIDGET_ERROR_NONE;
+	snprintf(path, length, CONF_PATH_FORMAT, s_info.w, s_info.h);
+	DbgPrint("Selected conf file: %s\n", path);
+	if (access(path, F_OK) != 0) {
+		ErrPrint("Fallback to default, access: %d\n", errno);
+		strncpy(path, RESOLUTION_FILE, length);
+		if (access(path, F_OK) != 0) {
+			ErrPrint("Serious error - there is no conf file, use default setting: %d\n", errno);
+			free(path);
+			path = NULL;
+		}
+	}
+
+	return path;
 }
 
 int util_screen_size_get(unsigned int *width, unsigned int *height)
 {
+	return WIDGET_ERROR_NONE;
+}
+
+int util_update_resolution(struct service_info *info, struct supported_size_list *SIZE_LIST)
+{
+	if (s_info.res_resolved) {
+		return WIDGET_ERROR_NONE;
+	}
+
+	if (!info->conf_file) {
+		info->conf_file = conf_path();
+	}
+
+	if (info->conf_file) {
+		register int i;
+		unsigned int width;
+		unsigned int height;
+
+		i = util_screen_size_get(&width, &height);
+		if (i != WIDGET_ERROR_NONE) {
+			return i;
+		}
+
+		if (update_from_file(info, SIZE_LIST) == 0) {
+			DbgPrint("Resolution info is all updated by file\n");
+		}
+
+		if (width != info->base_w) {
+			for (i = 0; i < WIDGET_NR_OF_SIZE_LIST; i++) {
+				SIZE_LIST[i].w = (unsigned int)((double)SIZE_LIST[i].w * (double)width / (double)info->base_w);
+				SIZE_LIST[i].h = (unsigned int)((double)SIZE_LIST[i].h * (double)width / (double)info->base_w);
+			}
+		}
+	} else {
+		DbgPrint("Conf file is not loaded\n");
+	}
+
+	s_infos_info..res_resolved = 1;
 	return WIDGET_ERROR_NONE;
 }
 
