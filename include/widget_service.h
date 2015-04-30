@@ -91,13 +91,10 @@ typedef enum widget_event_type {
  *  #WIDGET_SIZE_TYPE_EASY_3x1\n
  *  #WIDGET_SIZE_TYPE_EASY_3x3.
  * @since_tizen 2.3.1
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] type Size type
  * @param[out] width Pixel size width
  * @param[out] height Pixel size height
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval #WIDGET_ERROR_NONE Successfully done
  * @see widget_size_type()
  * @see widget_service_get_size_type()
@@ -124,8 +121,6 @@ extern int widget_service_get_size(widget_size_type_e type, int *width, int *hei
  *  or\n
  *  #WIDGET_SIZE_TYPE_UNKNOWN for error.
  * @since_tizen 2.3.1
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] width Pixel size width
  * @param[in] height Pixel size height
  * @param[out] size_type Widget size type\n
@@ -204,8 +199,6 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
  * @param[in] instance_id Set @c NULL if you don't know what the Id is. Then every instance of given pkgname will be triggered its update event
  * @param[in] b bundle data will be passed to the widget application via widget_update handler, default is @c NULL
  * @param[in] force 1 if you want to update your widget even if the provider is paused or 0. 0 is default
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.service
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_CANCELED Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
@@ -220,8 +213,6 @@ extern int widget_service_trigger_update(const char *widget_id, const char *inst
 /**
  * @brief Changes the update period of given widget instance.
  * @since_tizen 2.3.1
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_id appid of widget application
  * @param[in] instance_id widget instance id
  * @param[in] period New update period in sec
@@ -459,15 +450,12 @@ typedef int (*widget_instance_list_cb)(const char *widget_id, const char *instan
 /**
  * @brief Gets widget instances of given widget_id.
  * @since_tizen 2.3.1
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_id appid of widget application
  * @param[in] cb Callback function
  * @param[in] data user data for callback function
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @see #widget_instance_list_cb
  */
 extern int widget_service_get_widget_instance_list(const char *widget_id, widget_instance_list_cb cb, void *data);
@@ -501,8 +489,6 @@ typedef int (*widget_lifecycle_event_cb)(const char *widget_id, widget_lifecycle
  * @brief Registers event handler callback function for life-cycle events of widgets
  * @since_tizen 2.3.1
  * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.service
- * @param[in] widget_id appid of widget application
  * @param[in] cb Callback function
  * @param[in] data user data
  * @return 0 on success, otherwise a negative error value
@@ -516,8 +502,6 @@ extern int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_l
 /**
  * @brief Unregisters event handler callback function for life-cycle events of widgets
  * @since_tizen 2.3.1
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_id appid of widget application
  * @param[out] user_data user callback data
  * @return 0 on success, otherwise a negative error value
@@ -530,14 +514,11 @@ extern int widget_service_unset_lifecycle_event_cb(const char *widget_id, void *
 /**
  * @brief Gets content of the widget instance
  * @since_tizen 2.3.1
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.service
  * @param[in] widget_instance_id widget instance id
  * @param[out] b bundle(content) data of the given widget instance, it should be released by caller.
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @post caller should have to release the bundle
  */
 extern int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, bundle **b);
