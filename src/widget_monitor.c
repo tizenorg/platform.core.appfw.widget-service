@@ -235,6 +235,7 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 	struct dlist *l;
 	struct dlist *n;
 	struct lifecycle_monitor_item *item;
+	int ret = WIDGET_ERROR_NOT_EXIST
 
 	dlist_foreach_safe(s_info.lifecycle_monitor_list, l, n, item) {
 		if (widget_id == NULL && item->widget_id == NULL) {
@@ -249,6 +250,8 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 			 * Send service_unregister command to master
 			 */
 			send_monitor_command(CMD_MONITOR_UNREGISTER, widget_id);
+
+			ret = WIDGET_ERROR_NONE;
 			break;
 		} else if (widget_id && item->widget_id) {
 			if (!strcmp(item->widget_id, widget_id)) {
@@ -264,6 +267,7 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 				 * Send service_unregister command to master
 				 */
 				send_monitor_command(CMD_MONITOR_UNREGISTER, widget_id);
+				ret = WIDGET_ERROR_NONE;
 				break;
 			}
 		}
@@ -274,7 +278,7 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 		s_info.lifecycle_monitor_handle = -1;
 	}
 
-	return WIDGET_ERROR_NOT_EXIST;
+	return ret;
 }
 
 EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, bundle **b)

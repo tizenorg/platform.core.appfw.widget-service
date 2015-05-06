@@ -856,6 +856,10 @@ EAPI int widget_service_get_widget_list(widget_list_cb cb, void *data)
 		}
 	}
 
+	if (ret == 0) {
+		ret = WIDGET_ERROR_NOT_EXIST;
+	}
+
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
 
@@ -913,6 +917,10 @@ EAPI int widget_service_get_widget_list_by_pkgid(const char *pkgid, widget_list_
 			DbgPrint("Callback stopped package crawling\n");
 			break;
 		}
+	}
+
+	if (ret == 0) {
+		ret = WIDGET_ERROR_NOT_EXIST;
 	}
 
 	sqlite3_reset(stmt);
@@ -1085,20 +1093,24 @@ EAPI char *widget_service_get_main_app_id(const char *widgetid)
 
 	if (sqlite3_prepare_v2(handle, "SELECT appid, uiapp FROM pkgmap WHERE (pkgid = ?) or (appid = ? and prime = 1)", -1, &stmt, NULL) != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		set_last_result(WIDGET_ERROR_FAULT);
 		goto out;
 	}
 
 	if (sqlite3_bind_text(stmt, 1, widgetid, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		set_last_result(WIDGET_ERROR_FAULT);
 		goto out;
 	}
 
 	if (sqlite3_bind_text(stmt, 2, widgetid, -1, SQLITE_TRANSIENT) != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
+		set_last_result(WIDGET_ERROR_FAULT);
 		goto out;
 	}
 
 	if (sqlite3_step(stmt) != SQLITE_ROW) {
+		set_last_result(WIDGET_ERROR_NOT_EXIST);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
 		goto out;
@@ -1109,6 +1121,7 @@ EAPI char *widget_service_get_main_app_id(const char *widgetid)
 		ErrPrint("Invalid package name (%s)\n", widgetid);
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
+		set_last_result(WIDGET_ERROR_IO_ERROR);
 		goto out;
 	}
 
@@ -1123,6 +1136,7 @@ EAPI char *widget_service_get_main_app_id(const char *widgetid)
 		ret = strdup(pkgid);
 		if (!ret) {
 			ErrPrint("Error: %d\n", errno);
+			set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
 		}
 	}
 
@@ -1570,7 +1584,7 @@ EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_t
 		goto out;
 	}
 
-	ret_sqlite = sqlite3_bind_int(stmt, 2, size_type);
+	ret_sqlite = sqlite3_bind_int(stmt, 2, (int)size_type);
 	if (ret_sqlite != SQLITE_OK) {
 		ErrPrint("Error: %s\n", sqlite3_errmsg(handle));
 		ret = WIDGET_ERROR_FAULT;
@@ -1698,7 +1712,7 @@ out:
 	return appid;
 }
 
-EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_type)
+EAPI char *widget_service_get_preview_image_path(const char *pkgid, widget_size_type_e size_type)
 {
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
@@ -1733,7 +1747,7 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, int size_typ
 		goto out;
 	}
 
-	ret = sqlite3_bind_int(stmt, 2, size_type);
+	ret = sqlite3_bind_int(stmt, 2, (int)size_type);
 	if (ret != SQLITE_OK) {
 		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Error: %s, %s\n", sqlite3_errmsg(handle), pkgid);
@@ -1991,7 +2005,7 @@ EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int **w
 	int size;
 	int ret;
 
-	if (!w || !h || !cnt || !pkgid) {
+	if (!w || !h || !cnt || !pkgid || *cnt <= 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
@@ -2024,11 +2038,8 @@ EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int **w
 	*h = malloc(sizeof(int) * *cnt);
 	if (*w == NULL || *h == NULL) {
 		ErrPrint("Out of memory");
-		if (w)
-			free(w);
-
-		if (h)
-			free(h);
+		free(*w);
+		free(*h);
 
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -2043,9 +2054,9 @@ EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int **w
 	}
 
 	*cnt = ret;
+	ret = (ret > 0) ? WIDGET_ERROR_NONE : WIDGET_ERROR_NOT_EXIST;
 	sqlite3_reset(stmt);
 	sqlite3_finalize(stmt);
-	ret = 0;
 out:
 	close_db(handle);
 	return ret;
