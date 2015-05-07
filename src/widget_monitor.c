@@ -235,7 +235,7 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 	struct dlist *l;
 	struct dlist *n;
 	struct lifecycle_monitor_item *item;
-	int ret = WIDGET_ERROR_NOT_EXIST
+	int ret = WIDGET_ERROR_NOT_EXIST;
 
 	dlist_foreach_safe(s_info.lifecycle_monitor_list, l, n, item) {
 		if (widget_id == NULL && item->widget_id == NULL) {
