@@ -62,6 +62,15 @@ extern "C" {
 #define WIDGET_EVENT_WIDGET_EXTRA_BUFFER_DESTROYED 24 /**< WIDGET Extra Buffer destroyed event */
 #define WIDGET_EVENT_GBAR_EXTRA_BUFFER_DESTROYED 25 /**< WIDGET Extra Buffer destroyed event */
 
+/**
+ * @internal
+ * @brief specify the source of input event
+ * @since_tizen 2.3.1
+ */
+typedef enum input_event_source {
+	INPUT_EVENT_SOURCE_VIEWER = 0x00,
+	INPUT_EVENT_SOURCE_NODE = 0x01
+} input_event_source_e;
 
 /**
  * @internal
@@ -231,6 +240,7 @@ typedef struct widget_buffer_event_data {
 		struct mouse {
 			int x; /**< Touch X coordinate */
 			int y; /**< Touch Y coordinate */
+			input_event_source_e source; /**< Where comes this event from */
 		} pointer;
 
 		struct access {
