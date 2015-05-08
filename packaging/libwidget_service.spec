@@ -2,10 +2,10 @@
 
 Name: libwidget_service
 Summary: Service API for gathering installed widget information
-Version: 1.1.1
+Version: 1.1.2
 Release: 1
 Group: HomeTF/widget
-License: Flora
+License: Flora License Version 1.1
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
 BuildRequires: cmake, gettext-tools, coreutils
