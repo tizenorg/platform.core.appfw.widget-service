@@ -20,6 +20,7 @@ BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(icu-uc)
 BuildRequires: pkgconfig(bundle)
+BuildRequires: pkgconfig(capi-base-common)
 BuildRequires: model-build-features
 
 %if %{with wayland}
