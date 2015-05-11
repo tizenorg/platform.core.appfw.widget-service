@@ -385,7 +385,7 @@ extern char *widget_service_get_name(const char *widget_id, const char *lang);
  * @see #widget_service_get_icon
  * @see #widget_service_get_name
  */
-extern char *widget_service_get_preview_image_path(const char *widget_id, int size_type);
+extern char *widget_service_get_preview_image_path(const char *widget_id, widget_size_type_e size_type);
 
 /**
  * @brief Gets icon path of given widget package.

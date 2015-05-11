@@ -26,6 +26,7 @@ pkg_check_modules(pkgs REQUIRED
 	vconf
 	icu-uc
 	bundle
+	capi-base-common
 )
 
 IF (X11_SUPPORT)

@@ -6,7 +6,7 @@ includedir=@INCLUDEDIR@
 Name: widget_service
 Description: widget service library
 Version: @VERSION@
-Requires: bundle
+Requires: bundle capi-base-common
 Libs: -L${libdir} -lwidget_service
 Cflags: -I${includedir}
 cppflags: -I${includedir}
