@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
+#include <unistd.h> /* access */
+#include <stdlib.h> /* free */
 
 #include <dlog.h>
 
@@ -10,6 +12,7 @@
 #include "widget_errno.h"
 #include "util.h"
 #include "widget_service.h"
+#include "widget_service_internal.h"
 #include "debug.h"
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/resolution.ini"
@@ -272,8 +275,8 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 
 	if (info->conf_file) {
 		register int i;
-		unsigned int width;
-		unsigned int height;
+		unsigned int width = 0;
+		unsigned int height = 0;
 
 		i = util_screen_size_get(&width, &height);
 		if (i != WIDGET_ERROR_NONE) {
@@ -294,7 +297,7 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 		DbgPrint("Conf file is not loaded\n");
 	}
 
-	s_infos_info..res_resolved = 1;
+	s_info.res_resolved = 1;
 	return WIDGET_ERROR_NONE;
 }
 

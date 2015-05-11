@@ -4,8 +4,8 @@ Name: libwidget_service
 Summary: Service API for gathering installed widget information
 Version: 1.1.2
 Release: 1
-Group: HomeTF/widget
-License: Flora License Version 1.1
+Group: Applications/Core Applications
+License: Flora License, Version 1.1
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
 BuildRequires: cmake, gettext-tools, coreutils
@@ -21,7 +21,6 @@ BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(icu-uc)
 BuildRequires: pkgconfig(bundle)
 BuildRequires: pkgconfig(capi-base-common)
-BuildRequires: model-build-features
 
 %if %{with wayland}
 # Nothing provides
