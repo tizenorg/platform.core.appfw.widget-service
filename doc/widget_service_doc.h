@@ -18,17 +18,17 @@
 #define __WIDGET_SERVICE_DOC_H__
 
 /**
- * @defgroup WIDGET_SERVICE_MODULE widget
- * @brief To get the information of installed Dynamic Boxes
+ * @defgroup WIDGET_SERVICE_MODULE widget-service
+ * @brief To get the information of installed widgets
  * @ingroup CAPI_WIDGET_FRAMEWORK 
  * @section WIDGET_SERVICE_MODULE_HEADER Required Header
  *   \#include <widget_service.h>
  *   \#include <widget_errno.h>
  * @section WIDGET_SERVICE_MODULE_OVERVIEW Overview
-<H1>1. widget Service API</H1>
-Tizen supports various kinds of API set for retrieving information of Dynamic Boxes.
-Every Dynamic Boxes are installed via package manager utilities.
-The information of installed Dynamic Boxes are stored in the system DB.
+<H1>1. widget service API</H1>
+Tizen supports various kinds of API set for retrieving information of widgets.
+Every widgets are installed via package manager utilities.
+The information of installed widgets are stored in the system DB.
 
 In some cases, application developer needs to send update request to its widget.
 To make it possible, this module providers such kinds of API set.
@@ -38,9 +38,9 @@ When it receives request from applications, it will find the proper service prov
 If master finds proper service provider, it will forward the requests to them.
 Then each widget application can get update request.
 
-<H2>1.1 APIs for retrieving information of Dynamic Boxes</H2>
+<H2>1.1 APIs for retrieving information of widgets</H2>
 
-To get the information for installed dynamic boxes.
+To get the information for installed widgets.
 
 <H2>1.2 APIs for communicating with running widget instances</H2>
 
@@ -51,9 +51,9 @@ To trigger the update event or send the updated content string to the widget.
 widget has predefined size types.
 
 <TABLE>
-<TH>
+<TR>
 <TD>Size Type</TD><TD>Size in pixels</TD><TD>Supported profile</TD>
-</TH>
+</TR>
 <TR>
 <TD>WIDGET_SIZE_TYPE_1x1</TD><TD> - </TD><TD>Mobile, Wearable - Mandatory size</TD>
 </TR>
@@ -88,9 +88,9 @@ For the easy mode, there are different size types.
 Called WIDGET_SIZE_TYPE_EASY_NxM
 
 <TABLE>
-<TH>
+<TR>
 <TD>Size Type</TD><TD>Size in pixels</TD><TD>Supported profile</TD>
-</TH>
+</TR>
 <TR>
 <TD>WIDGET_SIZE_TYPE_EASY_1x1</TD><TD> - </TD><TD>Mobile</TD>
 </TR>
@@ -103,8 +103,8 @@ Called WIDGET_SIZE_TYPE_EASY_NxM
 </TABLE>
 
 However the easy mode is not officially supported.
-So you will not be able to create your Dynamic Boxes using easy mode size types.
-If you are developing the homescreen(or application which is related with dynamic boxes),
+So you will not be able to create your widgets using easy mode size types.
+If you are developing the homescreen(or application which is related with widgets),
 You should care these types too.
 
  *

@@ -29,7 +29,7 @@ extern "C" {
  */
 
 /**
- * @addtogroup CAPI_WIDGET_SERVICE_MODULE
+ * @addtogroup WIDGET_SERVICE_MODULE
  * @{
  */
 
