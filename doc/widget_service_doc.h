@@ -18,13 +18,18 @@
 #define __WIDGET_SERVICE_DOC_H__
 
 /**
- * @defgroup WIDGET_SERVICE_MODULE widget-service
+ * @defgroup CAPI_WIDGET_FRAMEWORK Widget
+ * @ingroup CAPI_APPLICATION_FRAMEWORK
+ */
+
+/**
+ * @defgroup CAPI_WIDGET_SERVICE_MODULE widget-service
  * @brief To get the information of installed widgets
  * @ingroup CAPI_WIDGET_FRAMEWORK 
- * @section WIDGET_SERVICE_MODULE_HEADER Required Header
+ * @section CAPI_WIDGET_SERVICE_MODULE_HEADER Required Header
  *   \#include <widget_service.h>
  *   \#include <widget_errno.h>
- * @section WIDGET_SERVICE_MODULE_OVERVIEW Overview
+ * @section CAPI_WIDGET_SERVICE_MODULE_OVERVIEW Overview
 <H1>1. widget service API</H1>
 Tizen supports various kinds of API set for retrieving information of widgets.
 Every widgets are installed via package manager utilities.
