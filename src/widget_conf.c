@@ -666,7 +666,7 @@ static char *find_input_device_by_path(const char *name)
 		return NULL;
 	}
 
-	strcpy(path, DEV_PATH);
+	strncpy(path, DEV_PATH, sizeof(path) - 1);
 	len = strlen(DEV_PATH);
 	ptr = path + len;
 	len = PATH_MAX - len - 1;
