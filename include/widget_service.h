@@ -407,15 +407,15 @@ extern char *widget_service_get_preview_image_path(const char *widget_id, widget
 extern char *widget_service_get_icon(const char *pkgid, const char *lang);
 
 /**
- * @brief Gets the "nodisplay" value.
+ * @brief Gets the "nodisplay" value
  * @since_tizen 2.3.1
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widget_id appid of widget application
+ * @param[in] widget_id Appid of widget application
  * @privlevel public
- * @return the "nodisplay" value of given widget.
+ * @return The "nodisplay" value of given widget
  * @retval 1 The box should not be listed by the widget list app
- * @retval 0 Box should be listed, get_last_result() will returns reason of failure if it fails.
- * @pre widget tag includes "nodisplay" attribute.
+ * @retval 0 Box should be listed, get_last_result() will returns reason of failure if it fails
+ * @pre Widget tag includes "nodisplay" attribute
  */
 extern int widget_service_get_nodisplay(const char *widget_id);
 
