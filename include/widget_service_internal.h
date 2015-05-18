@@ -490,25 +490,6 @@ extern char *widget_service_get_gbar_script_group(const char *widgetid);
 
 /**
  * @internal
- * @brief Gets the supported size list of given pkgid.
- * @since_tizen 2.3.1
- * @param[in] widgetid appid of widget application
- * @param[in] cnt Size of types array
- * @param[out] cnt Result count of types array
- * @param[out] types Array of types
- * @privlevel public
- * @privilege %http://tizen.org/privilege/widget.viewer
- * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
- * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
- * @retval #WIDGET_ERROR_NONE Successfully done
- * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
- * @see widget_service_get_supported_sizes()
- */
-extern int widget_service_get_supported_size_types(const char *widgetid, int *cnt, int **types);
-
-/**
- * @internal
  * @brief Gets the category list of given cluster.
  * @since_tizen 2.3.1
  * @param[in] cluster Cluster name
