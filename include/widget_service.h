@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 /**
- * @file widget-service.h
+ * @file widget_service.h
  * @brief  This file declares API of libwidget-service library
  * @since_tizen 2.3.1
  */
@@ -52,8 +52,8 @@ typedef enum widget_size_type {
 	WIDGET_SIZE_TYPE_EASY_1x1 = 0x1000, /**< 224x215 based on 720x1280 resolution */
 	WIDGET_SIZE_TYPE_EASY_3x1 = 0x2000, /**< 680x215 based on 720x1280 resolution */
 	WIDGET_SIZE_TYPE_EASY_3x3 = 0x4000, /**< 680x653 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_FULL = 0x0800,      /**< 720x1280 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_UNKNOWN = 0xFFFF
+	WIDGET_SIZE_TYPE_FULL = 0x0800,     /**< 720x1280 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_UNKNOWN = 0xFFFF   /**< Error case */
 } widget_size_type_e;
 
 /**
@@ -184,6 +184,7 @@ extern int widget_service_get_need_of_touch_effect(const char *widget_id, widget
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @param[in] widget_id appid of widget application
  * @param[in] size_type Size type
+ * @param[out] need_of_frame the need of decoration frame
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter was given.
  * @retval #WIDGET_ERROR_IO_ERROR Some error occurs on opening DB file.
@@ -202,7 +203,7 @@ extern int widget_service_get_need_of_frame(const char *widget_id, widget_size_t
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_CANCELED Provider is paused, so this update request is canceld.(ignored), if you want to make update forcely, use force=1
- * @retval #WIDGET_ERROR_MEMORY Memory is not enough to make request
+ * @retval #WIDGET_ERROR_OUT_OF_MEMORY Memory is not enough to make request
  * @retval #WIDGET_ERROR_FAULT Failed to create a request packet
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval #WIDGET_ERROR_NONE Successfully requested
@@ -221,7 +222,7 @@ extern int widget_service_trigger_update(const char *widget_id, const char *inst
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_FAULT Failed to create a request packet
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
- * @retval #WIDGET_ERROR_MEMORY Not enough memory
+ * @retval #WIDGET_ERROR_OUT_OF_MEMORY Not enough memory
  */
 extern int widget_service_change_period(const char *widget_id, const char *instance_id, double period);
 
@@ -236,7 +237,7 @@ extern int widget_service_change_period(const char *widget_id, const char *insta
  * @privlevel public
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return WIDGET_ERROR_NONE to continue with the next iteration of the loop, other error values to break out of the loop
- * @see #widget_service_get_pkglist
+ * @see #widget_service_get_widget_list
  */
 typedef int (*widget_list_cb)(const char *pkgid, const char *widget_id, int is_prime, void *data);
 
@@ -401,7 +402,7 @@ extern char *widget_service_get_preview_image_path(const char *widget_id, widget
  * @retval @c NULL Fails to get path of an icon, get_last_result() will returns reason of failure if it fails.
  * @post Returned string must be free'd manually.
  * @see #widget_service_get_name
- * @see #widget_service_get_preview
+ * @see #widget_service_get_preview_image_path
  */
 extern char *widget_service_get_icon(const char *pkgid, const char *lang);
 
@@ -489,6 +490,7 @@ typedef int (*widget_lifecycle_event_cb)(const char *widget_id, widget_lifecycle
  * @brief Registers event handler callback function for life-cycle events of widgets
  * @since_tizen 2.3.1
  * @privlevel public
+ * @param[in] widget_id appid of widget application
  * @param[in] cb Callback function
  * @param[in] data user data
  * @return 0 on success, otherwise a negative error value
@@ -514,6 +516,7 @@ extern int widget_service_unset_lifecycle_event_cb(const char *widget_id, void *
 /**
  * @brief Gets content of the widget instance
  * @since_tizen 2.3.1
+ * @param[in] widget_id appid of widget application
  * @param[in] widget_instance_id widget instance id
  * @param[out] b bundle(content) data of the given widget instance, it should be released by caller.
  * @return 0 on success, otherwise a negative error value

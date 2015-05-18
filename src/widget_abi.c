@@ -211,7 +211,7 @@ static int abi_load_table(void)
 				break;
 			}
 			break;
-		case ERROR:
+		// case ERROR:
 		default:
 			break;
 		}
