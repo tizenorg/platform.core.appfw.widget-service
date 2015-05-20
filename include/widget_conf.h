@@ -457,6 +457,8 @@ extern const int const widget_conf_slave_auto_cache_flush(void);
  */
 extern const char * const widget_conf_category_list(void);
 
+extern const char * const widget_conf_sdk_viewer(void);
+
 extern double widget_conf_fault_detect_in_time(void);
 extern int widget_conf_fault_detect_count(void);
 extern int widget_conf_reactivate_on_pause(void);
