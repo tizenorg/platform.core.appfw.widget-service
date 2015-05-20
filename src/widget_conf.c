@@ -117,6 +117,7 @@ static const int CONF_DEFAULT_REACTIVATE_ON_PAUSE = 1;
 static const double CONF_DEFAULT_FAULT_DETECT_IN_TIME = 0.0f;
 static const int CONF_DEFAULT_FAULT_DETECT_COUNT = 0;
 static const double CONF_DEFAULT_VISIBILITY_CHANGE_DELAY = 0.0f;
+static const int CONF_DEFAULT_CLICK_REGION = 22;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -225,6 +226,8 @@ struct widget_conf {
 	int reactivate_on_pause;
 	char *app_abi;
 	double visibility_change_delay;
+
+	int click_region;
 };
 
 static struct widget_conf s_conf;
@@ -596,6 +599,13 @@ static void share_path_handler(char *buffer)
 	s_conf.path.image = strdup(buffer);
 	if (!s_conf.path.image) {
 		ErrPrint("Heap: %d\n", errno);
+	}
+}
+
+static void click_region_handler(char *buffer)
+{
+	if (sscanf(buffer, "%d", &s_conf.click_region) != 1) {
+		ErrPrint("Failed to parse the click_region\n");
 	}
 }
 
@@ -993,6 +1003,7 @@ EAPI void widget_conf_init(void)
 	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
 	s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
 	s_conf.visibility_change_delay = CONF_DEFAULT_VISIBILITY_CHANGE_DELAY;
+	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
 }
 
 /*
@@ -1268,6 +1279,10 @@ EAPI int widget_conf_load(void)
 		{
 			.name = "visibility_change_delay",
 			.handler = visibility_change_delay_handler,
+		},
+		{
+			.name = "click_region",
+			.handler = click_region_handler,
 		},
 		{
 			.name = NULL,
@@ -1644,6 +1659,8 @@ EAPI void widget_conf_reset(void)
 		s_conf.services = (char *)CONF_DEFAULT_SERVICES;
 	}
 
+	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
+
 	s_info.conf_loaded = 0;
 }
 
@@ -1985,6 +2002,11 @@ EAPI const char * const widget_conf_app_abi(void)
 EAPI double widget_conf_visibility_change_delay(void)
 {
 	return s_conf.visibility_change_delay;
+}
+
+EAPI int widget_conf_click_region(void)
+{
+	return s_conf.click_region;
 }
 
 /* End of a file */
