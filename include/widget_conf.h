@@ -559,7 +559,8 @@ extern int widget_conf_click_region(void);
 #define WIDGET_CONF_REACTIVATE_ON_PAUSE     widget_conf_reactivate_on_pause()
 #define WIDGET_CONF_APP_ABI                 widget_conf_app_abi()
 #define WIDGET_CONF_VISIBILITY_CHANGE_DELAY widget_conf_visibility_change_delay()
-#define WIDGET_CONF_CLICK_REGION widget_conf_click_region()
+#define WIDGET_CONF_CLICK_REGION            widget_conf_click_region()
+#define WIDGET_CONF_SDK_VIEWER              widget_conf_sdk_viewer()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"

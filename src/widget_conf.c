@@ -76,6 +76,7 @@ static const char *CONF_DEFAULT_REPLACE_TAG = "/APPID/";
 static const char *CONF_DEFAULT_PROVIDER_METHOD = "pixmap";
 static const char *CONF_DEFAULT_CATEGORY_LIST = "http://tizen.org/category/wearable_clock";
 static const char *CONF_DEFAULT_APP_ABI = "app";
+static const char *CONF_DEFAULT_SDK_VIEWER = "org.tizen.widget_viewer_sdk";
 static const int CONF_DEFAULT_WIDTH = 0;
 static const int CONF_DEFAULT_HEIGHT = 0;
 static const int CONF_DEFAULT_BASE_WIDTH = 720;
@@ -228,6 +229,7 @@ struct widget_conf {
 	double visibility_change_delay;
 
 	int click_region;
+	char *sdk_viewer;
 };
 
 static struct widget_conf s_conf;
@@ -250,6 +252,14 @@ static void app_abi_handler(char *buffer)
 {
 	s_conf.app_abi = strdup(buffer);
 	if (!s_conf.app_abi) {
+		ErrPrint("strdup: %d\n", errno);
+	}
+}
+
+static void sdk_viewer_handler(char *buffer)
+{
+	s_conf.sdk_viewer = strdup(buffer);
+	if (!s_conf.sdk_viewer) {
 		ErrPrint("strdup: %d\n", errno);
 	}
 }
@@ -1004,6 +1014,7 @@ EAPI void widget_conf_init(void)
 	s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
 	s_conf.visibility_change_delay = CONF_DEFAULT_VISIBILITY_CHANGE_DELAY;
 	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
+	s_conf.sdk_viewer = (char *)CONF_DEFAULT_SDK_VIEWER;
 }
 
 /*
@@ -1277,6 +1288,10 @@ EAPI int widget_conf_load(void)
 			.handler = app_abi_handler,
 		},
 		{
+			.name = "sdk_viewer",
+			.handler = sdk_viewer_handler,
+		},
+		{
 			.name = "visibility_change_delay",
 			.handler = visibility_change_delay_handler,
 		},
@@ -1523,6 +1538,11 @@ EAPI void widget_conf_reset(void)
 	s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
 	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
 	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
+
+	if (s_conf.sdk_viewer != CONF_DEFAULT_SDK_VIEWER) {
+		free(s_conf.sdk_viewer);
+		s_conf.sdk_viewer = (char *)CONF_DEFAULT_SDK_VIEWER;
+	}
 
 	if (s_conf.app_abi != CONF_DEFAULT_APP_ABI) {
 		free(s_conf.app_abi);
@@ -2007,6 +2027,11 @@ EAPI double widget_conf_visibility_change_delay(void)
 EAPI int widget_conf_click_region(void)
 {
 	return s_conf.click_region;
+}
+
+EAPI const char * const widget_conf_sdk_viewer(void)
+{
+	return s_conf.sdk_viewer;
 }
 
 /* End of a file */
