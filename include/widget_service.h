@@ -407,15 +407,15 @@ extern char *widget_service_get_preview_image_path(const char *widget_id, widget
 extern char *widget_service_get_icon(const char *pkgid, const char *lang);
 
 /**
- * @brief Gets the "nodisplay" value.
+ * @brief Gets the "nodisplay" value
  * @since_tizen 2.3.1
  * @privilege %http://tizen.org/privilege/widget.viewer
- * @param[in] widget_id appid of widget application
+ * @param[in] widget_id Appid of widget application
  * @privlevel public
- * @return the "nodisplay" value of given widget.
+ * @return The "nodisplay" value of given widget
  * @retval 1 The box should not be listed by the widget list app
- * @retval 0 Box should be listed, get_last_result() will returns reason of failure if it fails.
- * @pre widget tag includes "nodisplay" attribute.
+ * @retval 0 Box should be listed, get_last_result() will returns reason of failure if it fails
+ * @pre Widget tag includes "nodisplay" attribute
  */
 extern int widget_service_get_nodisplay(const char *widget_id);
 
@@ -436,6 +436,24 @@ extern int widget_service_get_nodisplay(const char *widget_id);
  * @see widget_service_get_supported_size_types()
  */
 extern int widget_service_get_supported_sizes(const char *widget_id, int *cnt, int **w, int **h);
+
+/**
+ * @brief Gets the supported size list of given widget id.
+ * @since_tizen 2.3.1
+ * @param[in] widgetid appid of widget application
+ * @param[in] cnt Size of types array
+ * @param[out] cnt Result count of types array
+ * @param[out] types Array of types
+ * @privlevel public
+ * @privilege %http://tizen.org/privilege/widget.viewer
+ * @return 0 on success, otherwise a negative error value
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_NONE Successfully done
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @see widget_service_get_supported_sizes()
+ */
+extern int widget_service_get_supported_size_types(const char *widgetid, int *cnt, int **types);
 
 /**
  * @brief Callback function for getting result of widget_service_get_widget_instance_list
