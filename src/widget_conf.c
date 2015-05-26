@@ -76,6 +76,7 @@ static const char *CONF_DEFAULT_REPLACE_TAG = "/APPID/";
 static const char *CONF_DEFAULT_PROVIDER_METHOD = "pixmap";
 static const char *CONF_DEFAULT_CATEGORY_LIST = "http://tizen.org/category/wearable_clock";
 static const char *CONF_DEFAULT_APP_ABI = "app";
+static const char *CONF_DEFAULT_SDK_VIEWER = "org.tizen.widget_viewer_sdk";
 static const int CONF_DEFAULT_WIDTH = 0;
 static const int CONF_DEFAULT_HEIGHT = 0;
 static const int CONF_DEFAULT_BASE_WIDTH = 720;
@@ -117,6 +118,7 @@ static const int CONF_DEFAULT_REACTIVATE_ON_PAUSE = 1;
 static const double CONF_DEFAULT_FAULT_DETECT_IN_TIME = 0.0f;
 static const int CONF_DEFAULT_FAULT_DETECT_COUNT = 0;
 static const double CONF_DEFAULT_VISIBILITY_CHANGE_DELAY = 0.0f;
+static const int CONF_DEFAULT_CLICK_REGION = 22;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -225,6 +227,9 @@ struct widget_conf {
 	int reactivate_on_pause;
 	char *app_abi;
 	double visibility_change_delay;
+
+	int click_region;
+	char *sdk_viewer;
 };
 
 static struct widget_conf s_conf;
@@ -247,6 +252,14 @@ static void app_abi_handler(char *buffer)
 {
 	s_conf.app_abi = strdup(buffer);
 	if (!s_conf.app_abi) {
+		ErrPrint("strdup: %d\n", errno);
+	}
+}
+
+static void sdk_viewer_handler(char *buffer)
+{
+	s_conf.sdk_viewer = strdup(buffer);
+	if (!s_conf.sdk_viewer) {
 		ErrPrint("strdup: %d\n", errno);
 	}
 }
@@ -596,6 +609,13 @@ static void share_path_handler(char *buffer)
 	s_conf.path.image = strdup(buffer);
 	if (!s_conf.path.image) {
 		ErrPrint("Heap: %d\n", errno);
+	}
+}
+
+static void click_region_handler(char *buffer)
+{
+	if (sscanf(buffer, "%d", &s_conf.click_region) != 1) {
+		ErrPrint("Failed to parse the click_region\n");
 	}
 }
 
@@ -993,6 +1013,8 @@ EAPI void widget_conf_init(void)
 	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
 	s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
 	s_conf.visibility_change_delay = CONF_DEFAULT_VISIBILITY_CHANGE_DELAY;
+	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
+	s_conf.sdk_viewer = (char *)CONF_DEFAULT_SDK_VIEWER;
 }
 
 /*
@@ -1266,8 +1288,16 @@ EAPI int widget_conf_load(void)
 			.handler = app_abi_handler,
 		},
 		{
+			.name = "sdk_viewer",
+			.handler = sdk_viewer_handler,
+		},
+		{
 			.name = "visibility_change_delay",
 			.handler = visibility_change_delay_handler,
+		},
+		{
+			.name = "click_region",
+			.handler = click_region_handler,
 		},
 		{
 			.name = NULL,
@@ -1509,6 +1539,11 @@ EAPI void widget_conf_reset(void)
 	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
 	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
 
+	if (s_conf.sdk_viewer != CONF_DEFAULT_SDK_VIEWER) {
+		free(s_conf.sdk_viewer);
+		s_conf.sdk_viewer = (char *)CONF_DEFAULT_SDK_VIEWER;
+	}
+
 	if (s_conf.app_abi != CONF_DEFAULT_APP_ABI) {
 		free(s_conf.app_abi);
 		s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
@@ -1643,6 +1678,8 @@ EAPI void widget_conf_reset(void)
 		free(s_conf.services);
 		s_conf.services = (char *)CONF_DEFAULT_SERVICES;
 	}
+
+	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
 
 	s_info.conf_loaded = 0;
 }
@@ -1985,6 +2022,16 @@ EAPI const char * const widget_conf_app_abi(void)
 EAPI double widget_conf_visibility_change_delay(void)
 {
 	return s_conf.visibility_change_delay;
+}
+
+EAPI int widget_conf_click_region(void)
+{
+	return s_conf.click_region;
+}
+
+EAPI const char * const widget_conf_sdk_viewer(void)
+{
+	return s_conf.sdk_viewer;
 }
 
 /* End of a file */
