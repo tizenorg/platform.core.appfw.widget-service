@@ -3,6 +3,9 @@
 #include <errno.h>
 #include <unistd.h> // access
 #include <stdlib.h> // free
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -11,6 +14,11 @@
 
 #include <sqlite3.h>
 #include <unicode/uloc.h>
+
+#include <X11/Xproto.h>
+#include <dri2.h>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
 
 #include "widget_errno.h"
 #include "util.h"
@@ -350,6 +358,69 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	}
 
 	s_info.res_resolved = 1;
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
+{
+	int dri2Major, dri2Minor;
+	char *driverName, *deviceName;
+	drm_magic_t magic;
+	int evt_base;
+	int err_base;
+
+	if (!fd || !dpy) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!DRI2QueryExtension(dpy, &evt_base, &err_base)) {
+		ErrPrint("DRI2 is not supported\n");
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (!DRI2QueryVersion(dpy, &dri2Major, &dri2Minor)) {
+		ErrPrint("DRI2 is not supported\n");
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (!DRI2Connect(dpy, DefaultRootWindow(dpy), &driverName, &deviceName)) {
+		ErrPrint("DRI2 is not supported\n");
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	*fd = open(deviceName, O_RDWR);
+	free(deviceName);
+	free(driverName);
+	if (*fd < 0) {
+		ErrPrint("Failed to open a drm device: (%d)\n", errno);
+		return WIDGET_ERROR_IO_ERROR;
+	}
+
+	drmGetMagic(*fd, &magic);
+	DbgPrint("DRM Magic: 0x%X\n", magic);
+	if (!DRI2Authenticate(dpy, DefaultRootWindow(dpy), (unsigned int)magic)) {
+		ErrPrint("Failed to do authenticate for DRI2\n");
+		if (close(*fd) < 0) {
+			ErrPrint("close: %d\n", errno);
+		}
+		*fd = -1;
+		return WIDGET_ERROR_PERMISSION_DENIED;
+	}
+
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_util_release_drm_fd(int fd)
+{
+	if (fd < 0) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (close(fd) < 0) {
+		ErrPrint("close: %d\n", errno);
+		return WIDGET_ERROR_FAULT;
+	}
+
 	return WIDGET_ERROR_NONE;
 }
 

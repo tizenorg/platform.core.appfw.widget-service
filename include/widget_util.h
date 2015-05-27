@@ -23,6 +23,8 @@ extern "C" {
 
 extern char *widget_util_replace_string(const char *src, const char *pattern, const char *replace);
 extern const char *widget_util_uri_to_path(const char *uri);
+extern int widget_util_get_drm_fd(void *dpy, int *fd);
+extern int widget_util_release_drm_fd(int fd);
 
 #ifdef __cplusplus
 }

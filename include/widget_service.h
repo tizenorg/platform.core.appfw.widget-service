@@ -17,7 +17,7 @@
 #ifndef __WIDGET_SERVICE_H
 #define __WIDGET_SERVICE_H
 
-#include <tizen_type.h>
+#include <tizen.h>
 #include <bundle.h>
 
 #ifdef __cplusplus
