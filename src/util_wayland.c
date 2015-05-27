@@ -3,17 +3,26 @@
 #include <errno.h>
 #include <unistd.h> /* access */
 #include <stdlib.h> /* free */
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <dlog.h>
 
 #include <sqlite3.h>
 #include <unicode/uloc.h>
 
+#include <wayland-client.h>
+#include <xf86drm.h>
+#include <xf86drmMode.h>
+
 #include "widget_errno.h"
 #include "util.h"
 #include "widget_service.h"
 #include "widget_service_internal.h"
 #include "debug.h"
+#include "widget_wayland-drm-client-protocol.h"
+#include "widget_wayland-drm-server-protocol.h"
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/resolution.ini"
 
@@ -298,6 +307,123 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 	}
 
 	s_info.res_resolved = 1;
+	return WIDGET_ERROR_NONE;
+}
+
+struct wl_drm_info {
+	struct wl_drm *wl_drm;
+	int authenticated;
+	int fd;
+};
+
+static void wl_client_drm_handle_device(void *data, struct wl_drm *drm, const char *device)
+{
+	struct wl_drm_info *drm_info = (struct wl_drm_info *)data;
+	drm_magic_t magic;
+
+	drm_info->fd = open(device, O_RDWR | O_CLOEXEC);
+	if (drm_info->fd < 0) {
+		ErrPrint("Failed to open a device: %d (%s)\n", errno, device);
+		return;
+	}
+
+	drmGetMagic(drm_info->fd, &magic);
+	wl_drm_authenticate(drm_info->wl_drm, magic);
+}
+
+static void wl_client_drm_handle_format(void *data, struct wl_drm *drm, uint32_t format)
+{
+	/* Do nothing */
+}
+
+static void wl_client_drm_handle_authenticated(void *data, struct wl_drm *drm)
+{
+	struct wl_drm_info *drm_info = (struct wl_drm_info *)data;
+	drm_info->authenticated = 1;
+}
+
+static void wl_client_drm_handle_capabilities(void *data, struct wl_drm *drm, uint32_t value)
+{
+	/* Do nothing */
+}
+
+static void wl_client_registry_handle_global(void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version)
+{
+	struct wl_drm_info *info = (struct wl_drm_info *)data;
+	static const struct wl_drm_listener wl_drm_client_listener = {
+		wl_client_drm_handle_device,
+		wl_client_drm_handle_format,
+		wl_client_drm_handle_authenticated,
+		wl_client_drm_handle_capabilities
+	};
+
+	if (!strcmp(interface, "wl_drm")) {
+		info->wl_drm = wl_registry_bind(registry, name, &wl_drm_interface, (version > 2) ? 2 : version);
+		wl_drm_add_listener(info->wl_drm, &wl_drm_client_listener, data);
+	}
+}
+
+EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
+{
+	struct wl_event_queue *wl_queue;
+	struct wl_registry *wl_registry;
+	int ret = 0;
+	struct wl_drm_info info = {
+		.wl_drm = NULL,
+		.authenticated = 0,
+		.fd = -1,
+	};
+	static const struct wl_registry_listener registry_listener = {
+		wl_client_registry_handle_global,
+		NULL
+	};
+
+	if (!dpy || !fd) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	wl_queue = wl_display_create_queue(dpy);
+	if (!wl_queue) {
+		ErrPrint("Failed to create a WL Queue\n");
+		return WIDGET_ERROR_FAULT;
+	}
+
+	wl_registry = wl_display_get_registry(dpy);
+	if (!wl_registry) {
+		ErrPrint("Failed to get registry\n");
+		wl_event_queue_destroy(wl_queue);
+		return WIDGET_ERROR_FAULT;
+	}
+
+	wl_proxy_set_queue((struct wl_proxy *)wl_registry, wl_queue);
+
+	wl_registry_add_listener(dpy, &registry_listener, &info);
+	DbgPrint("Consuming Dispatch Queue begin\n");
+	while (ret != -1 && !info.authenticated) {
+		ret = wl_display_dispatch_queue(dpy, wl_queue);
+	}
+	DbgPrint("Consuming Dispatch Queue end\n");
+
+	wl_event_queue_destroy(wl_queue);
+	wl_registry_destroy(wl_registry);
+	wl_drm_destroy(info.wl_drm);
+
+	*fd = info.fd;
+
+	return *fd >= 0 ? WIDGET_ERROR_NONE : WIDGET_ERROR_FAULT;
+}
+
+EAPI int widget_util_release_drm_fd(int fd)
+{
+	if (fd < 0) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (close(fd) < 0) {
+		ErrPrint("close: %d\n", errno);
+		return WIDGET_ERROR_FAULT;
+	}
+
 	return WIDGET_ERROR_NONE;
 }
 
