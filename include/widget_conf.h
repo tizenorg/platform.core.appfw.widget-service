@@ -465,6 +465,7 @@ extern int widget_conf_reactivate_on_pause(void);
 extern const char * const widget_conf_app_abi(void);
 extern double widget_conf_visibility_change_delay(void);
 extern int widget_conf_click_region(void);
+extern void widget_conf_set_search_input_node(int flag);
 
 #define WIDGET_CONF_BASE_W               widget_conf_base_width()
 #define WIDGET_CONF_BASE_H               widget_conf_base_height()

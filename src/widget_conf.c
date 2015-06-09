@@ -236,8 +236,10 @@ static struct widget_conf s_conf;
 
 static struct info {
 	int conf_loaded;
+	int search_input_node;
 } s_info = {
 	.conf_loaded = 0,
+	.search_input_node = 0,
 };
 
 static void visibility_change_delay_handler(char *buffer)
@@ -716,7 +718,7 @@ static char *find_input_device_by_path(const char *name)
 			ErrPrint("close: %d\n", errno);
 		}
 
-		if (ret == 0 && !strcasecmp(name, dev_name)) {
+		if (ret == strlen(name) + 1 && !strcasecmp(name, dev_name)) {
 			return_path = strdup(path);
 			if (!return_path) {
 				ErrPrint("strdup: %d\n", errno);
@@ -883,8 +885,8 @@ static char *find_input_device(const char *name)
 
 static void input_path_handler(char *buffer)
 {
-	if (buffer[0] == '/') {
-		DbgPrint("Specifying the input device\n");
+	if (buffer[0] == '/' || !s_info.search_input_node) {
+		DbgPrint("Specifying the input device [%d]\n", s_info.search_input_node);
 		s_conf.path.input = strdup(buffer);
 		if (!s_conf.path.input) {
 			ErrPrint("Heap: %d\n", errno);
@@ -1045,6 +1047,11 @@ static char *conf_path(void)
 	}
 
 	return path;
+}
+
+EAPI void widget_conf_set_search_input_node(int flag)
+{
+	s_info.search_input_node = !!flag;
 }
 
 EAPI int widget_conf_load(void)
