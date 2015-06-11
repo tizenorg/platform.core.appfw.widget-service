@@ -321,6 +321,7 @@ static void wl_client_drm_handle_device(void *data, struct wl_drm *drm, const ch
 	struct wl_drm_info *drm_info = (struct wl_drm_info *)data;
 	drm_magic_t magic;
 
+	DbgPrint("device[%s]\n", device);
 	drm_info->fd = open(device, O_RDWR | O_CLOEXEC);
 	if (drm_info->fd < 0) {
 		ErrPrint("Failed to open a device: %d (%s)\n", errno, device);
@@ -328,23 +329,27 @@ static void wl_client_drm_handle_device(void *data, struct wl_drm *drm, const ch
 	}
 
 	drmGetMagic(drm_info->fd, &magic);
+	DbgPrint("magic[%x]\n", magic);
 	wl_drm_authenticate(drm_info->wl_drm, magic);
 }
 
 static void wl_client_drm_handle_format(void *data, struct wl_drm *drm, uint32_t format)
 {
 	/* Do nothing */
+	DbgPrint("");
 }
 
 static void wl_client_drm_handle_authenticated(void *data, struct wl_drm *drm)
 {
 	struct wl_drm_info *drm_info = (struct wl_drm_info *)data;
 	drm_info->authenticated = 1;
+	DbgPrint("");
 }
 
 static void wl_client_drm_handle_capabilities(void *data, struct wl_drm *drm, uint32_t value)
 {
 	/* Do nothing */
+	DbgPrint("");
 }
 
 static void wl_client_registry_handle_global(void *data, struct wl_registry *registry, uint32_t name, const char *interface, uint32_t version)
@@ -357,6 +362,7 @@ static void wl_client_registry_handle_global(void *data, struct wl_registry *reg
 		wl_client_drm_handle_capabilities
 	};
 
+	DbgPrint("interface[%s]\n", interface);
 	if (!strcmp(interface, "wl_drm")) {
 		info->wl_drm = wl_registry_bind(registry, name, &wl_drm_interface, (version > 2) ? 2 : version);
 		wl_drm_add_listener(info->wl_drm, &wl_drm_client_listener, data);
@@ -365,6 +371,7 @@ static void wl_client_registry_handle_global(void *data, struct wl_registry *reg
 
 EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 {
+	struct wl_display *disp = NULL;
 	struct wl_event_queue *wl_queue;
 	struct wl_registry *wl_registry;
 	int ret = 0;
@@ -378,13 +385,25 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 		NULL
 	};
 
-	if (!dpy || !fd) {
+	if (!fd) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!dpy) {
+		disp = wl_display_connect(NULL);
+		if (!disp) {
+			ErrPrint("Failed to create a new display connection\n");
+			return WIDGET_ERROR_FAULT;
+		}
+		dpy = disp;
 	}
 
 	wl_queue = wl_display_create_queue(dpy);
 	if (!wl_queue) {
 		ErrPrint("Failed to create a WL Queue\n");
+		if (disp == dpy) {
+			wl_display_disconnect(disp);
+		}
 		return WIDGET_ERROR_FAULT;
 	}
 
@@ -392,6 +411,9 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 	if (!wl_registry) {
 		ErrPrint("Failed to get registry\n");
 		wl_event_queue_destroy(wl_queue);
+		if (disp == dpy) {
+			wl_display_disconnect(disp);
+		}
 		return WIDGET_ERROR_FAULT;
 	}
 
@@ -401,6 +423,7 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 	DbgPrint("Consuming Dispatch Queue begin\n");
 	while (ret != -1 && !info.authenticated) {
 		ret = wl_display_dispatch_queue(dpy, wl_queue);
+		DbgPrint("Dispatch Queue consumed: %d\n", ret);
 	}
 	DbgPrint("Consuming Dispatch Queue end\n");
 
@@ -409,7 +432,9 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 	wl_drm_destroy(info.wl_drm);
 
 	*fd = info.fd;
-
+	if (disp == dpy) {
+		wl_display_disconnect(disp);
+	}
 	return *fd >= 0 ? WIDGET_ERROR_NONE : WIDGET_ERROR_FAULT;
 }
 
