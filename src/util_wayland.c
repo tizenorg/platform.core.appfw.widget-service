@@ -311,6 +311,7 @@ int util_update_resolution(struct service_info *info, struct supported_size_list
 }
 
 struct wl_drm_info {
+	struct wl_event_queue *wl_queue;
 	struct wl_drm *wl_drm;
 	int authenticated;
 	int fd;
@@ -365,6 +366,7 @@ static void wl_client_registry_handle_global(void *data, struct wl_registry *reg
 	DbgPrint("interface[%s]\n", interface);
 	if (!strcmp(interface, "wl_drm")) {
 		info->wl_drm = wl_registry_bind(registry, name, &wl_drm_interface, (version > 2) ? 2 : version);
+		wl_proxy_set_queue((struct wl_proxy *)info->wl_drm, info->wl_queue);
 		wl_drm_add_listener(info->wl_drm, &wl_drm_client_listener, data);
 	}
 }
@@ -418,8 +420,9 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 	}
 
 	wl_proxy_set_queue((struct wl_proxy *)wl_registry, wl_queue);
-
 	wl_registry_add_listener(dpy, &registry_listener, &info);
+
+	info.wl_queue = wl_queue;
 	DbgPrint("Consuming Dispatch Queue begin\n");
 	while (ret != -1 && !info.authenticated) {
 		ret = wl_display_dispatch_queue(dpy, wl_queue);
