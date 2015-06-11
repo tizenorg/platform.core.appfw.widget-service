@@ -420,7 +420,7 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 	}
 
 	wl_proxy_set_queue((struct wl_proxy *)wl_registry, wl_queue);
-	wl_registry_add_listener(dpy, &registry_listener, &info);
+	wl_registry_add_listener(wl_registry, &registry_listener, &info);
 
 	info.wl_queue = wl_queue;
 	DbgPrint("Consuming Dispatch Queue begin\n");
