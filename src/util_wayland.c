@@ -315,6 +315,7 @@ struct wl_drm_info {
 	struct wl_drm *wl_drm;
 	int authenticated;
 	int fd;
+	int inf_checked;
 };
 
 static void wl_client_drm_handle_device(void *data, struct wl_drm *drm, const char *device)
@@ -369,6 +370,8 @@ static void wl_client_registry_handle_global(void *data, struct wl_registry *reg
 		wl_proxy_set_queue((struct wl_proxy *)info->wl_drm, info->wl_queue);
 		wl_drm_add_listener(info->wl_drm, &wl_drm_client_listener, data);
 	}
+
+	info->inf_checked++;
 }
 
 EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
@@ -423,8 +426,9 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 	wl_registry_add_listener(wl_registry, &registry_listener, &info);
 
 	info.wl_queue = wl_queue;
+	info.inf_checked = 0;
 	DbgPrint("Consuming Dispatch Queue begin\n");
-	while (ret != -1 && !info.authenticated) {
+	while (ret != -1 && !info.inf_checked) {
 		ret = wl_display_dispatch_queue(dpy, wl_queue);
 		DbgPrint("Dispatch Queue consumed: %d\n", ret);
 	}
@@ -433,11 +437,15 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 	wl_event_queue_destroy(wl_queue);
 	wl_registry_destroy(wl_registry);
 	wl_drm_destroy(info.wl_drm);
-
-	*fd = info.fd;
 	if (disp == dpy) {
 		wl_display_disconnect(disp);
 	}
+
+	if (!info.inf_checked || !info.authenticated) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	*fd = info.fd;
 	return *fd >= 0 ? WIDGET_ERROR_NONE : WIDGET_ERROR_FAULT;
 }
 
