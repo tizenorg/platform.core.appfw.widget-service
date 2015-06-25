@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h> // access
+#include <unistd.h> /* access */
 #include <sqlite3.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -31,7 +31,9 @@
 #include <dlog.h>
 #include <widget_errno.h>
 #include <unicode/uloc.h>
+#include <system_info.h>
 
+#include "debug.h"
 #include "widget_conf.h"
 #include "util.h"
 #include "debug.h"
@@ -695,8 +697,7 @@ static char *find_input_device_by_path(const char *name)
 
 	while ((entry = readdir(dir))) {
 		if (entry->d_name[0] == '.' &&
-			(entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')))
-		{
+			(entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0'))) {
 			continue;
 		}
 
@@ -1027,7 +1028,7 @@ static char *conf_path(void)
 	char *path;
 	int length;
 
-	length = strlen(CONF_PATH_FORMAT) + 12;    // 12 == RESERVED SPACE
+	length = strlen(CONF_PATH_FORMAT) + 12;    /* 12 == RESERVED SPACE */
 	path = calloc(1, length);
 	if (!path) {
 		ErrPrint("calloc: %d\n", errno);

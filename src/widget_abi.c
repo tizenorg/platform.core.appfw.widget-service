@@ -24,7 +24,9 @@
 
 #include <dlog.h>
 #include <widget_errno.h>
+#include <system_info.h>
 
+#include "debug.h"
 #include "util.h"
 #include "debug.h"
 #include "dlist.h"
@@ -211,7 +213,7 @@ static int abi_load_table(void)
 				break;
 			}
 			break;
-		// case ERROR:
+		/* case ERROR: */
 		default:
 			break;
 		}

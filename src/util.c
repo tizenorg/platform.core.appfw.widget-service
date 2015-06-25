@@ -27,7 +27,9 @@
 #include <unicode/uloc.h>
 
 #include <dlog.h>
+#include <system_info.h>
 
+#include "debug.h"
 #include "widget_errno.h"
 #include "util.h"
 #include "debug.h"
@@ -122,6 +124,10 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 	int len;
 	int rlen;
 	int matched;
+
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
 
 	if (!src || !pattern || !replace || !src[0] || !pattern[0]) {
 		ErrPrint("Invalid argument: %s %s %s\n", src, pattern, replace);
@@ -246,6 +252,10 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 EAPI const char *widget_util_uri_to_path(const char *uri)
 {
 	int len;
+
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
 
 	if (!uri) {
 		return NULL;

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
-#include <unistd.h> // access
-#include <stdlib.h> // free
+#include <unistd.h> /* access */
+#include <stdlib.h> /* free */
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -14,17 +14,18 @@
 
 #include <sqlite3.h>
 #include <unicode/uloc.h>
+#include <system_info.h>
 
 #include <X11/Xproto.h>
 #include <dri2.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#include "debug.h"
 #include "widget_errno.h"
 #include "util.h"
 #include "widget_service.h"
 #include "widget_service_internal.h"
-#include "debug.h"
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/resolution.ini"
 
@@ -250,7 +251,7 @@ static char *conf_path(void)
 	char *path;
 	int length;
 
-	length = strlen(CONF_PATH_FORMAT) + 12;    // 12 == RESERVED SPACE
+	length = strlen(CONF_PATH_FORMAT) + 12;    /* 12 == RESERVED SPACE */
 	path = calloc(1, length);
 	if (!path) {
 		ErrPrint("calloc: %d\n", errno);
@@ -287,7 +288,7 @@ int util_screen_size_get(unsigned int *width, unsigned int *height)
 	int x;
 	int y;
 	int ret;
-	unsigned int _width;    
+	unsigned int _width;
 	unsigned int _height;
 
 	if (!width) {

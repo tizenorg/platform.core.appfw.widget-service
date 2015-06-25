@@ -51,4 +51,17 @@ extern int util_screen_size_get(unsigned int *width, unsigned int *height);
 
 #define MAX_COLUMN 80
 
+static inline bool is_widget_feature_enabled(void)
+{
+	bool feature = false;
+	int ret;
+
+	ret = system_info_get_platform_bool("http://tizen.org/feature/shell.appwidget", &feature);
+	if (ret != SYSTEM_INFO_ERROR_NONE) {
+		ErrPrint("system_info: %d\n", ret);
+	}
+
+	return feature;
+}
+
 /* End of a file */

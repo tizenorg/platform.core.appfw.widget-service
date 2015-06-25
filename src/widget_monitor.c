@@ -25,6 +25,7 @@
 #include <com-core_packet.h>
 #include <packet.h>
 #include <dlog.h>
+#include <system_info.h>
 
 #include "dlist.h"
 #include "widget_errno.h"
@@ -153,6 +154,10 @@ EAPI int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_lif
 	struct lifecycle_monitor_item *item;
 	struct dlist *l;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!cb) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -237,6 +242,10 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 	struct lifecycle_monitor_item *item;
 	int ret = WIDGET_ERROR_NOT_EXIST;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	dlist_foreach_safe(s_info.lifecycle_monitor_list, l, n, item) {
 		if (widget_id == NULL && item->widget_id == NULL) {
 			s_info.lifecycle_monitor_list = dlist_remove(s_info.lifecycle_monitor_list, l);
@@ -290,6 +299,10 @@ EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, co
 	const char *_content;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!widget_instance_id || !b) {
 		ErrPrint("Invalid argument\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -338,6 +351,10 @@ EAPI int widget_service_get_widget_instance_list(const char *widget_id, widget_i
 	unsigned int cmd = CMD_SERVICE_GET_INST_LIST;
 	const char *list;
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!widget_id || !cb) {
 		ErrPrint("Invalid argument\n");

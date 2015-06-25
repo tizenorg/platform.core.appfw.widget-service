@@ -35,11 +35,12 @@
 #include <vconf-keys.h>
 #include <unicode/uloc.h>
 #include <bundle.h>
+#include <system_info.h>
 
 #include "widget_errno.h"
 #include "dlist.h"
-#include "util.h"
 #include "debug.h"
+#include "util.h"
 #include "widget_conf.h"
 #include "widget_service.h"
 #include "widget_service_internal.h"
@@ -538,6 +539,10 @@ EAPI int widget_service_change_period(const char *pkgname, const char *id, doubl
 	char *uri;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!pkgname || !id || period < 0.0f) {
 		ErrPrint("Invalid argument\n");
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -579,6 +584,10 @@ EAPI int widget_service_get_instance_count(const char *pkgname, const char *clus
 	unsigned int cmd = CMD_SERVICE_INST_CNT;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!pkgname) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -615,6 +624,10 @@ EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bu
 	int ret;
 	char *content = NULL;
 	int content_len = 0;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!widget_id) {
 		ErrPrint("Invalid argument\n");
@@ -675,6 +688,11 @@ EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bu
 EAPI widget_list_h widget_service_create_widget_list(const char *pkgid, widget_list_h handle)
 {
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
 
 	if (handle) {
 		if (handle->type != PKGLIST_TYPE_WIDGET_LIST) {
@@ -747,6 +765,10 @@ EAPI int widget_service_get_item_from_widget_list(widget_list_h handle, char **a
 	char *_appid = NULL;
 	char *_pkgname = NULL;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!handle || handle->type != PKGLIST_TYPE_WIDGET_LIST) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -795,6 +817,10 @@ EAPI int widget_service_get_item_from_widget_list(widget_list_h handle, char **a
 
 EAPI int widget_service_destroy_widget_list(widget_list_h handle)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!handle || handle->type != PKGLIST_TYPE_WIDGET_LIST) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -815,6 +841,10 @@ EAPI int widget_service_get_widget_list(widget_list_cb cb, void *data)
 	char *pkgid;
 	int is_prime;
 	sqlite3 *handle;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!cb) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -875,6 +905,10 @@ EAPI int widget_service_get_widget_list_by_pkgid(const char *pkgid, widget_list_
 	const char *widgetid;
 	int is_prime;
 	sqlite3 *handle;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!cb || !pkgid) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -938,6 +972,10 @@ EAPI int widget_service_get_widget_list_by_category(const char *category, int (*
 	const char *widgetid;
 	sqlite3 *handle;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!cb || !category) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -994,6 +1032,10 @@ EAPI int widget_service_get_applist(const char *widgetid, void (*cb)(const char 
 	char *pkgid;
 	sqlite3 *handle;
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!widgetid || !cb) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -1082,12 +1124,19 @@ EAPI char *widget_service_get_main_app_id(const char *widgetid)
 	sqlite3 *handle;
 	char *ret = NULL;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
 	if (!widgetid) {
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
 
 	handle = open_db();
 	if (!handle) {
+		set_last_result(WIDGET_ERROR_IO_ERROR);
 		return NULL;
 	}
 
@@ -1155,6 +1204,10 @@ EAPI int widget_service_get_supported_size_types(const char *pkgid, int *cnt, in
 	int size;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!types || !cnt || !pkgid) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -1186,7 +1239,7 @@ EAPI int widget_service_get_supported_size_types(const char *pkgid, int *cnt, in
 
 	*types = malloc(sizeof(int) * *cnt);
 
-	if(*types == NULL) {
+	if (*types == NULL) {
 		ErrPrint("Out of memory");
 		sqlite3_reset(stmt);
 		sqlite3_finalize(stmt);
@@ -1216,6 +1269,11 @@ EAPI char *widget_service_get_content_string(const char *pkgid)
 	sqlite3 *handle;
 	char *content = NULL;
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	handle = open_db();
 	if (!handle) {
@@ -1271,6 +1329,11 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widgetid)
 	sqlite3 *handle;
 	int ret;
 	char *appid;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!widgetid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -1331,6 +1394,11 @@ EAPI int widget_service_get_nodisplay(const char *pkgid)
 	sqlite3 *handle;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return 0;
+	}
+
 	if (!pkgid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return 0;
@@ -1381,6 +1449,10 @@ EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e 
 	int ret = WIDGET_ERROR_NONE;
 	int ret_sqlite = 0;
 	int result_need_of_frame = 0;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (pkgid == NULL || need_of_frame == NULL) {
 		ret = WIDGET_ERROR_INVALID_PARAMETER;
@@ -1436,7 +1508,7 @@ EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e 
 	result_need_of_frame = !!sqlite3_column_int(stmt, 0);
 
 out:
-	if(need_of_frame)
+	if (need_of_frame)
 		*need_of_frame = result_need_of_frame;
 
 	if (stmt) {
@@ -1461,6 +1533,10 @@ EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_
 	int ret = WIDGET_ERROR_NONE;
 	int ret_sqlite;
 	int result_need_of_touch_event = 0;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (pkgid == NULL || need_of_touch_event == NULL) {
 		ret = WIDGET_ERROR_INVALID_PARAMETER;
@@ -1548,6 +1624,10 @@ EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_t
 	int ret_sqlite = 0;
 	int ret = WIDGET_ERROR_NONE;
 	int result_need_of_mouse_event = 0;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (pkgid == NULL || need_of_mouse_event == NULL) {
 		ret = WIDGET_ERROR_INVALID_PARAMETER;
@@ -1642,7 +1722,7 @@ static char *convert_to_abspath(const char *appid, const char *tmp, const char *
 	if (ret != PMINFO_R_OK) {
 		ErrPrint("Unable to get path for %s\n", appid);
 		goto out;
-	} 
+	}
 
 	abspath_len = strlen(tmp) + strlen(path) + strlen(mid_path) + 1;
 	abspath = malloc(abspath_len);
@@ -1725,6 +1805,10 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, widget_size_
 	register int i;
 	int printed;
 	char *abspath;
+
+	if (!is_widget_feature_enabled()) {
+		return NULL;
+	}
 
 	handle = open_db();
 	if (!handle) {
@@ -1836,6 +1920,11 @@ EAPI char *widget_service_get_icon(const char *pkgid, const char *lang)
 	int ret;
 	char *ret_icon;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
 	if (!pkgid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
@@ -1925,6 +2014,11 @@ EAPI char *widget_service_get_name(const char *pkgid, const char *lang)
 	char *name = NULL;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
 	if (!pkgid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
@@ -2005,6 +2099,10 @@ EAPI int widget_service_get_supported_sizes(const char *pkgid, int *cnt, int **w
 	int size;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!w || !h || !cnt || !pkgid || *cnt <= 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -2069,6 +2167,11 @@ EAPI char *widget_service_get_abi(const char *widgetid)
 	int ret;
 	char *abi;
 	char *tmp;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!widgetid) {
 		ErrPrint("Invalid argument\n");
@@ -2148,6 +2251,11 @@ EAPI char *widget_service_get_widget_id_by_libexec(const char *libexec)
 	char *tmp;
 	char *_libexec;
 	int len;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!libexec) {
 		ErrPrint("Invalid argument\n");
@@ -2234,6 +2342,11 @@ EAPI char *widget_service_get_libexec(const char *pkgid)
 	char *libexec;
 	char *appid;
 	char *path;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!pkgid) {
 		ErrPrint("Invalid argument\n");
@@ -2326,6 +2439,11 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	int ret;
 	char *new_appid;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
 	if (!appid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
@@ -2373,6 +2491,11 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 	sqlite3 *handle;
 	int is_prime __attribute__((__unused__));
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!pkgname) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -2484,6 +2607,11 @@ EAPI char *widget_service_get_provider_name(const char *widgetid)
 	int idx = 0;
 	char *str = WIDGET_ID_PREFIX;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
 	if (!widgetid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
@@ -2535,6 +2663,10 @@ EAPI char *widget_service_get_provider_name(const char *widgetid)
 
 EAPI int widget_service_is_enabled(const char *widgetid)
 {
+	if (!is_widget_feature_enabled()) {
+		return 0;
+	}
+
 	return 1;
 }
 
@@ -2543,6 +2675,11 @@ EAPI int widget_service_is_primary(const char *widgetid)
 	sqlite3_stmt *stmt;
 	sqlite3 *handle;
 	int ret = 0;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return 0;
+	}
 
 	if (!widgetid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -2597,6 +2734,11 @@ EAPI char *widget_service_get_category(const char *widgetid)
 	char *tmp;
 	sqlite3 *handle;
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!widgetid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -2679,6 +2821,10 @@ EAPI int widget_service_get_widget_max_count(const char *widget_id)
 	sqlite3 *handle;
 	int ret = WIDGET_ERROR_FAULT;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!widget_id) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -2733,6 +2879,11 @@ EAPI char *widget_service_get_widget_script_path(const char *pkgid)
 	char *path;
 	char *appid;
 	char *widget_src;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!pkgid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -2823,6 +2974,11 @@ EAPI char *widget_service_get_widget_script_group(const char *pkgid)
 	char *group;
 	char *tmp;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
 	if (!pkgid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
@@ -2887,6 +3043,11 @@ EAPI char *widget_service_get_gbar_script_path(const char *pkgid)
 	char *path;
 	char *gbar_src;
 	const char *appid;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!pkgid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
@@ -2978,6 +3139,11 @@ EAPI char *widget_service_get_gbar_script_group(const char *pkgid)
 	char *group;
 	char *tmp;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
 	if (!pkgid) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
@@ -3037,6 +3203,10 @@ EAPI int widget_service_enumerate_cluster_list(int (*cb)(const char *cluster, vo
 	int cnt;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!cb) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -3082,6 +3252,10 @@ EAPI int widget_service_enumerate_category_list(const char *cluster, int (*cb)(c
 	int cnt;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!cluster || !cb) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -3121,6 +3295,10 @@ out:
 
 EAPI int widget_service_init(void)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (s_info.handle) {
 		DbgPrint("Already initialized\n");
 		s_info.init_count++;
@@ -3138,6 +3316,10 @@ EAPI int widget_service_init(void)
 
 EAPI int widget_service_fini(void)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!s_info.handle || s_info.init_count <= 0) {
 		ErrPrint("Service is not initialized\n");
 		return WIDGET_ERROR_IO_ERROR;
@@ -3159,6 +3341,10 @@ EAPI int widget_service_get_size(widget_size_type_e type, int *width, int *heigh
 	int _width;
 	int _height;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!width) {
 		width = &_width;
 	}
@@ -3175,6 +3361,10 @@ EAPI int widget_service_get_size_type(int width, int height, widget_size_type_e 
 	int idx;
 	int output_size_type = WIDGET_SIZE_TYPE_UNKNOWN;
 	int ret = WIDGET_ERROR_NONE;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (size_type == NULL) {
 		ErrPrint("WIDGET_ERROR_INVALID_PARAMETER\n");
@@ -3250,6 +3440,11 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 	int len;
 	int flags;
 
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
 	info = malloc(sizeof(*info));
 	if (!info) {
 		ErrPrint("malloc: %d\n", errno);
@@ -3304,6 +3499,10 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 
 EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 {
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!info || info->state != LOCK_CREATED || !info->filename || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -3327,6 +3526,10 @@ EAPI int widget_service_acquire_lock(widget_lock_info_t info)
 {
 	struct flock flock;
 	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
 
 	if (!info || info->state != LOCK_CREATED || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
@@ -3358,6 +3561,10 @@ EAPI int widget_service_release_lock(widget_lock_info_t info)
 	struct flock flock;
 	int ret;
 
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
 	if (!info || info->state != LOCK_CREATED || info->fd < 0) {
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -3384,6 +3591,11 @@ EAPI char *widget_service_get_base_file_path(const char *widget_id)
 	pkgmgrinfo_pkginfo_h handle;
 	char *ret;
 	int status;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
 
 	if (!widget_id) {
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);

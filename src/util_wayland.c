@@ -11,16 +11,17 @@
 
 #include <sqlite3.h>
 #include <unicode/uloc.h>
+#include <system_info.h>
 
 #include <wayland-client.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
+#include "debug.h"
 #include "widget_errno.h"
 #include "util.h"
 #include "widget_service.h"
 #include "widget_service_internal.h"
-#include "debug.h"
 #include "widget_wayland-drm-client-protocol.h"
 #include "widget_wayland-drm-server-protocol.h"
 
@@ -240,7 +241,7 @@ static char *conf_path(void)
 	char *path;
 	int length;
 
-	length = strlen(CONF_PATH_FORMAT) + 12;    // 12 == RESERVED SPACE
+	length = strlen(CONF_PATH_FORMAT) + 12;    /* 12 == RESERVED SPACE */
 	path = calloc(1, length);
 	if (!path) {
 		ErrPrint("calloc: %d\n", errno);
@@ -424,8 +425,8 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 
 	wl_proxy_set_queue((struct wl_proxy *)wl_registry, wl_queue);
 	wl_registry_add_listener(wl_registry, &registry_listener, &info);
-
 	info.wl_queue = wl_queue;
+
 	info.inf_checked = 0;
 	DbgPrint("Consuming Dispatch Queue begin\n");
 	while (ret != -1 && !info.inf_checked) {
@@ -437,6 +438,7 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 	wl_event_queue_destroy(wl_queue);
 	wl_registry_destroy(wl_registry);
 	wl_drm_destroy(info.wl_drm);
+
 	if (disp == dpy) {
 		wl_display_disconnect(disp);
 	}

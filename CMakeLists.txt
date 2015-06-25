@@ -28,6 +28,7 @@ pkg_check_modules(pkgs REQUIRED
 	bundle
 	capi-base-common
 	libdrm
+	capi-system-info
 )
 
 IF (X11_SUPPORT)

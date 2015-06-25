@@ -23,6 +23,7 @@ BuildRequires: pkgconfig(icu-uc)
 BuildRequires: pkgconfig(bundle)
 BuildRequires: pkgconfig(capi-base-common)
 BuildRequires: pkgconfig(libdrm)
+BuildRequires: pkgconfig(capi-system-info)
 
 %if %{with wayland}
 BuildRequires: pkgconfig(wayland-client)
