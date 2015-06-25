@@ -437,7 +437,10 @@ EAPI int widget_util_get_drm_fd(void *dpy, int *fd)
 
 	wl_event_queue_destroy(wl_queue);
 	wl_registry_destroy(wl_registry);
-	wl_drm_destroy(info.wl_drm);
+
+	if (info.wl_drm) {
+		wl_drm_destroy(info.wl_drm);
+	}
 
 	if (disp == dpy) {
 		wl_display_disconnect(disp);
