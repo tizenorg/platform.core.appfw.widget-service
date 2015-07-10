@@ -23,7 +23,7 @@
  */
 
 /**
- * @defgroup CAPI_WIDGET_SERVICE_MODULE widget-service
+ * @defgroup CAPI_WIDGET_SERVICE_MODULE Widget Service
  * @brief To get the information of installed widgets
  * @ingroup CAPI_WIDGET_FRAMEWORK 
  * @section CAPI_WIDGET_SERVICE_MODULE_HEADER Required Header
@@ -35,13 +35,9 @@ Tizen supports various kinds of API set for retrieving information of widgets.
 Every widgets are installed via package manager utilities.
 The information of installed widgets are stored in the system DB.
 
-In some cases, application developer needs to send update request to its widget.
-To make it possible, this module providers such kinds of API set.
-
-Those APIs are for communicating with master service provider called data-provider-master.
-When it receives request from applications, it will find the proper service provider called data-provider-slave or application widget Provider.
-If master finds proper service provider, it will forward the requests to them.
-Then each widget application can get update request.
+In some cases, application developer needs to send update request to some widgets.
+To make it possible, this module provides related API set.
+But the API will only works if the widget and application are packaged in one.
 
 <H2>1.1 APIs for retrieving information of widgets</H2>
 
@@ -53,43 +49,47 @@ To trigger the update event or send the updated content string to the widget.
 
 <H1>2. Size of widget</H1>
 
-widget has predefined size types.
+Widget has predefined size types.
+1x1 is a square so its pixel size of width and height must has to be same.
+2x2, 4x4 also sqaure.
+
+2x1, 4x1, 4x2, 4x3 is a rectangle. so its pixel size of width & height should not be same.
+pixel size of width should be long than height.
+
+Pixel size can be differ between different devices.
+It depends on its screen resolution.
+
+So widget developer should care various kinds of devices (has different screen resolution).
 
 <TABLE>
 <TR>
 <TD>Size Type</TD><TD>Size in pixels</TD><TD>Supported profile</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_1x1</TD><TD> - </TD><TD>Mobile, Wearable - Mandatory size</TD>
+<TD>WIDGET_SIZE_TYPE_1x1</TD><TD> - (SQUARE, depends on screen resolution) </TD><TD>No profile - This size type is not used. just defined for specifying a default cell size</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_2x1</TD><TD> - </TD><TD>Mobile</TD>
+<TD>WIDGET_SIZE_TYPE_2x1</TD><TD> - (RECTANGLE, depends on screen resolution) </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_2x2</TD><TD> - </TD><TD>Mobile, Wearable</TD>
+<TD>WIDGET_SIZE_TYPE_2x2</TD><TD> - (SQUARE, depends on screen resolution) </TD><TD>Mobile, Wearable (Default size)</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_4x1</TD><TD> - </TD><TD>Mobile - Extension</TD>
+<TD>WIDGET_SIZE_TYPE_4x1</TD><TD> - (RECTANGLE, depends on screen resolution) </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_4x2</TD><TD> - </TD><TD>Mobile - Since 2.3</TD>
+<TD>WIDGET_SIZE_TYPE_4x2</TD><TD> - (RECTANGLE, depends on screen resolution) </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_4x3</TD><TD> - </TD><TD>Mobile - Extension</TD>
+<TD>WIDGET_SIZE_TYPE_4x3</TD><TD> - (RECTANGLE, depends on screen resolution) </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_4x4</TD><TD> - </TD><TD>Mobile, Kiran - Since 2.3</TD>
-</TR>
-<TR>
-<TD>WIDGET_SIZE_TYPE_4x5</TD><TD> - </TD><TD>Mobile - Extension</TD>
-</TR>
-<TR>
-<TD>WIDGET_SIZE_TYPE_4x6</TD><TD> - </TD><TD>Mobile - Extension</TD>
+<TD>WIDGET_SIZE_TYPE_4x4</TD><TD> - (SQUARE, depends on screen resolution) </TD><TD>Mobile</TD>
 </TR>
 </TABLE>
 
-widget also handles Easy Mode.
-For the easy mode, there are different size types.
+Widget also works for Easy Mode.
+For the Easy Mode, there are different size types.
 Called WIDGET_SIZE_TYPE_EASY_NxM
 
 <TABLE>
@@ -97,19 +97,19 @@ Called WIDGET_SIZE_TYPE_EASY_NxM
 <TD>Size Type</TD><TD>Size in pixels</TD><TD>Supported profile</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_EASY_1x1</TD><TD> - </TD><TD>Mobile</TD>
+<TD>WIDGET_SIZE_TYPE_EASY_1x1</TD><TD> - (SQUARE, depends on screen resolution) </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_EASY_3x1</TD><TD> - </TD><TD>Mobile</TD>
+<TD>WIDGET_SIZE_TYPE_EASY_3x1</TD><TD> - (RECTANGLE, depends on screen resolution) </TD><TD>Mobile</TD>
 </TR>
 <TR>
-<TD>WIDGET_SIZE_TYPE_EASY_3x3</TD><TD> - </TD><TD>Mobile</TD>
+<TD>WIDGET_SIZE_TYPE_EASY_3x3</TD><TD> - (SQARE - depends on screen resolution) </TD><TD>Mobile</TD>
 </TR>
 </TABLE>
 
-However the easy mode is not officially supported.
-So you will not be able to create your widgets using easy mode size types.
-If you are developing the homescreen(or application which is related with widgets),
+However the Easy Mode is not a mandatory requirements for viewer application development.
+So you will not be able to create your widgets using Easy Mode size types.
+But if you are developing the homescreen(or application which is related with widgets displaying),
 You should care these types too.
 
  *

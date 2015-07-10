@@ -224,7 +224,9 @@ typedef enum widget_buffer_event {
 	WIDGET_BUFFER_EVENT_ACCESS_OVER, /**< mouse over an object */
 	WIDGET_BUFFER_EVENT_ACCESS_READ, /**< highlight an object */
 	WIDGET_BUFFER_EVENT_ACCESS_ENABLE, /**< enable highlight and read ability */
-	WIDGET_BUFFER_EVENT_ACCESS_DISABLE /**< disable highlight and read ability */
+	WIDGET_BUFFER_EVENT_ACCESS_DISABLE, /**< disable highlight and read ability */
+
+	WIDGET_BUFFER_EVENT_FRAME_SKIP_CLEARED /**< Frame skip is cleared */
 } widget_buffer_event_e;
 
 /**

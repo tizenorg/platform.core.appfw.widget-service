@@ -89,6 +89,7 @@ static const double CONF_DEFAULT_PACKET_TIME = 0.0001f;
 static const unsigned long CONF_DEFAULT_MINIMUM_SPACE = 5242880;
 static const double CONF_DEFAULT_SLAVE_TTL = 30.0f;
 static const double CONF_DEFAULT_SLAVE_ACTIVATE_TIME = 30.0f;
+static const double CONF_DEFAULT_SLAVE_TERMINATE_TIME = 30.0f;
 static const double CONF_DEFAULT_SLAVE_RELAUNCH_TIME = 3.0f;
 static const int CONF_DEFAULT_SLAVE_RELAUNCH_COUNT = 3;
 static const int CONF_DEFAULT_MAX_LOG_LINE = 1000;
@@ -121,6 +122,9 @@ static const double CONF_DEFAULT_FAULT_DETECT_IN_TIME = 0.0f;
 static const int CONF_DEFAULT_FAULT_DETECT_COUNT = 0;
 static const double CONF_DEFAULT_VISIBILITY_CHANGE_DELAY = 0.0f;
 static const int CONF_DEFAULT_CLICK_REGION = 22;
+static const int CONF_DEFAULT_FORCE_TO_TERMINATE = 0;
+static const int CONF_DEFAULT_UPDATE_ON_PAUSE = 0;
+static const int CONF_DEFAULT_FRAME_SKIP = 0;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -167,6 +171,7 @@ struct widget_conf {
 
 	double slave_ttl;
 	double slave_activate_time;
+	double slave_terminate_time;
 	double slave_relaunch_time;
 	int slave_relaunch_count;
 
@@ -232,6 +237,9 @@ struct widget_conf {
 
 	int click_region;
 	char *sdk_viewer;
+
+	int force_to_terminate;
+	int update_on_pause;
 };
 
 static struct widget_conf s_conf;
@@ -532,10 +540,18 @@ static void slave_activate_time_handler(char *buffer)
 	DbgPrint("Slave activate time: %lf\n", s_conf.slave_activate_time);
 }
 
+static void slave_terminate_time_handler(char *buffer)
+{
+	if (sscanf(buffer, "%lf", &s_conf.slave_terminate_time) != 1) {
+		ErrPrint("Failed to parse the slave_terminate_time\n");
+	}
+	DbgPrint("Slave terminate time: %lf\n", s_conf.slave_terminate_time);
+}
+
 static void slave_relaunch_time_handler(char *buffer)
 {
 	if (sscanf(buffer, "%lf", &s_conf.slave_relaunch_time) != 1) {
-		ErrPrint("Failed to parse the slave_activate_time\n");
+		ErrPrint("Failed to parse the slave_relaunch_time\n");
 	}
 	DbgPrint("Slave relaunch time: %lf\n", s_conf.slave_relaunch_time);
 }
@@ -621,6 +637,16 @@ static void click_region_handler(char *buffer)
 	if (sscanf(buffer, "%d", &s_conf.click_region) != 1) {
 		ErrPrint("Failed to parse the click_region\n");
 	}
+}
+
+static void force_to_terminate_handler(char *buffer)
+{
+	s_conf.force_to_terminate = !strcasecmp(buffer, "true");
+}
+
+static void update_on_pause_handler(char *buffer)
+{
+	s_conf.update_on_pause = !strcasecmp(buffer, "true");
 }
 
 static char *parse_handler(const char *buffer)
@@ -959,6 +985,7 @@ EAPI void widget_conf_init(void)
 	s_conf.default_packet_time = CONF_DEFAULT_PACKET_TIME;
 	s_conf.slave_ttl = CONF_DEFAULT_SLAVE_TTL;
 	s_conf.slave_activate_time = CONF_DEFAULT_SLAVE_ACTIVATE_TIME;
+	s_conf.slave_terminate_time = CONF_DEFAULT_SLAVE_TERMINATE_TIME;
 	s_conf.slave_relaunch_time = CONF_DEFAULT_SLAVE_RELAUNCH_TIME;
 	s_conf.slave_relaunch_count = CONF_DEFAULT_SLAVE_RELAUNCH_COUNT;
 	s_conf.max_log_line = CONF_DEFAULT_MAX_LOG_LINE;
@@ -1018,6 +1045,9 @@ EAPI void widget_conf_init(void)
 	s_conf.visibility_change_delay = CONF_DEFAULT_VISIBILITY_CHANGE_DELAY;
 	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
 	s_conf.sdk_viewer = (char *)CONF_DEFAULT_SDK_VIEWER;
+	s_conf.force_to_terminate = CONF_DEFAULT_FORCE_TO_TERMINATE;
+	s_conf.update_on_pause = CONF_DEFAULT_UPDATE_ON_PAUSE;
+	s_conf.frame_skip = CONF_DEFAULT_FRAME_SKIP;
 }
 
 /*
@@ -1138,6 +1168,10 @@ EAPI int widget_conf_load(void)
 		{
 			.name = "slave_activate_time",
 			.handler = slave_activate_time_handler,
+		},
+		{
+			.name = "slave_terminate_time",
+			.handler = slave_terminate_time_handler,
 		},
 		{
 			.name = "slave_relaunch_time",
@@ -1306,6 +1340,14 @@ EAPI int widget_conf_load(void)
 		{
 			.name = "click_region",
 			.handler = click_region_handler,
+		},
+		{
+			.name = "force_to_terminate",
+			.handler = force_to_terminate_handler,
+		},
+		{
+			.name = "update_on_pause",
+			.handler = update_on_pause_handler,
 		},
 		{
 			.name = NULL,
@@ -1516,6 +1558,7 @@ EAPI void widget_conf_reset(void)
 	s_conf.default_packet_time = CONF_DEFAULT_PACKET_TIME;
 	s_conf.slave_ttl = CONF_DEFAULT_SLAVE_TTL;
 	s_conf.slave_activate_time = CONF_DEFAULT_SLAVE_ACTIVATE_TIME;
+	s_conf.slave_terminate_time = CONF_DEFAULT_SLAVE_TERMINATE_TIME;
 	s_conf.slave_relaunch_time = CONF_DEFAULT_SLAVE_RELAUNCH_TIME;
 	s_conf.slave_relaunch_count = CONF_DEFAULT_SLAVE_RELAUNCH_COUNT;
 	s_conf.max_log_line = CONF_DEFAULT_MAX_LOG_LINE;
@@ -1546,6 +1589,7 @@ EAPI void widget_conf_reset(void)
 	s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
 	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
 	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
+	s_conf.frame_skip = CONF_DEFAULT_FRAME_SKIP;
 
 	if (s_conf.sdk_viewer != CONF_DEFAULT_SDK_VIEWER) {
 		free(s_conf.sdk_viewer);
@@ -1688,6 +1732,8 @@ EAPI void widget_conf_reset(void)
 	}
 
 	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
+	s_conf.force_to_terminate = CONF_DEFAULT_FORCE_TO_TERMINATE;
+	s_conf.update_on_pause = CONF_DEFAULT_UPDATE_ON_PAUSE;
 
 	s_info.conf_loaded = 0;
 }
@@ -1825,6 +1871,11 @@ EAPI const double const widget_conf_slave_ttl(void)
 EAPI const double const widget_conf_slave_activate_time(void)
 {
 	return s_conf.slave_activate_time;
+}
+
+EAPI const double const widget_conf_slave_terminate_time(void)
+{
+	return s_conf.slave_terminate_time;
 }
 
 EAPI const double const widget_conf_slave_relaunch_time(void)
@@ -2007,17 +2058,17 @@ EAPI const char * const widget_conf_category_list(void)
 	return s_conf.category_list;
 }
 
-EAPI double widget_conf_fault_detect_in_time(void)
+EAPI const double const widget_conf_fault_detect_in_time(void)
 {
 	return s_conf.fault_detect_in_time;
 }
 
-EAPI int widget_conf_fault_detect_count(void)
+EAPI const int const widget_conf_fault_detect_count(void)
 {
 	return s_conf.fault_detect_count;
 }
 
-EAPI int widget_conf_reactivate_on_pause(void)
+EAPI const int const widget_conf_reactivate_on_pause(void)
 {
 	return s_conf.reactivate_on_pause;
 }
@@ -2027,12 +2078,12 @@ EAPI const char * const widget_conf_app_abi(void)
 	return s_conf.app_abi;
 }
 
-EAPI double widget_conf_visibility_change_delay(void)
+EAPI const double const widget_conf_visibility_change_delay(void)
 {
 	return s_conf.visibility_change_delay;
 }
 
-EAPI int widget_conf_click_region(void)
+EAPI const int const widget_conf_click_region(void)
 {
 	return s_conf.click_region;
 }
@@ -2040,6 +2091,16 @@ EAPI int widget_conf_click_region(void)
 EAPI const char * const widget_conf_sdk_viewer(void)
 {
 	return s_conf.sdk_viewer;
+}
+
+EAPI const int const widget_conf_force_to_terminate(void)
+{
+	return s_conf.force_to_terminate;
+}
+
+EAPI const int const widget_conf_update_on_pause(void)
+{
+	return s_conf.update_on_pause;
 }
 
 /* End of a file */

@@ -5,7 +5,7 @@ Summary: Service API for gathering installed widget information
 Version: 1.1.2
 Release: 1
 Group: Applications/Core Applications
-License: Flora License, Version 1.1
+License: Flora-1.1
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
 Source2001: wayland-drm.xml

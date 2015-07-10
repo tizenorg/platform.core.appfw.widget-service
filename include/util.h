@@ -53,12 +53,17 @@ extern int util_screen_size_get(unsigned int *width, unsigned int *height);
 
 static inline bool is_widget_feature_enabled(void)
 {
-	bool feature = false;
+	static bool feature = false;
+	static bool retrieved = false;
 	int ret;
 
-	ret = system_info_get_platform_bool("http://tizen.org/feature/shell.appwidget", &feature);
-	if (ret != SYSTEM_INFO_ERROR_NONE) {
-		ErrPrint("system_info: %d\n", ret);
+	if (retrieved == false) {
+		ret = system_info_get_platform_bool("http://tizen.org/feature/shell.appwidget", &feature);
+		if (ret != SYSTEM_INFO_ERROR_NONE) {
+			ErrPrint("system_info: %d\n", ret);
+		} else {
+			retrieved = true;
+		}
 	}
 
 	return feature;

@@ -268,6 +268,8 @@ extern const double const widget_conf_slave_ttl(void);
  */
 extern const double const widget_conf_slave_activate_time(void);
 
+extern const double const widget_conf_slave_terminate_time(void);
+
 /**
  * @internal
  */
@@ -459,102 +461,109 @@ extern const char * const widget_conf_category_list(void);
 
 extern const char * const widget_conf_sdk_viewer(void);
 
-extern double widget_conf_fault_detect_in_time(void);
-extern int widget_conf_fault_detect_count(void);
-extern int widget_conf_reactivate_on_pause(void);
+/**
+ * @internal
+ */
+extern const int const widget_conf_force_to_terminate(void);
+
+extern const double const widget_conf_fault_detect_in_time(void);
+extern const int const widget_conf_fault_detect_count(void);
+extern const int const widget_conf_reactivate_on_pause(void);
 extern const char * const widget_conf_app_abi(void);
-extern double widget_conf_visibility_change_delay(void);
-extern int widget_conf_click_region(void);
+extern const double const widget_conf_visibility_change_delay(void);
+extern const int const widget_conf_click_region(void);
 extern void widget_conf_set_search_input_node(int flag);
+extern const int const widget_conf_update_on_pause(void);
 
-#define WIDGET_CONF_BASE_W               widget_conf_base_width()
-#define WIDGET_CONF_BASE_H               widget_conf_base_height()
+#define WIDGET_CONF_BASE_W                  widget_conf_base_width()
+#define WIDGET_CONF_BASE_H                  widget_conf_base_height()
 
-#define WIDGET_CONF_EMERGENCY_DISK       widget_conf_emergency_disk()
-#define WIDGET_CONF_SCALE_WIDTH_FACTOR   widget_conf_scale_width_factor()
-#define WIDGET_CONF_SCALE_HEIGHT_FACTOR  widget_conf_scale_height_factor()
+#define WIDGET_CONF_EMERGENCY_DISK          widget_conf_emergency_disk()
+#define WIDGET_CONF_SCALE_WIDTH_FACTOR      widget_conf_scale_width_factor()
+#define WIDGET_CONF_SCALE_HEIGHT_FACTOR     widget_conf_scale_height_factor()
 
-#define WIDGET_CONF_USE_SW_BACKEND       widget_conf_use_sw_backend()
-#define WIDGET_CONF_PROVIDER_METHOD      widget_conf_provider_method()
-#define WIDGET_CONF_DEBUG_MODE           widget_conf_debug_mode()
-#define WIDGET_CONF_OVERWRITE_CONTENT    widget_conf_overwrite_content()
-#define WIDGET_CONF_COM_CORE_THREAD      widget_conf_com_core_thread()
+#define WIDGET_CONF_USE_SW_BACKEND          widget_conf_use_sw_backend()
+#define WIDGET_CONF_PROVIDER_METHOD         widget_conf_provider_method()
+#define WIDGET_CONF_DEBUG_MODE              widget_conf_debug_mode()
+#define WIDGET_CONF_OVERWRITE_CONTENT       widget_conf_overwrite_content()
+#define WIDGET_CONF_COM_CORE_THREAD         widget_conf_com_core_thread()
 
-#define WIDGET_CONF_MINIMUM_PERIOD       widget_conf_minimum_period()
+#define WIDGET_CONF_MINIMUM_PERIOD          widget_conf_minimum_period()
 
-#define WIDGET_CONF_DEFAULT_SCRIPT       widget_conf_default_script()
-#define WIDGET_CONF_DEFAULT_ABI          widget_conf_default_abi()
-#define WIDGET_CONF_DEFAULT_GBAR_GROUP   widget_conf_default_gbar_group()
-#define WIDGET_CONF_DEFAULT_PERIOD       widget_conf_default_period()
-#define WIDGET_CONF_DEFAULT_PIXELS       widget_conf_default_pixels()
-#define WIDGET_CONF_PRIORITY_NO_CHANGE   -1.0f
+#define WIDGET_CONF_DEFAULT_SCRIPT          widget_conf_default_script()
+#define WIDGET_CONF_DEFAULT_ABI             widget_conf_default_abi()
+#define WIDGET_CONF_DEFAULT_GBAR_GROUP      widget_conf_default_gbar_group()
+#define WIDGET_CONF_DEFAULT_PERIOD          widget_conf_default_period()
+#define WIDGET_CONF_DEFAULT_PIXELS          widget_conf_default_pixels()
+#define WIDGET_CONF_PRIORITY_NO_CHANGE      -1.0f
 
-#define WIDGET_CONF_BUNDLE_SLAVE_NAME    widget_conf_launch_key_name()
-#define WIDGET_CONF_BUNDLE_SLAVE_SECURED widget_conf_launch_key_secured()
-#define WIDGET_CONF_BUNDLE_SLAVE_ABI     widget_conf_launch_key_abi()
+#define WIDGET_CONF_BUNDLE_SLAVE_NAME       widget_conf_launch_key_name()
+#define WIDGET_CONF_BUNDLE_SLAVE_SECURED    widget_conf_launch_key_secured()
+#define WIDGET_CONF_BUNDLE_SLAVE_ABI        widget_conf_launch_key_abi()
 #define WIDGET_CONF_BUNDLE_SLAVE_HW_ACCELERATION widget_conf_launch_key_hw_acceleration()
-#define WIDGET_CONF_PACKET_TIME          widget_conf_default_packet_time()
-#define WIDGET_CONF_CONTENT_NO_CHANGE    widget_conf_empty_content()
-#define WIDGET_CONF_TITLE_NO_CHANGE      widget_conf_empty_title()
-#define WIDGET_CONF_DEFAULT_TITLE        widget_conf_default_title()
-#define WIDGET_CONF_DEFAULT_CONTENT      widget_conf_default_content()
-#define WIDGET_CONF_MINIMUM_SPACE        widget_conf_minimum_space()
+#define WIDGET_CONF_PACKET_TIME             widget_conf_default_packet_time()
+#define WIDGET_CONF_CONTENT_NO_CHANGE       widget_conf_empty_content()
+#define WIDGET_CONF_TITLE_NO_CHANGE         widget_conf_empty_title()
+#define WIDGET_CONF_DEFAULT_TITLE           widget_conf_default_title()
+#define WIDGET_CONF_DEFAULT_CONTENT         widget_conf_default_content()
+#define WIDGET_CONF_MINIMUM_SPACE           widget_conf_minimum_space()
 
-#define WIDGET_CONF_IMAGE_PATH           widget_conf_share_path()
-#define WIDGET_CONF_SCRIPT_PATH          widget_conf_script_path()
-#define WIDGET_CONF_SCRIPT_PORT_PATH     widget_conf_script_port()
-#define WIDGET_CONF_CONF_PATH            widget_conf_path()
-#define WIDGET_CONF_ROOT_PATH            widget_conf_root_path()
-#define WIDGET_CONF_LOG_PATH             widget_conf_log_path()
-#define WIDGET_CONF_READER_PATH          widget_conf_reader_path()
-#define WIDGET_CONF_ALWAYS_PATH          widget_conf_always_path()
-#define WIDGET_CONF_INPUT_PATH           widget_conf_input_path()
+#define WIDGET_CONF_IMAGE_PATH              widget_conf_share_path()
+#define WIDGET_CONF_SCRIPT_PATH             widget_conf_script_path()
+#define WIDGET_CONF_SCRIPT_PORT_PATH        widget_conf_script_port()
+#define WIDGET_CONF_CONF_PATH               widget_conf_path()
+#define WIDGET_CONF_ROOT_PATH               widget_conf_root_path()
+#define WIDGET_CONF_LOG_PATH                widget_conf_log_path()
+#define WIDGET_CONF_READER_PATH             widget_conf_reader_path()
+#define WIDGET_CONF_ALWAYS_PATH             widget_conf_always_path()
+#define WIDGET_CONF_INPUT_PATH              widget_conf_input_path()
 
-#define WIDGET_CONF_REPLACE_TAG_APPID    widget_conf_replace_tag()
-#define WIDGET_CONF_SLAVE_TTL            widget_conf_slave_ttl()
-#define WIDGET_CONF_SLAVE_ACTIVATE_TIME  widget_conf_slave_activate_time()
-#define WIDGET_CONF_SLAVE_RELAUNCH_TIME  widget_conf_slave_relaunch_time()
-#define WIDGET_CONF_SLAVE_RELAUNCH_COUNT widget_conf_slave_relaunch_count()
+#define WIDGET_CONF_REPLACE_TAG_APPID       widget_conf_replace_tag()
+#define WIDGET_CONF_SLAVE_TTL               widget_conf_slave_ttl()
+#define WIDGET_CONF_SLAVE_ACTIVATE_TIME     widget_conf_slave_activate_time()
+#define WIDGET_CONF_SLAVE_RELAUNCH_TIME     widget_conf_slave_relaunch_time()
+#define WIDGET_CONF_SLAVE_RELAUNCH_COUNT    widget_conf_slave_relaunch_count()
+#define WIDGET_CONF_SLAVE_TERMINATE_TIME    widget_conf_slave_terminate_time()
 
-#define WIDGET_CONF_MAX_LOG_LINE         widget_conf_max_log_line()
-#define WIDGET_CONF_MAX_LOG_FILE         widget_conf_max_log_file()
-#define WIDGET_CONF_CATEGORY_LIST        widget_conf_category_list()
+#define WIDGET_CONF_MAX_LOG_LINE            widget_conf_max_log_line()
+#define WIDGET_CONF_MAX_LOG_FILE            widget_conf_max_log_file()
+#define WIDGET_CONF_CATEGORY_LIST           widget_conf_category_list()
 
-#define WIDGET_CONF_SQLITE_FLUSH_MAX     widget_conf_sqlite_flush_max()
-#define WIDGET_CONF_DBFILE               widget_conf_db_path()
+#define WIDGET_CONF_SQLITE_FLUSH_MAX        widget_conf_sqlite_flush_max()
+#define WIDGET_CONF_DBFILE                  widget_conf_db_path()
 
-#define WIDGET_CONF_GBAR_REQUEST_TIMEOUT widget_conf_gbar_request_timeout()
+#define WIDGET_CONF_GBAR_REQUEST_TIMEOUT    widget_conf_gbar_request_timeout()
 
-#define WIDGET_CONF_SLAVE_MAX_LOAD       widget_conf_slave_max_load()
-#define WIDGET_CONF_DEFAULT_PING_TIME    widget_conf_ping_time()
-#define WIDGET_CONF_PREMULTIPLIED_COLOR  widget_conf_premultiplied_alpha()
-#define WIDGET_CONF_SERVICES             widget_conf_services()
-#define WIDGET_CONF_EXTRA_BUFFER_COUNT   widget_conf_extra_buffer_count()
+#define WIDGET_CONF_SLAVE_MAX_LOAD          widget_conf_slave_max_load()
+#define WIDGET_CONF_DEFAULT_PING_TIME       widget_conf_ping_time()
+#define WIDGET_CONF_PREMULTIPLIED_COLOR     widget_conf_premultiplied_alpha()
+#define WIDGET_CONF_SERVICES                widget_conf_services()
+#define WIDGET_CONF_EXTRA_BUFFER_COUNT      widget_conf_extra_buffer_count()
 
-#define WIDGET_CONF_SERVICE_WIDGET   "[widget]"
-#define WIDGET_CONF_SERVICE_NOTIFICATION "[notification]"
-#define WIDGET_CONF_SERVICE_BADGE        "[badge]"
-#define WIDGET_CONF_SERVICE_SHORTCUT     "[shortcut]"
-#define WIDGET_CONF_SERVICE_UTILITY      "[utility]"
-#define WIDGET_CONF_SERVICE_FILE         "[file]"
+#define WIDGET_CONF_SERVICE_WIDGET          "[widget]"
+#define WIDGET_CONF_SERVICE_NOTIFICATION    "[notification]"
+#define WIDGET_CONF_SERVICE_BADGE           "[badge]"
+#define WIDGET_CONF_SERVICE_SHORTCUT        "[shortcut]"
+#define WIDGET_CONF_SERVICE_UTILITY         "[utility]"
+#define WIDGET_CONF_SERVICE_FILE            "[file]"
 
-#define WIDGET_CONF_PAUSED_FILE          "/tmp/.live.paused"
+#define WIDGET_CONF_PAUSED_FILE             "/tmp/.live.paused"
 
-#define WIDGET_CONF_USE_XMONITOR         widget_conf_use_xmonitor()
-#define WIDGET_CONF_AUTO_ALIGN           widget_conf_auto_align()
-#define WIDGET_CONF_USE_EVENT_TIME       widget_conf_use_event_time()
-#define WIDGET_CONF_CHECK_LCD            widget_conf_check_lcd()
+#define WIDGET_CONF_USE_XMONITOR            widget_conf_use_xmonitor()
+#define WIDGET_CONF_AUTO_ALIGN              widget_conf_auto_align()
+#define WIDGET_CONF_USE_EVENT_TIME          widget_conf_use_event_time()
+#define WIDGET_CONF_CHECK_LCD               widget_conf_check_lcd()
 
-#define WIDGET_CONF_USE_GETTIMEOFDAY     widget_conf_use_gettimeofday()
+#define WIDGET_CONF_USE_GETTIMEOFDAY        widget_conf_use_gettimeofday()
 
-#define WIDGET_CONF_DELAY_TIME           0.0000001f
-#define WIDGET_CONF_DEFAULT_CLUSTER      "user,created"
+#define WIDGET_CONF_DELAY_TIME              0.0000001f
+#define WIDGET_CONF_DEFAULT_CLUSTER         "user,created"
 #define WIDGET_CONF_MINIMUM_REACTIVATION_TIME 10
 
-#define WIDGET_CONF_SLAVE_EVENT_BOOST_ON  widget_conf_slave_event_boost_on()
-#define WIDGET_CONF_SLAVE_EVENT_BOOST_OFF widget_conf_slave_event_boost_off()
-#define WIDGET_CONF_EVENT_FILTER	      widget_conf_event_filter()
-#define WIDGET_CONF_SLAVE_LIMIT_TO_TTL    widget_conf_slave_limit_to_ttl()
+#define WIDGET_CONF_SLAVE_EVENT_BOOST_ON    widget_conf_slave_event_boost_on()
+#define WIDGET_CONF_SLAVE_EVENT_BOOST_OFF   widget_conf_slave_event_boost_off()
+#define WIDGET_CONF_EVENT_FILTER	        widget_conf_event_filter()
+#define WIDGET_CONF_SLAVE_LIMIT_TO_TTL      widget_conf_slave_limit_to_ttl()
 #define WIDGET_CONF_FRAME_SKIP              widget_conf_frame_skip()
 #define WIDGET_CONF_SLAVE_AUTO_CACHE_FLUSH  widget_conf_slave_auto_cache_flush()
 #define WIDGET_CONF_FAULT_DETECT_COUNT      widget_conf_fault_detect_count()
@@ -564,6 +573,8 @@ extern void widget_conf_set_search_input_node(int flag);
 #define WIDGET_CONF_VISIBILITY_CHANGE_DELAY widget_conf_visibility_change_delay()
 #define WIDGET_CONF_CLICK_REGION            widget_conf_click_region()
 #define WIDGET_CONF_SDK_VIEWER              widget_conf_sdk_viewer()
+#define WIDGET_CONF_FORCE_TO_TERMINATE      widget_conf_force_to_terminate()
+#define WIDGET_CONF_UPDATE_ON_PAUSE         widget_conf_update_on_pause()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"
