@@ -494,7 +494,7 @@ typedef enum widget_lifecycle_event {
 
 /**
  * @brief Called when a widget is created or destroyed
- * @since_tizen 2.3.
+ * @since_tizen 2.3.1
  * @param[in] widget_id appid of widget application
  * @param[in] lifecycle_event type of event
  * @param[in] widget_instance_id widget instance id

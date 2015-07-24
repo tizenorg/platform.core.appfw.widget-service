@@ -411,6 +411,20 @@ extern "C" {
 #define CMD_STR_MONITOR_PAUSE   "monitor_pause"
 #define CMD_STR_MONITOR_RESUME  "monitor_resume"
 
+/**
+ * @internal
+ * @brief Viewer to Master (Shared FD)
+ */
+#define CMD_DIRECT_HELLO       0x00000001
+#define CMD_STR_DIRECT_HELLO       "direct_hello"
+
+/**
+ * @internal
+ * @brief Provider to Master (Shared FD)
+ */
+#define CMD_DIRECT_CONNECTED 0x00000101
+#define CMD_STR_DIRECT_CONNECTED "direct_connected"
+
 #ifdef __cplusplus
 }
 #endif

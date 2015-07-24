@@ -2,7 +2,7 @@
 
 Name: libwidget_service
 Summary: Service API for gathering installed widget information
-Version: 1.1.2
+Version: 1.1.3
 Release: 1
 Group: Applications/Core Applications
 License: Flora-1.1
