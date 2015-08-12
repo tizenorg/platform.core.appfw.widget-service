@@ -21,7 +21,6 @@ pkg_check_modules(pkgs REQUIRED
 	com-core
 	sqlite3
 	db-util
-	pkgmgr
 	pkgmgr-info
 	vconf
 	icu-uc

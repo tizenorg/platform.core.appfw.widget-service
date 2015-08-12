@@ -29,7 +29,6 @@
 #include <packet.h>
 #include <dlog.h>
 #include <db-util.h>
-#include <package-manager.h>
 #include <pkgmgr-info.h>
 #include <vconf.h>
 #include <vconf-keys.h>
@@ -262,7 +261,7 @@ static inline int pkgmgr_get_applist(const char *pkgid, const char *widgetid, vo
 	cbdata.cb = cb;
 	cbdata.cbdata = data;
 
-	ret = pkgmgrinfo_appinfo_get_list(handle, PM_UI_APP, pkgmgr_cb, &cbdata);
+	ret = pkgmgrinfo_appinfo_get_list(handle, PMINFO_UI_APP, pkgmgr_cb, &cbdata);
 	if (ret < 0) {
 		ErrPrint("Failed to get applist\n");
 	}
@@ -2459,14 +2458,14 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	 * Try to get the package id using given appid
 	 */
 	ret = pkgmgrinfo_appinfo_get_appinfo(appid, &handle);
-	if (ret != PKGMGR_R_OK) {
+	if (ret != PMINFO_R_OK) {
 		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Failed to get appinfo\n");
 		return NULL;
 	}
 
 	ret = pkgmgrinfo_appinfo_get_pkgid(handle, &new_appid);
-	if (ret != PKGMGR_R_OK) {
+	if (ret != PMINFO_R_OK) {
 		set_last_result(WIDGET_ERROR_FAULT);
 		pkgmgrinfo_appinfo_destroy_appinfo(handle);
 		ErrPrint("Failed to get pkgname for (%s)\n", appid);
@@ -2547,14 +2546,14 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 		sqlite3_finalize(stmt);
 
 		ret = pkgmgrinfo_appinfo_get_appinfo(pkgname, &pkg_handle);
-		if (ret != PKGMGR_R_OK) {
+		if (ret != PMINFO_R_OK) {
 			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Failed to get appinfo: %s\n", pkgname);
 			goto out;
 		}
 
 		ret = pkgmgrinfo_appinfo_get_pkgid(pkg_handle, &new_appid);
-		if (ret != PKGMGR_R_OK) {
+		if (ret != PMINFO_R_OK) {
 			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Failed to get pkgname for (%s)\n", appid);
 			pkgmgrinfo_appinfo_destroy_appinfo(pkg_handle);
