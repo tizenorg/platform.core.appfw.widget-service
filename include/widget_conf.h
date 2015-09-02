@@ -474,6 +474,18 @@ extern const double const widget_conf_visibility_change_delay(void);
 extern const int const widget_conf_click_region(void);
 extern void widget_conf_set_search_input_node(int flag);
 extern const int const widget_conf_update_on_pause(void);
+extern const int const widget_conf_enable_resource_lock(void);
+extern const char * const widget_conf_ee_key_for_update(void);
+
+typedef struct widget_conf_parser_table {
+	const char *name;
+	void (*handler)(char *buffer);
+} widget_conf_parser_table_t;
+
+/**
+ * @internal
+ */
+extern int widget_conf_parser(const char *conf_file, const widget_conf_parser_table_t *token_handler);
 
 #define WIDGET_CONF_BASE_W                  widget_conf_base_width()
 #define WIDGET_CONF_BASE_H                  widget_conf_base_height()
@@ -575,6 +587,8 @@ extern const int const widget_conf_update_on_pause(void);
 #define WIDGET_CONF_SDK_VIEWER              widget_conf_sdk_viewer()
 #define WIDGET_CONF_FORCE_TO_TERMINATE      widget_conf_force_to_terminate()
 #define WIDGET_CONF_UPDATE_ON_PAUSE         widget_conf_update_on_pause()
+#define WIDGET_CONF_ENABLE_RESOURCE_LOCK    widget_conf_enable_resource_lock()
+#define WIDGET_CONF_EE_KEY_FOR_UPDATE       widget_conf_ee_key_for_update()
 
 #if !defined(VCONFKEY_MASTER_STARTED)
 #define VCONFKEY_MASTER_STARTED    "memory/data-provider-master/started"

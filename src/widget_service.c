@@ -29,6 +29,7 @@
 #include <packet.h>
 #include <dlog.h>
 #include <db-util.h>
+#include <package-manager.h>
 #include <pkgmgr-info.h>
 #include <vconf.h>
 #include <vconf-keys.h>
@@ -48,6 +49,7 @@
 #include "widget_util.h"
 
 #define WIDGET_ID_PREFIX    "org.tizen."
+#define LOCK_PATH_PREFIX "/opt/usr/share/live_magazine/.widget.lck/"
 
 /* "/shared/res/" */
 #define RESOURCE_PATH	"/"
@@ -1806,6 +1808,7 @@ EAPI char *widget_service_get_preview_image_path(const char *pkgid, widget_size_
 	char *abspath;
 
 	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
 		return NULL;
 	}
 
@@ -2458,14 +2461,14 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	 * Try to get the package id using given appid
 	 */
 	ret = pkgmgrinfo_appinfo_get_appinfo(appid, &handle);
-	if (ret != PMINFO_R_OK) {
+	if (ret != PKGMGR_R_OK) {
 		set_last_result(WIDGET_ERROR_FAULT);
 		ErrPrint("Failed to get appinfo\n");
 		return NULL;
 	}
 
 	ret = pkgmgrinfo_appinfo_get_pkgid(handle, &new_appid);
-	if (ret != PMINFO_R_OK) {
+	if (ret != PKGMGR_R_OK) {
 		set_last_result(WIDGET_ERROR_FAULT);
 		pkgmgrinfo_appinfo_destroy_appinfo(handle);
 		ErrPrint("Failed to get pkgname for (%s)\n", appid);
@@ -2546,14 +2549,14 @@ EAPI char *widget_service_get_package_id(const char *pkgname)
 		sqlite3_finalize(stmt);
 
 		ret = pkgmgrinfo_appinfo_get_appinfo(pkgname, &pkg_handle);
-		if (ret != PMINFO_R_OK) {
+		if (ret != PKGMGR_R_OK) {
 			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Failed to get appinfo: %s\n", pkgname);
 			goto out;
 		}
 
 		ret = pkgmgrinfo_appinfo_get_pkgid(pkg_handle, &new_appid);
-		if (ret != PMINFO_R_OK) {
+		if (ret != PKGMGR_R_OK) {
 			set_last_result(WIDGET_ERROR_FAULT);
 			ErrPrint("Failed to get pkgname for (%s)\n", appid);
 			pkgmgrinfo_appinfo_destroy_appinfo(pkg_handle);
@@ -3470,9 +3473,31 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 	}
 
 	if (option == WIDGET_LOCK_WRITE) {
-		flags = O_WRONLY | O_CREAT;
+		/**
+		 * @note
+		 * Try to open a file for writing.
+		 * if the file is not exists, this will fails.
+		 * Then open it again with O_WRONLY | O_CREAT | O_EXCL flags and 0666 mode.
+		 */
+		flags = O_WRONLY;
+		info->fd = open(info->filename, flags);
+		if (info->fd < 0) {
+			if (errno == ENOENT) {
+				mode_t old_mask;
+				DbgPrint("Create a file named [%s]\n", info->filename);
+				/**
+				 * @note
+				 * Try to open a file again with 0666 with creation flags
+				 */
+				flags = O_WRONLY | O_CREAT | O_EXCL;
+				old_mask = umask(0);
+				info->fd = open(info->filename, flags, 0666);
+				umask(old_mask);
+			}
+		}
 	} else if (option == WIDGET_LOCK_READ) {
 		flags = O_RDONLY;
+		info->fd = open(info->filename, flags);
 	} else {
 		ErrPrint("Invalid paramter\n");
 		free(info->filename);
@@ -3482,8 +3507,6 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 	}
 
 	info->type = option;
-
-	info->fd = open(info->filename, flags, 0644);
 	if (info->fd < 0) {
 		ErrPrint("open: %d\n", errno);
 		free(info->filename);
@@ -3492,11 +3515,15 @@ EAPI widget_lock_info_t widget_service_create_lock(const char *uri, widget_targe
 		return NULL;
 	}
 
+	if (fchmod(info->fd, 0666) < 0) {
+		ErrPrint("fchmod: %d\n", errno);
+	}
+
 	info->state = LOCK_CREATED;
 	return info;
 }
 
-EAPI int widget_service_destroy_lock(widget_lock_info_t info)
+EAPI int widget_service_destroy_lock(widget_lock_info_t info, int del)
 {
 	if (!is_widget_feature_enabled()) {
 		return WIDGET_ERROR_NOT_SUPPORTED;
@@ -3511,7 +3538,7 @@ EAPI int widget_service_destroy_lock(widget_lock_info_t info)
 		return WIDGET_ERROR_IO_ERROR;
 	}
 
-	if (unlink(info->filename) < 0) {
+	if ((!!del) == 1 && unlink(info->filename) < 0) {
 		ErrPrint("unlink: %d\n", errno);
 	}
 
@@ -3656,6 +3683,191 @@ EAPI char *widget_service_get_base_file_path(const char *widget_id)
 
 	pkgmgrinfo_pkginfo_destroy_pkginfo(handle);
 	return ret;
+}
+
+EAPI widget_resource_lock_t widget_service_create_resource_lock(unsigned int pixmap, widget_lock_type_e type)
+{
+	widget_resource_lock_t handle;
+	char fname[64];
+	int flags;
+
+	if (!is_widget_feature_enabled()) {
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
+	if (pixmap == 0u) {
+		ErrPrint("Invalid resource\n");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	handle = malloc(sizeof(*handle));
+	if (!handle) {
+		ErrPrint("malloc: %d\n", errno);
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
+		return NULL;
+	}
+
+	snprintf(fname, sizeof(fname) - 1, LOCK_PATH_PREFIX ".%u", pixmap);
+
+	if (type == WIDGET_LOCK_WRITE) {
+		/**
+		 * @note
+		 * Try to open a file for writing.
+		 * if the file is not exists, this will fails.
+		 * Then open it again with O_WRONLY | O_CREAT | O_EXCL flags and 0666 mode.
+		 */
+		flags = O_WRONLY;
+		handle->fd = open(fname, flags);
+		if (handle->fd < 0) {
+			if (errno == ENOENT) {
+				mode_t old_mask;
+				DbgPrint("Create a file named [%s]\n", fname);
+				/**
+				 * @note
+				 * Try to open a file again with 0666 with creation flags
+				 */
+				flags = O_WRONLY | O_CREAT | O_EXCL;
+				old_mask = umask(0);
+				handle->fd = open(fname, flags, 0666);
+				umask(old_mask);
+			}
+		}
+	} else if (type == WIDGET_LOCK_READ) {
+		flags = O_RDONLY;
+		handle->fd = open(fname, flags);
+	} else {
+		ErrPrint("Invalid paramter\n");
+		free(handle);
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	if (handle->fd < 0) {
+		ErrPrint("Failed to open a file %s: %d\n", fname, errno);
+		free(handle);
+		set_last_result(WIDGET_ERROR_IO_ERROR);
+		return NULL;
+	}
+
+	handle->fname = strdup(fname);
+	if (!handle->fname) {
+		ErrPrint("strdup: %d\n", errno);
+		if (close(handle->fd) < 0) {
+			ErrPrint("close: %d\n", errno);
+		}
+		free(handle);
+		handle = NULL;
+		set_last_result(WIDGET_ERROR_OUT_OF_MEMORY);
+	} else {
+		handle->resource_id = pixmap;
+		handle->lock_type = type;
+	}
+
+	return handle;
+}
+
+EAPI int widget_service_destroy_resource_lock(widget_resource_lock_t handle, int del)
+{
+	if (!handle) {
+		ErrPrint("Invalid handle\n");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (close(handle->fd) < 0) {
+		ErrPrint("close: %d\n", errno);
+	}
+
+	if ((!!del) == 1 && unlink(handle->fname) < 0) {
+		ErrPrint("unlink: %d\n", errno);
+	}
+
+	free(handle->fname);
+	free(handle);
+
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_service_acquire_resource_lock(widget_resource_lock_t info)
+{
+	struct flock flock;
+	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (!info) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (info->lock_type == WIDGET_LOCK_WRITE) {
+		flock.l_type = F_WRLCK;
+	} else if (info->lock_type == WIDGET_LOCK_READ) {
+		flock.l_type = F_RDLCK;
+	}
+	flock.l_whence = SEEK_SET;
+	flock.l_start = 0;
+	flock.l_len = 0;
+	flock.l_pid = getpid();
+
+	do {
+		ret = fcntl(info->fd, F_SETLKW, &flock);
+		if (ret < 0) {
+			ret = errno;
+			ErrPrint("fcntl: %d\n", errno);
+		}
+	} while (ret == EINTR);
+
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_service_release_resource_lock(widget_resource_lock_t info)
+{
+	struct flock flock;
+	int ret;
+
+	if (!is_widget_feature_enabled()) {
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (!info) {
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	flock.l_type = F_UNLCK;
+	flock.l_whence = SEEK_SET;
+	flock.l_start = 0;
+	flock.l_len = 0;
+	flock.l_pid = getpid();
+
+	do {
+		ret = fcntl(info->fd, F_SETLKW, &flock);
+		if (ret < 0) {
+			ret = errno;
+			ErrPrint("fcntl: %d\n", errno);
+		}
+	} while (ret == EINTR);
+
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI unsigned int widget_service_get_resource_lock_resource(widget_resource_lock_t info)
+{
+	if (!is_widget_feature_enabled()) {
+		return 0u;
+	}
+
+	if (!info) {
+		return 0u;
+	}
+
+	return info->resource_id;
 }
 
 /* End of a file */

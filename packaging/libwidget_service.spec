@@ -2,10 +2,10 @@
 
 Name: libwidget_service
 Summary: Service API for gathering installed widget information
-Version: 1.1.3
+Version: 1.2.0
 Release: 1
 Group: Applications/Core Applications
-License: Flora-1.1
+License: Flora-1.1, MIT
 Source0: %{name}-%{version}.tar.gz
 Source1001: %{name}.manifest
 Source2001: wayland-drm.xml
@@ -16,6 +16,7 @@ BuildRequires: pkgconfig(gio-2.0)
 BuildRequires: pkgconfig(com-core)
 BuildRequires: pkgconfig(sqlite3)
 BuildRequires: pkgconfig(db-util)
+BuildRequires: pkgconfig(pkgmgr)
 BuildRequires: pkgconfig(pkgmgr-info)
 BuildRequires: pkgconfig(vconf)
 BuildRequires: pkgconfig(icu-uc)

@@ -81,7 +81,7 @@ double util_timestamp(void)
 #endif
 }
 
-const char *util_basename(const char *name)
+EAPI const char *widget_util_basename(const char *name)
 {
 	int length;
 	length = name ? strlen(name) : 0;
@@ -225,8 +225,8 @@ EAPI char *widget_util_replace_string(const char *src, const char *pattern, cons
 						return NULL;
 					}
 					result = tmp;
-					matched++;
 				}
+				matched++;
 				strncpy(result + idx, replace, len + 1);
 				idx += strlen(replace);
 				s_idx = t_idx - 1;

@@ -115,6 +115,12 @@ typedef struct widget_lock_info {
     widget_lock_type_e type;
 } *widget_lock_info_t;
 
+typedef struct widget_resource_lock_info {
+	int fd;
+	unsigned int resource_id;
+	char *fname;
+	widget_lock_type_e lock_type;
+} *widget_resource_lock_t;
 
 /**
  * @internal
@@ -174,12 +180,13 @@ extern widget_lock_info_t widget_service_create_lock(const char *uri, widget_tar
  * @internal
  * @brief Destroy a lock instance
  * @param[in] info Lock information handler
+ * @param[in] del delete a resource file if true
  * @return status
  * @retval #WIDGET_ERROR_INVALID_PARAMETER invalid paramter
  * @retval #WIDGET_ERROR_IO_ERROR Failed to manage the lock file
  * @retval #WIDGET_ERROR_NONE Successfully destroyed
  */
-extern int widget_service_destroy_lock(widget_lock_info_t info);
+extern int widget_service_destroy_lock(widget_lock_info_t info, int del);
 
 /**
  * @internal
@@ -200,6 +207,23 @@ extern int widget_service_acquire_lock(widget_lock_info_t info);
  * @retval #WIDGET_ERROR_NONE Successfully destroyed
  */
 extern int widget_service_release_lock(widget_lock_info_t info);
+
+/**
+ * @internal
+ * @brief Create a resource lock instance
+ * @param[in] pixmap Pixmap
+ * @return widget_resource_lock_t
+ * @retval @c NULL if it fails to create a lock
+ */
+extern widget_resource_lock_t widget_service_create_resource_lock(unsigned int resource, widget_lock_type_e type);
+
+extern int widget_service_destroy_resource_lock(widget_resource_lock_t handle, int del);
+
+extern int widget_service_acquire_resource_lock(widget_resource_lock_t handle);
+
+extern int widget_service_release_resource_lock(widget_resource_lock_t handle);
+
+extern unsigned int widget_service_get_resource_lock_resource(widget_resource_lock_t handle);
 
 #ifdef __cplusplus
 }

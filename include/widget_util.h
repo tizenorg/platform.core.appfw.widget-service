@@ -25,6 +25,7 @@ extern char *widget_util_replace_string(const char *src, const char *pattern, co
 extern const char *widget_util_uri_to_path(const char *uri);
 extern int widget_util_get_drm_fd(void *dpy, int *fd);
 extern int widget_util_release_drm_fd(int fd);
+extern const char *widget_util_basename(const char *name);
 
 #ifdef __cplusplus
 }

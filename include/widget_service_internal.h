@@ -112,8 +112,13 @@ typedef enum widget_pre_callback {
 	WIDGET_PRE_DESTROY_CALLBACK = 2,
 	WIDGET_PRE_RESIZE_CALLBACK = 3,
 	WIDGET_PRE_ORIENTATION_CALLBACK = 4,
-	WIDGET_PRE_CALLBACK_COUNT = 5
+	WIDGET_PRE_CTRL_MODE_CALLBACK = 5,
+	WIDGET_PRE_CALLBACK_COUNT = 6
 } widget_pre_callback_e;
+
+typedef enum widget_ctrl_mode_cmd {
+	WIDGET_CTRL_MODE_DUMP_FRAME = 1,
+} widget_ctrl_mode_cmd_e;
 
 typedef int (*widget_pre_callback_t)(const char *id, void *data);
 
@@ -243,6 +248,7 @@ typedef struct widget_buffer_event_data {
 			int x; /**< Touch X coordinate */
 			int y; /**< Touch Y coordinate */
 			input_event_source_e source; /**< Where comes this event from */
+			int device;
 		} pointer;
 
 		struct access {
@@ -254,7 +260,10 @@ typedef struct widget_buffer_event_data {
 			int cycle; /**< reserved for protocol */
 		} access;
 
-		unsigned int keycode; /**< Key code value */
+		struct key {
+			unsigned int code; /**< Key code value */
+			int device;
+		} key;
 	} info;
 } *widget_buffer_event_data_t;
 
@@ -284,6 +293,7 @@ typedef enum widget_status  {
     WIDGET_STATUS_ERROR_DISABLED = WIDGET_STATUS_ERROR | 0x2000
 } widget_status_e;
 
+#if !defined(__WIDGET_EVENT_INFO_IS_DEFINED)
 /**
  * @brief Text signal & Content event uses this data structure.
  * @since_tizen 2.3.1
@@ -302,6 +312,7 @@ typedef struct widget_event_info {
 		double ey; /**< Pressed object's right bottom Y */
 	} part;
 } *widget_event_info_s;
+#endif
 
 /**
  * @brief Names of text signals

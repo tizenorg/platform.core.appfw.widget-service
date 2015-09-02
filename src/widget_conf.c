@@ -61,7 +61,7 @@ static const char *CONF_DEFAULT_PATH_ALWAYS = BASE_SHARE_DIR"always";
 static const char *CONF_DEFAULT_PATH_SCRIPT = "/opt/usr/live/%s/res/script/%s.edj";
 static const char *CONF_DEFAULT_PATH_ROOT = "/opt/usr/live/";
 static const char *CONF_DEFAULT_PATH_SCRIPT_PORT = "/usr/share/data-provider-master/plugin-script/";
-static const char *CONF_DEFAULT_PATH_DB = "/usr/dbspace/.widget.db";
+static const char *CONF_DEFAULT_PATH_DB = "/opt/dbspace/.widget.db";
 static const char *CONF_DEFAULT_PATH_INPUT = DEFAULT_INPUT_NODE;
 static const char *CONF_DEFAULT_SCRIPT_TYPE = "edje";
 static const char *CONF_DEFAULT_ABI = "c";
@@ -124,7 +124,9 @@ static const double CONF_DEFAULT_VISIBILITY_CHANGE_DELAY = 0.0f;
 static const int CONF_DEFAULT_CLICK_REGION = 22;
 static const int CONF_DEFAULT_FORCE_TO_TERMINATE = 0;
 static const int CONF_DEFAULT_UPDATE_ON_PAUSE = 0;
+static const int CONF_DEFAULT_ENABLE_RESOURCE_LOCK = 0;
 static const int CONF_DEFAULT_FRAME_SKIP = 0;
+static const char *CONF_DEFAULT_EE_KEY_FOR_UPDATE = NULL;
 
 #define CONF_PATH_FORMAT "/usr/share/data-provider-master/%dx%d/conf.ini"
 
@@ -202,12 +204,7 @@ struct widget_conf {
 	char *vconf_sys_cluster;
 	int max_pended_ctx_events;
 
-	int use_sw_backend;
 	char *provider_method;
-	int debug_mode;
-	int overwrite_content;
-	int com_core_thread;
-	int use_xmonitor;
 	int premultiplied;
 
 	double scale_width_factor;
@@ -217,29 +214,43 @@ struct widget_conf {
 
 	char *emergency_disk;
 	char *services;
-	int auto_align;
-	int use_event_time;
-	int check_lcd;
 	int extra_buffer_count;
-	int use_gettimeofday;
 	int slave_event_boost_on;
 	int slave_event_boost_off;
 	double event_filter;
-	int slave_limit_to_ttl;
 	int frame_skip;
-	int slave_auto_cache_flush;
 	char *category_list;
 	double fault_detect_in_time;
 	int fault_detect_count;
-	int reactivate_on_pause;
 	char *app_abi;
 	double visibility_change_delay;
 
 	int click_region;
 	char *sdk_viewer;
+	char *ee_key_for_update;
 
-	int force_to_terminate;
-	int update_on_pause;
+	union _conf_flags {
+		struct _conf_flag_bitfields {
+			unsigned int enable_resource_lock: 1;
+			unsigned int update_on_pause: 1;
+			unsigned int force_to_terminate: 1;
+			unsigned int reactivate_on_pause: 1;
+			unsigned int slave_auto_cache_flush: 1;
+			unsigned int slave_limit_to_ttl: 1;
+			unsigned int use_gettimeofday: 1;
+			unsigned int check_lcd: 1;
+			unsigned int use_event_time: 1;
+			unsigned int auto_align: 1;
+			unsigned int use_xmonitor: 1;
+			unsigned int com_core_thread: 1;
+			unsigned int overwrite_content: 1;
+			unsigned int debug_mode: 1;
+			unsigned int use_sw_backend: 1;
+
+			unsigned int reserved: 17;
+		} field;
+		unsigned int flags;
+	} flags;
 };
 
 static struct widget_conf s_conf;
@@ -276,6 +287,14 @@ static void sdk_viewer_handler(char *buffer)
 	}
 }
 
+static void ee_key_for_update_handler(char *buffer)
+{
+	s_conf.ee_key_for_update = strdup(buffer);
+	if (!s_conf.ee_key_for_update) {
+		ErrPrint("strdup: %d\n", errno);
+	}
+}
+
 static void detect_fault_handler(char *buffer)
 {
 	if (sscanf(buffer, "%d,%lf", &s_conf.fault_detect_count, &s_conf.fault_detect_in_time) != 2) {
@@ -287,7 +306,7 @@ static void detect_fault_handler(char *buffer)
 
 static void reactivate_on_pause_handler(char *buffer)
 {
-	s_conf.reactivate_on_pause = !strcasecmp(buffer, "true");
+	s_conf.flags.field.reactivate_on_pause = !strcasecmp(buffer, "true");
 }
 
 static void category_list_handler(char *buffer)
@@ -301,7 +320,7 @@ static void category_list_handler(char *buffer)
 
 static void slave_auto_cache_flush_handler(char *buffer)
 {
-	s_conf.slave_auto_cache_flush = !strcasecmp(buffer, "true");
+	s_conf.flags.field.slave_auto_cache_flush = !strcasecmp(buffer, "true");
 }
 
 static void frame_skip_handler(char *buffer)
@@ -313,7 +332,7 @@ static void frame_skip_handler(char *buffer)
 
 static void slave_limit_to_ttl_handler(char *buffer)
 {
-	s_conf.slave_limit_to_ttl = !strcasecmp(buffer, "true");
+	s_conf.flags.field.slave_limit_to_ttl = !strcasecmp(buffer, "true");
 }
 
 static void event_filter_handler(char *buffer)
@@ -344,9 +363,9 @@ static void extra_buffer_count_handler(char *buffer)
 	}
 }
 
-static void use_xmonitor(char *buffer)
+static void use_xmonitor_handler(char *buffer)
 {
-	s_conf.use_xmonitor = !strcasecmp(buffer, "true");
+	s_conf.flags.field.use_xmonitor = !strcasecmp(buffer, "true");
 }
 
 static void emergency_disk_handler(char *buffer)
@@ -359,22 +378,22 @@ static void emergency_disk_handler(char *buffer)
 
 static void check_lcd_handler(char *buffer)
 {
-	s_conf.check_lcd = !strcasecmp(buffer, "true");
+	s_conf.flags.field.check_lcd = !strcasecmp(buffer, "true");
 }
 
 static void use_gettimeofday_handler(char *buffer)
 {
-	s_conf.use_gettimeofday = !strcasecmp(buffer, "true");
+	s_conf.flags.field.use_gettimeofday = !strcasecmp(buffer, "true");
 }
 
 static void use_event_time_handler(char *buffer)
 {
-	s_conf.use_event_time = !strcasecmp(buffer, "true");
+	s_conf.flags.field.use_event_time = !strcasecmp(buffer, "true");
 }
 
 static void auto_align_handler(char *buffer)
 {
-	s_conf.auto_align = !strcasecmp(buffer, "true");
+	s_conf.flags.field.auto_align = !strcasecmp(buffer, "true");
 }
 
 static void services_handler(char *buffer)
@@ -387,7 +406,7 @@ static void services_handler(char *buffer)
 
 static void use_sw_backend_handler(char *buffer)
 {
-	s_conf.use_sw_backend = !strcasecmp(buffer, "true");
+	s_conf.flags.field.use_sw_backend = !strcasecmp(buffer, "true");
 }
 
 static void provider_method_handler(char *buffer)
@@ -400,17 +419,17 @@ static void provider_method_handler(char *buffer)
 
 static void debug_mode_handler(char *buffer)
 {
-	s_conf.debug_mode = !strcasecmp(buffer, "true");
+	s_conf.flags.field.debug_mode = !strcasecmp(buffer, "true");
 }
 
 static void overwrite_content_handler(char *buffer)
 {
-	s_conf.overwrite_content = !strcasecmp(buffer, "true");
+	s_conf.flags.field.overwrite_content = !strcasecmp(buffer, "true");
 }
 
 static void com_core_thread_handler(char *buffer)
 {
-	s_conf.com_core_thread = !strcasecmp(buffer, "true");
+	s_conf.flags.field.com_core_thread = !strcasecmp(buffer, "true");
 }
 
 static void base_width_handler(char *buffer)
@@ -641,12 +660,17 @@ static void click_region_handler(char *buffer)
 
 static void force_to_terminate_handler(char *buffer)
 {
-	s_conf.force_to_terminate = !strcasecmp(buffer, "true");
+	s_conf.flags.field.force_to_terminate = !strcasecmp(buffer, "true");
 }
 
 static void update_on_pause_handler(char *buffer)
 {
-	s_conf.update_on_pause = !strcasecmp(buffer, "true");
+	s_conf.flags.field.update_on_pause = !strcasecmp(buffer, "true");
+}
+
+static void enable_resource_lock_handler(char *buffer)
+{
+	s_conf.flags.field.enable_resource_lock = !strcasecmp(buffer, "true");
 }
 
 static char *parse_handler(const char *buffer)
@@ -993,11 +1017,6 @@ EAPI void widget_conf_init(void)
 	s_conf.sqlite_flush_max = CONF_DEFAULT_SQLITE_FLUSH_MAX;
 	s_conf.ping_time = CONF_DEFAULT_PING_TIME;
 	s_conf.slave_max_load = CONF_DEFAULT_SLAVE_MAX_LOAD;
-	s_conf.use_sw_backend = CONF_DEFAULT_USE_SW_BACKEND;
-	s_conf.debug_mode = CONF_DEFAULT_DEBUG_MODE;
-	s_conf.overwrite_content = CONF_DEFAULT_OVERWRITE_CONTENT;
-	s_conf.com_core_thread = CONF_DEFAULT_COM_CORE_THREAD;
-	s_conf.use_xmonitor = CONF_DEFAULT_USE_XMONITOR;
 	s_conf.scale_width_factor = CONF_DEFAULT_SCALE_WIDTH_FACTOR;
 	s_conf.scale_height_factor = CONF_DEFAULT_SCALE_HEIGHT_FACTOR;
 	s_conf.gbar_request_timeout = CONF_DEFAULT_GBAR_REQUEST_TIMEOUT;
@@ -1028,26 +1047,34 @@ EAPI void widget_conf_init(void)
 	s_conf.emergency_disk = (char *)CONF_DEFAULT_EMERGENCY_DISK;
 	s_conf.services = (char *)CONF_DEFAULT_SERVICES;
 	s_conf.category_list = (char *)CONF_DEFAULT_CATEGORY_LIST;
-	s_conf.auto_align = CONF_DEFAULT_AUTO_ALIGN;
-	s_conf.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
-	s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
 	s_conf.extra_buffer_count = CONF_DEFAULT_EXTRA_BUFFER_COUNT;
-	s_conf.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
 	s_conf.slave_event_boost_on = CONF_DEFAULT_SLAVE_EVENT_BOOST_ON;
 	s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
 	s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
-	s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
-	s_conf.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
 	s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
 	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
-	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
 	s_conf.app_abi = (char *)CONF_DEFAULT_APP_ABI;
 	s_conf.visibility_change_delay = CONF_DEFAULT_VISIBILITY_CHANGE_DELAY;
 	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
 	s_conf.sdk_viewer = (char *)CONF_DEFAULT_SDK_VIEWER;
-	s_conf.force_to_terminate = CONF_DEFAULT_FORCE_TO_TERMINATE;
-	s_conf.update_on_pause = CONF_DEFAULT_UPDATE_ON_PAUSE;
+	s_conf.ee_key_for_update = (char *)CONF_DEFAULT_EE_KEY_FOR_UPDATE;
 	s_conf.frame_skip = CONF_DEFAULT_FRAME_SKIP;
+
+	s_conf.flags.field.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
+	s_conf.flags.field.auto_align = CONF_DEFAULT_AUTO_ALIGN;
+	s_conf.flags.field.use_sw_backend = CONF_DEFAULT_USE_SW_BACKEND;
+	s_conf.flags.field.debug_mode = CONF_DEFAULT_DEBUG_MODE;
+	s_conf.flags.field.overwrite_content = CONF_DEFAULT_OVERWRITE_CONTENT;
+	s_conf.flags.field.com_core_thread = CONF_DEFAULT_COM_CORE_THREAD;
+	s_conf.flags.field.use_xmonitor = CONF_DEFAULT_USE_XMONITOR;
+	s_conf.flags.field.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
+	s_conf.flags.field.check_lcd = CONF_DEFAULT_CHECK_LCD;
+	s_conf.flags.field.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
+	s_conf.flags.field.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
+	s_conf.flags.field.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
+	s_conf.flags.field.force_to_terminate = CONF_DEFAULT_FORCE_TO_TERMINATE;
+	s_conf.flags.field.update_on_pause = CONF_DEFAULT_UPDATE_ON_PAUSE;
+	s_conf.flags.field.enable_resource_lock = CONF_DEFAULT_ENABLE_RESOURCE_LOCK;
 }
 
 /*
@@ -1085,9 +1112,8 @@ EAPI void widget_conf_set_search_input_node(int flag)
 	s_info.search_input_node = !!flag;
 }
 
-EAPI int widget_conf_load(void)
+EAPI int widget_conf_parser(const char *conf_file, const widget_conf_parser_table_t *token_handler)
 {
-	char *conf_file;
 	FILE *fp;
 	int c;
 	enum state {
@@ -1105,270 +1131,8 @@ EAPI int widget_conf_load(void)
 	int quote;
 	int linelen;
 	char buffer[256];
-	static const struct token_parser {
-		const char *name;
-		void (*handler)(char *buffer);
-	} token_handler[] = {
-		{
-			.name = "base_width",
-			.handler = base_width_handler,
-		},
-		{
-			.name = "base_height",
-			.handler = base_height_handler,
-		},
-		{
-			.name = "minimum_period",
-			.handler = minimum_period_handler,
-		},
-		{
-			.name = "script",
-			.handler = script_handler,
-		},
-		{
-			.name = "pixels",
-			.handler = pixels_handler,
-		},
-		{
-			.name = "default_abi",
-			.handler = default_abi_handler,
-		},
-		{
-			.name = "default_group",
-			.handler = default_group_handler,
-		},
-		{
-			.name = "default_period",
-			.handler = default_period_handler,
-		},
-		{
-			.name = "default_packet_time",
-			.handler = default_packet_time_handler,
-		},
-		{
-			.name = "default_content",
-			.handler = default_content_handler,
-		},
-		{
-			.name = "default_title",
-			.handler = default_title_handler,
-		},
-		{
-			.name = "minimum_space",
-			.handler = minimum_space_handler,
-		},
-		{
-			.name = "replace_tag",
-			.handler = replace_tag_handler,
-		},
-		{
-			.name = "slave_ttl",
-			.handler = slave_ttl_handler,
-		},
-		{
-			.name = "slave_activate_time",
-			.handler = slave_activate_time_handler,
-		},
-		{
-			.name = "slave_terminate_time",
-			.handler = slave_terminate_time_handler,
-		},
-		{
-			.name = "slave_relaunch_time",
-			.handler = slave_relaunch_time_handler,
-		},
-		{
-			.name = "slave_relaunch_count",
-			.handler = slave_relaunch_count_handler,
-		},
-		{
-			.name = "max_log_line",
-			.handler = max_log_line_handler,
-		},
-		{
-			.name = "max_log_file",
-			.handler = max_log_file_handler,
-		},
-		{
-			.name = "sqilte_flush_max",
-			.handler = sqlite_flush_max_handler,
-		},
-		{
-			.name = "db_path",
-			.handler = db_path_handler,
-		},
-		{
-			.name = "log_path",
-			.handler = log_path_handler,
-		},
-		{
-			.name = "reader_path",
-			.handler = reader_path_handler,
-		},
-		{
-			.name = "always_path",
-			.handler = always_path_handler,
-		},
-		{
-			.name = "share_path",
-			.handler = share_path_handler,
-		},
-		{
-			.name = "script_port_path",
-			.handler = script_port_path_handler,
-		},
-		{
-			.name = "ping_interval",
-			.handler = ping_time_handler,
-		},
-		{
-			.name = "slave_max_load",
-			.handler = slave_max_loader,
-		},
-		{
-			.name = "use_sw_backend",
-			.handler = use_sw_backend_handler,
-		},
-		{
-			.name = "emergency_disk",
-			.handler = emergency_disk_handler,
-		},
-		{
-			.name = "services",
-			.handler = services_handler,
-		},
-		{
-			.name = "auto_align",
-			.handler = auto_align_handler,
-		},
-		{
-			.name = "use_event_time",
-			.handler = use_event_time_handler,
-		},
-		{
-			.name = "use_gettimeofday",
-			.handler = use_gettimeofday_handler,
-		},
-		{
-			.name = "check_lcd",
-			.handler = check_lcd_handler,
-		},
-		{
-			.name = "use_xmonitor",
-			.handler = use_xmonitor,
-		},
-		{
-			.name = "provider_method",
-			.handler = provider_method_handler,
-		},
-		{
-			.name = "debug_mode",
-			.handler = debug_mode_handler,
-		},
-		{
-			.name = "overwrite_content",
-			.handler = overwrite_content_handler,
-		},
-		{
-			.name = "com_core_thread",
-			.handler = com_core_thread_handler,
-		},
-		{
-			.name = "input",
-			.handler = input_path_handler,
-		},
-		{
-			.name = "gbar_request_timeout",
-			.handler = gbar_request_timeout_handler,
-		},
-		{
-			.name = "premultiplied",
-			.handler = premultiplied_handler,
-		},
-		{
-			.name = "extra_buffer_count",
-			.handler = extra_buffer_count_handler,
-		},
-		{
-			.name = "slave_event_boost_on",
-			.handler = slave_event_boost_on_handler,
-		},
-		{
-			.name = "slave_event_boost_off",
-			.handler = slave_event_boost_off_handler,
-		},
-		{
-			.name = "event_filter",
-			.handler = event_filter_handler,
-		},
-		{
-			.name = "slave_limit_to_ttl",
-			.handler = slave_limit_to_ttl_handler,
-		},
-		{
-			.name = "frame_skip",
-			.handler = frame_skip_handler,
-		},
-		{
-			.name = "slave_auto_cache_flush",
-			.handler = slave_auto_cache_flush_handler,
-		},
-		{
-			.name = "category_list",
-			.handler = category_list_handler,
-		},
-		{
-			.name = "detect_fault",
-			.handler = detect_fault_handler,
-		},
-		{
-			.name = "reactivate_on_pause",
-			.handler = reactivate_on_pause_handler,
-		},
-		{
-			.name = "app_abi",
-			.handler = app_abi_handler,
-		},
-		{
-			.name = "sdk_viewer",
-			.handler = sdk_viewer_handler,
-		},
-		{
-			.name = "visibility_change_delay",
-			.handler = visibility_change_delay_handler,
-		},
-		{
-			.name = "click_region",
-			.handler = click_region_handler,
-		},
-		{
-			.name = "force_to_terminate",
-			.handler = force_to_terminate_handler,
-		},
-		{
-			.name = "update_on_pause",
-			.handler = update_on_pause_handler,
-		},
-		{
-			.name = NULL,
-			.handler = NULL,
-		},
-	};
-
-	if (s_info.conf_loaded) {
-		ErrPrint("Already loaded\n");
-		return WIDGET_ERROR_ALREADY_EXIST;
-	}
-
-	util_screen_size_get(&s_conf.width, &s_conf.height);
-
-	conf_file = conf_path();
-	if (!conf_file) {
-		return WIDGET_ERROR_IO_ERROR;
-	}
 
 	fp = fopen(conf_file, "rt");
-	free(conf_file);
 	if (!fp) {
 		ErrPrint("Error: %d\n", errno);
 		return WIDGET_ERROR_IO_ERROR;
@@ -1539,11 +1303,288 @@ EAPI int widget_conf_load(void)
 		ErrPrint("fclose: %d\n", errno);
 	}
 
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_conf_load(void)
+{
+	char *conf_file;
+	int ret;
+	static const widget_conf_parser_table_t token_handler[] = {
+		{
+			.name = "base_width",
+			.handler = base_width_handler,
+		},
+		{
+			.name = "base_height",
+			.handler = base_height_handler,
+		},
+		{
+			.name = "minimum_period",
+			.handler = minimum_period_handler,
+		},
+		{
+			.name = "script",
+			.handler = script_handler,
+		},
+		{
+			.name = "pixels",
+			.handler = pixels_handler,
+		},
+		{
+			.name = "default_abi",
+			.handler = default_abi_handler,
+		},
+		{
+			.name = "default_group",
+			.handler = default_group_handler,
+		},
+		{
+			.name = "default_period",
+			.handler = default_period_handler,
+		},
+		{
+			.name = "default_packet_time",
+			.handler = default_packet_time_handler,
+		},
+		{
+			.name = "default_content",
+			.handler = default_content_handler,
+		},
+		{
+			.name = "default_title",
+			.handler = default_title_handler,
+		},
+		{
+			.name = "minimum_space",
+			.handler = minimum_space_handler,
+		},
+		{
+			.name = "replace_tag",
+			.handler = replace_tag_handler,
+		},
+		{
+			.name = "slave_ttl",
+			.handler = slave_ttl_handler,
+		},
+		{
+			.name = "slave_activate_time",
+			.handler = slave_activate_time_handler,
+		},
+		{
+			.name = "slave_terminate_time",
+			.handler = slave_terminate_time_handler,
+		},
+		{
+			.name = "slave_relaunch_time",
+			.handler = slave_relaunch_time_handler,
+		},
+		{
+			.name = "slave_relaunch_count",
+			.handler = slave_relaunch_count_handler,
+		},
+		{
+			.name = "max_log_line",
+			.handler = max_log_line_handler,
+		},
+		{
+			.name = "max_log_file",
+			.handler = max_log_file_handler,
+		},
+		{
+			.name = "sqilte_flush_max",
+			.handler = sqlite_flush_max_handler,
+		},
+		{
+			.name = "db_path",
+			.handler = db_path_handler,
+		},
+		{
+			.name = "log_path",
+			.handler = log_path_handler,
+		},
+		{
+			.name = "reader_path",
+			.handler = reader_path_handler,
+		},
+		{
+			.name = "always_path",
+			.handler = always_path_handler,
+		},
+		{
+			.name = "share_path",
+			.handler = share_path_handler,
+		},
+		{
+			.name = "script_port_path",
+			.handler = script_port_path_handler,
+		},
+		{
+			.name = "ping_interval",
+			.handler = ping_time_handler,
+		},
+		{
+			.name = "slave_max_load",
+			.handler = slave_max_loader,
+		},
+		{
+			.name = "use_sw_backend",
+			.handler = use_sw_backend_handler,
+		},
+		{
+			.name = "emergency_disk",
+			.handler = emergency_disk_handler,
+		},
+		{
+			.name = "services",
+			.handler = services_handler,
+		},
+		{
+			.name = "auto_align",
+			.handler = auto_align_handler,
+		},
+		{
+			.name = "use_event_time",
+			.handler = use_event_time_handler,
+		},
+		{
+			.name = "use_gettimeofday",
+			.handler = use_gettimeofday_handler,
+		},
+		{
+			.name = "check_lcd",
+			.handler = check_lcd_handler,
+		},
+		{
+			.name = "use_xmonitor",
+			.handler = use_xmonitor_handler,
+		},
+		{
+			.name = "provider_method",
+			.handler = provider_method_handler,
+		},
+		{
+			.name = "debug_mode",
+			.handler = debug_mode_handler,
+		},
+		{
+			.name = "overwrite_content",
+			.handler = overwrite_content_handler,
+		},
+		{
+			.name = "com_core_thread",
+			.handler = com_core_thread_handler,
+		},
+		{
+			.name = "input",
+			.handler = input_path_handler,
+		},
+		{
+			.name = "gbar_request_timeout",
+			.handler = gbar_request_timeout_handler,
+		},
+		{
+			.name = "premultiplied",
+			.handler = premultiplied_handler,
+		},
+		{
+			.name = "extra_buffer_count",
+			.handler = extra_buffer_count_handler,
+		},
+		{
+			.name = "slave_event_boost_on",
+			.handler = slave_event_boost_on_handler,
+		},
+		{
+			.name = "slave_event_boost_off",
+			.handler = slave_event_boost_off_handler,
+		},
+		{
+			.name = "event_filter",
+			.handler = event_filter_handler,
+		},
+		{
+			.name = "slave_limit_to_ttl",
+			.handler = slave_limit_to_ttl_handler,
+		},
+		{
+			.name = "frame_skip",
+			.handler = frame_skip_handler,
+		},
+		{
+			.name = "slave_auto_cache_flush",
+			.handler = slave_auto_cache_flush_handler,
+		},
+		{
+			.name = "category_list",
+			.handler = category_list_handler,
+		},
+		{
+			.name = "detect_fault",
+			.handler = detect_fault_handler,
+		},
+		{
+			.name = "reactivate_on_pause",
+			.handler = reactivate_on_pause_handler,
+		},
+		{
+			.name = "app_abi",
+			.handler = app_abi_handler,
+		},
+		{
+			.name = "sdk_viewer",
+			.handler = sdk_viewer_handler,
+		},
+		{
+			.name = "ee_key_for_update",
+			.handler = ee_key_for_update_handler,
+		},
+		{
+			.name = "visibility_change_delay",
+			.handler = visibility_change_delay_handler,
+		},
+		{
+			.name = "click_region",
+			.handler = click_region_handler,
+		},
+		{
+			.name = "force_to_terminate",
+			.handler = force_to_terminate_handler,
+		},
+		{
+			.name = "update_on_pause",
+			.handler = update_on_pause_handler,
+		},
+		{
+			.name = "enable_resource_lock",
+			.handler = enable_resource_lock_handler,
+		},
+		{
+			.name = NULL,
+			.handler = NULL,
+		},
+	};
+
+	if (s_info.conf_loaded) {
+		ErrPrint("Already loaded\n");
+		return WIDGET_ERROR_ALREADY_EXIST;
+	}
+
+	util_screen_size_get(&s_conf.width, &s_conf.height);
+
+	conf_file = conf_path();
+	if (!conf_file) {
+		return WIDGET_ERROR_IO_ERROR;
+	}
+
+	ret = widget_conf_parser(conf_file, token_handler);
+	free(conf_file);
+
 	s_conf.scale_width_factor = (double)s_conf.width / (double)WIDGET_CONF_BASE_W;
 	s_conf.scale_height_factor = (double)s_conf.height / (double)WIDGET_CONF_BASE_H;
 	s_info.conf_loaded = 1;
 
-	return WIDGET_ERROR_NONE;
+	return ret;
 }
 
 EAPI void widget_conf_reset(void)
@@ -1566,34 +1607,39 @@ EAPI void widget_conf_reset(void)
 	s_conf.sqlite_flush_max = CONF_DEFAULT_SQLITE_FLUSH_MAX;
 	s_conf.ping_time = CONF_DEFAULT_PING_TIME;
 	s_conf.slave_max_load = CONF_DEFAULT_SLAVE_MAX_LOAD;
-	s_conf.use_sw_backend = CONF_DEFAULT_USE_SW_BACKEND;
-	s_conf.debug_mode = CONF_DEFAULT_DEBUG_MODE;
-	s_conf.overwrite_content = CONF_DEFAULT_OVERWRITE_CONTENT;
-	s_conf.com_core_thread = CONF_DEFAULT_COM_CORE_THREAD;
-	s_conf.use_xmonitor = CONF_DEFAULT_USE_XMONITOR;
+	s_conf.flags.field.use_sw_backend = CONF_DEFAULT_USE_SW_BACKEND;
+	s_conf.flags.field.debug_mode = CONF_DEFAULT_DEBUG_MODE;
+	s_conf.flags.field.overwrite_content = CONF_DEFAULT_OVERWRITE_CONTENT;
+	s_conf.flags.field.com_core_thread = CONF_DEFAULT_COM_CORE_THREAD;
+	s_conf.flags.field.use_xmonitor = CONF_DEFAULT_USE_XMONITOR;
 	s_conf.scale_width_factor = CONF_DEFAULT_SCALE_WIDTH_FACTOR;
 	s_conf.scale_height_factor = CONF_DEFAULT_SCALE_HEIGHT_FACTOR;
 	s_conf.gbar_request_timeout = CONF_DEFAULT_GBAR_REQUEST_TIMEOUT;
 	s_conf.premultiplied = CONF_DEFAULT_PREMULTIPLIED;
 	s_conf.default_conf.pixels = CONF_DEFAULT_PIXELS;
-	s_conf.auto_align = CONF_DEFAULT_AUTO_ALIGN;
-	s_conf.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
-	s_conf.check_lcd = CONF_DEFAULT_CHECK_LCD;
+	s_conf.flags.field.auto_align = CONF_DEFAULT_AUTO_ALIGN;
+	s_conf.flags.field.use_event_time = CONF_DEFAULT_USE_EVENT_TIME;
+	s_conf.flags.field.check_lcd = CONF_DEFAULT_CHECK_LCD;
 	s_conf.extra_buffer_count = CONF_DEFAULT_EXTRA_BUFFER_COUNT;
-	s_conf.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
+	s_conf.flags.field.use_gettimeofday = CONF_DEFAULT_USE_GETTIMEOFDAY;
 	s_conf.slave_event_boost_on = CONF_DEFAULT_SLAVE_EVENT_BOOST_ON;
 	s_conf.slave_event_boost_off = CONF_DEFAULT_SLAVE_EVENT_BOOST_OFF;
 	s_conf.event_filter = CONF_DEFAULT_EVENT_FILTER;
-	s_conf.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
-	s_conf.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
+	s_conf.flags.field.slave_limit_to_ttl = CONF_DEFAULT_SLAVE_LIMIT_TO_TTL;
+	s_conf.flags.field.slave_auto_cache_flush = CONF_DEFAULT_SLAVE_AUTO_CACHE_FLUSH;
 	s_conf.fault_detect_count = CONF_DEFAULT_FAULT_DETECT_COUNT;
 	s_conf.fault_detect_in_time = CONF_DEFAULT_FAULT_DETECT_IN_TIME;
-	s_conf.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
+	s_conf.flags.field.reactivate_on_pause = CONF_DEFAULT_REACTIVATE_ON_PAUSE;
 	s_conf.frame_skip = CONF_DEFAULT_FRAME_SKIP;
 
 	if (s_conf.sdk_viewer != CONF_DEFAULT_SDK_VIEWER) {
 		free(s_conf.sdk_viewer);
 		s_conf.sdk_viewer = (char *)CONF_DEFAULT_SDK_VIEWER;
+	}
+
+	if (s_conf.ee_key_for_update != CONF_DEFAULT_EE_KEY_FOR_UPDATE) {
+		free(s_conf.ee_key_for_update);
+		s_conf.ee_key_for_update = (char *)CONF_DEFAULT_EE_KEY_FOR_UPDATE;
 	}
 
 	if (s_conf.app_abi != CONF_DEFAULT_APP_ABI) {
@@ -1732,8 +1778,9 @@ EAPI void widget_conf_reset(void)
 	}
 
 	s_conf.click_region = CONF_DEFAULT_CLICK_REGION;
-	s_conf.force_to_terminate = CONF_DEFAULT_FORCE_TO_TERMINATE;
-	s_conf.update_on_pause = CONF_DEFAULT_UPDATE_ON_PAUSE;
+	s_conf.flags.field.force_to_terminate = CONF_DEFAULT_FORCE_TO_TERMINATE;
+	s_conf.flags.field.update_on_pause = CONF_DEFAULT_UPDATE_ON_PAUSE;
+	s_conf.flags.field.enable_resource_lock = CONF_DEFAULT_ENABLE_RESOURCE_LOCK;
 
 	s_info.conf_loaded = 0;
 }
@@ -1745,7 +1792,7 @@ EAPI const int const widget_conf_extra_buffer_count(void)
 
 EAPI const int const widget_conf_use_xmonitor(void)
 {
-	return s_conf.use_xmonitor;
+	return s_conf.flags.field.use_xmonitor;
 }
 
 EAPI const char * const widget_conf_emergency_disk(void)
@@ -1755,17 +1802,17 @@ EAPI const char * const widget_conf_emergency_disk(void)
 
 EAPI const int const widget_conf_check_lcd(void)
 {
-	return s_conf.check_lcd;
+	return s_conf.flags.field.check_lcd;
 }
 
 EAPI const int const widget_conf_use_event_time(void)
 {
-	return s_conf.use_event_time;
+	return s_conf.flags.field.use_event_time;
 }
 
 EAPI const int const widget_conf_auto_align(void)
 {
-	return s_conf.auto_align;
+	return s_conf.flags.field.auto_align;
 }
 
 EAPI const char * const widget_conf_services(void)
@@ -1775,7 +1822,7 @@ EAPI const char * const widget_conf_services(void)
 
 EAPI const int const widget_conf_use_sw_backend(void)
 {
-	return s_conf.use_sw_backend;
+	return s_conf.flags.field.use_sw_backend;
 }
 
 EAPI const char * const widget_conf_provider_method(void)
@@ -1785,17 +1832,17 @@ EAPI const char * const widget_conf_provider_method(void)
 
 EAPI const int const widget_conf_debug_mode(void)
 {
-	return s_conf.debug_mode;
+	return s_conf.flags.field.debug_mode;
 }
 
 EAPI const int const widget_conf_overwrite_content(void)
 {
-	return s_conf.overwrite_content;
+	return s_conf.flags.field.overwrite_content;
 }
 
 EAPI const int const widget_conf_com_core_thread(void)
 {
-	return s_conf.com_core_thread;
+	return s_conf.flags.field.com_core_thread;
 }
 
 EAPI const unsigned int const widget_conf_base_width(void)
@@ -2020,7 +2067,7 @@ EAPI const int const widget_conf_is_loaded(void)
 
 EAPI const int const widget_conf_use_gettimeofday(void)
 {
-	return s_conf.use_gettimeofday;
+	return s_conf.flags.field.use_gettimeofday;
 }
 
 EAPI const int const widget_conf_slave_event_boost_on(void)
@@ -2040,7 +2087,7 @@ EAPI const double const widget_conf_event_filter(void)
 
 EAPI const int const widget_conf_slave_limit_to_ttl(void)
 {
-	return s_conf.slave_limit_to_ttl;
+	return s_conf.flags.field.slave_limit_to_ttl;
 }
 
 EAPI const int const widget_conf_frame_skip(void)
@@ -2050,7 +2097,7 @@ EAPI const int const widget_conf_frame_skip(void)
 
 EAPI const int const widget_conf_slave_auto_cache_flush(void)
 {
-	return s_conf.slave_auto_cache_flush;
+	return s_conf.flags.field.slave_auto_cache_flush;
 }
 
 EAPI const char * const widget_conf_category_list(void)
@@ -2070,7 +2117,7 @@ EAPI const int const widget_conf_fault_detect_count(void)
 
 EAPI const int const widget_conf_reactivate_on_pause(void)
 {
-	return s_conf.reactivate_on_pause;
+	return s_conf.flags.field.reactivate_on_pause;
 }
 
 EAPI const char * const widget_conf_app_abi(void)
@@ -2093,14 +2140,24 @@ EAPI const char * const widget_conf_sdk_viewer(void)
 	return s_conf.sdk_viewer;
 }
 
+EAPI const char * const widget_conf_ee_key_for_update(void)
+{
+	return s_conf.ee_key_for_update;
+}
+
 EAPI const int const widget_conf_force_to_terminate(void)
 {
-	return s_conf.force_to_terminate;
+	return s_conf.flags.field.force_to_terminate;
 }
 
 EAPI const int const widget_conf_update_on_pause(void)
 {
-	return s_conf.update_on_pause;
+	return s_conf.flags.field.update_on_pause;
+}
+
+EAPI const int const widget_conf_enable_resource_lock(void)
+{
+	return s_conf.flags.field.enable_resource_lock;
 }
 
 /* End of a file */

@@ -527,6 +527,7 @@ extern int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_l
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_EXIST Event handler callback function is not exist
  * @see #widget_service_set_lifecycle_event_cb
  */
 extern int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **user_data);
