@@ -407,6 +407,11 @@ extern const char * const widget_conf_launch_key_hw_acceleration(void);
 /**
  * @internal
  */
+extern const char * const widget_conf_launch_key_auto_align(void);
+
+/**
+ * @internal
+ */
 extern const char * const widget_conf_empty_content(void);
 
 /**
@@ -513,6 +518,7 @@ extern int widget_conf_parser(const char *conf_file, const widget_conf_parser_ta
 #define WIDGET_CONF_BUNDLE_SLAVE_SECURED    widget_conf_launch_key_secured()
 #define WIDGET_CONF_BUNDLE_SLAVE_ABI        widget_conf_launch_key_abi()
 #define WIDGET_CONF_BUNDLE_SLAVE_HW_ACCELERATION widget_conf_launch_key_hw_acceleration()
+#define WIDGET_CONF_BUNDLE_SLAVE_AUTO_ALIGN widget_conf_launch_key_auto_align()
 #define WIDGET_CONF_PACKET_TIME             widget_conf_default_packet_time()
 #define WIDGET_CONF_CONTENT_NO_CHANGE       widget_conf_empty_content()
 #define WIDGET_CONF_TITLE_NO_CHANGE         widget_conf_empty_title()

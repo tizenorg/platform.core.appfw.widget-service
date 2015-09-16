@@ -66,10 +66,19 @@ static const char *CONF_DEFAULT_PATH_INPUT = DEFAULT_INPUT_NODE;
 static const char *CONF_DEFAULT_SCRIPT_TYPE = "edje";
 static const char *CONF_DEFAULT_ABI = "c";
 static const char *CONF_DEFAULT_GBAR_GROUP = "disclosure";
+
+/**
+ * @note
+ * conf parser will not try to get LAUNCH_KEYs from conf.ini
+ * There is no parser for these values.
+ * For the future works, just leave these at here.
+ */
 static const char *CONF_DEFAULT_LAUNCH_BUNDLE_NAME = "name";
 static const char *CONF_DEFAULT_LAUNCH_BUNDLE_SECURED = "secured";
 static const char *CONF_DEFAULT_LAUNCH_BUNDLE_ABI = "abi";
 static const char *CONF_DEFAULT_LAUNCH_BUNDLE_HW_ACCELERATION = "hw-acceleration";
+static const char *CONF_DEFAULT_LAUNCH_BUNDLE_AUTO_ALIGN = "auto-align";
+
 static const char *CONF_DEFAULT_CONTENT = "default";
 static const char *CONF_DEFAULT_TITLE = "";
 static const char *CONF_DEFAULT_EMPTY_CONTENT = "";
@@ -157,6 +166,7 @@ struct widget_conf {
 		char *secured;
 		char *abi;
 		char *hw_acceleration;
+		char *auto_align;
 	} launch_key;
 
 	double default_packet_time;
@@ -1028,6 +1038,7 @@ EAPI void widget_conf_init(void)
 	s_conf.launch_key.secured = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_SECURED;
 	s_conf.launch_key.abi = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_ABI;
 	s_conf.launch_key.hw_acceleration = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_HW_ACCELERATION;
+	s_conf.launch_key.auto_align = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_AUTO_ALIGN;
 	s_conf.empty_content = (char *)CONF_DEFAULT_EMPTY_CONTENT;
 	s_conf.empty_title = (char *)CONF_DEFAULT_EMPTY_TITLE;
 	s_conf.default_content = (char *)CONF_DEFAULT_CONTENT;
@@ -1687,6 +1698,11 @@ EAPI void widget_conf_reset(void)
 		s_conf.launch_key.hw_acceleration = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_HW_ACCELERATION;
 	}
 
+	if (s_conf.launch_key.auto_align != CONF_DEFAULT_LAUNCH_BUNDLE_AUTO_ALIGN) {
+		free(s_conf.launch_key.auto_align);
+		s_conf.launch_key.auto_align = (char *)CONF_DEFAULT_LAUNCH_BUNDLE_AUTO_ALIGN;
+	}
+
 	if (s_conf.empty_content != CONF_DEFAULT_EMPTY_CONTENT) {
 		free(s_conf.empty_content);
 		s_conf.empty_content = (char *)CONF_DEFAULT_EMPTY_CONTENT;
@@ -2023,6 +2039,11 @@ EAPI const double const widget_conf_scale_height_factor(void)
 EAPI const char * const widget_conf_launch_key_name(void)
 {
 	return s_conf.launch_key.name;
+}
+
+EAPI const char * const widget_conf_launch_key_auto_align(void)
+{
+	return s_conf.launch_key.auto_align;
 }
 
 EAPI const char * const widget_conf_launch_key_secured(void)

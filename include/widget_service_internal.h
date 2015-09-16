@@ -376,6 +376,7 @@ extern char *widget_service_get_provider_name(const char *widgetid);
  * @retval #WIDGET_ERROR_MEMORY Memory error
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  * @retval #WIDGET_ERROR_FAULT Unrecoverable error occurred
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  */
 extern int widget_service_get_applist(const char *widgetid, void (*cb)(const char *widgetid, const char *appid, void *data), void *data);
 
@@ -515,6 +516,7 @@ extern char *widget_service_get_gbar_script_group(const char *widgetid);
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  * @see widget_service_enumerate_cluster_list()
  */
 extern int widget_service_enumerate_category_list(const char *cluster, int (*cb)(const char *cluster, const char *category, void *data), void *data);
@@ -531,6 +533,7 @@ extern int widget_service_enumerate_category_list(const char *cluster, int (*cb)
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  * @retval count Count of category items
  * @see widget_service_enumerate_category_list()
  */
@@ -552,6 +555,7 @@ extern int widget_service_enumerate_cluster_list(int (*cb)(const char *cluster, 
  * @retval #WIDGET_ERROR_NONE Succeed to initialize
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access a DB
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  * @see widget_service_fini()
  */
 extern int widget_service_init(void);
@@ -566,6 +570,7 @@ extern int widget_service_init(void);
  * @retval #WIDGET_ERROR_NONE Succeed to finalize
  * @retval #WIDGET_ERROR_IO_ERROR Failed to close the DB (access failed to DB)
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  * @pre widget_service_init.
  * @see widget_service_init()
  */
@@ -583,6 +588,7 @@ extern int widget_service_fini(void);
  * @return count of instances
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #WIDGET_ERROR_FAULT Unrecorvarable error occurred
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  * @retval count Positive value including ZERO, Count of activated instances on viewers
  */
 extern int widget_service_get_instance_count(const char *widgetid, const char *cluster, const char *category);
@@ -626,6 +632,7 @@ extern char *widget_service_get_widget_id_by_libexec(const char *libexec);
  * @privilege %http://tizen.org/privilege/widget.viewer
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
 */
 extern char *widget_service_get_base_file_path(const char *widget_id);
 
@@ -661,6 +668,7 @@ extern char *widget_service_get_category(const char *widgetid);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
  * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  * @see #widget_service_get_widget_list_by_pkgid
  */
 extern int widget_service_get_widget_list_by_category(const char *category, int (*cb)(const char *widgetid, void *data), void *data);
@@ -702,6 +710,7 @@ extern widget_list_h widget_service_create_widget_list(const char *widgetid, wid
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
  * @retval #WIDGET_ERROR_NOT_EXIST Reach to the end of result set. you can rewind the iterator call widget_service_pkglist_create() again with current handle
  * @retval #WIDGET_ERROR_MEMORY Not enough memory
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  * @post You must release the widgetid, pkgname manually.
  * @see widget_service_pkglist_create()
  * @see widget_service_pkglist_destroy()
@@ -717,6 +726,7 @@ extern int widget_service_get_item_from_widget_list(widget_list_h handle, char *
  * @return 0 on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid handle
  * @retval #WIDGET_ERROR_NONE Successfully destroyed
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  * @pre Handle must be created by widget_service_pkglist_create().
  * @post You have not to use the handle again after destroy it.
  * @see widget_service_pkglist_create()
@@ -734,8 +744,23 @@ extern int widget_service_destroy_widget_list(widget_list_h handle);
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #WIDGET_ERROR_IO_ERROR Input/Output error (failed to access database)
  * @retval #WIDGET_ERROR_FAULT Unrecorvarable error occurred
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
  */
 extern int widget_service_get_widget_max_count(const char *widget_id);
+
+/**
+ * @brief Getting the auto_align option
+ * @since_tizen 2.4
+ * @param[in] widget_id widget application id
+ * @return state of auto_align mode. 1 if it is turned on or 0 if it is turned off. otherwise a negative error value
+ * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #WIDGET_ERROR_IO_ERROR Input/Output error (failed to access database)
+ * @retval #WIDGET_ERROR_FAULT Unrecorvarable error occurred
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
+ */
+extern int widget_service_get_auto_align(const char *widget_id);
+
+extern int widget_service_get_hw_accelerated(const char *widget_id);
 
 #ifdef __cplusplus
 }
