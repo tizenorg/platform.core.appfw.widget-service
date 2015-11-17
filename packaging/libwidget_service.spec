@@ -1,5 +1,3 @@
-%bcond_with wayland
-
 Name: libwidget_service
 Summary: Service API for gathering installed widget information
 Version: 1.2.0
@@ -23,6 +21,7 @@ BuildRequires: pkgconfig(capi-base-common)
 BuildRequires: pkgconfig(capi-system-info)
 BuildRequires: pkgconfig(libtzplatform-config)
 BuildRequires: pkgconfig(libxml-2.0)
+BuildRequires: pkgconfig(aul)
 
 %if "%{model_build_feature_widget}" == "0"
 ExclusiveArch:
@@ -80,10 +79,7 @@ chsmack -a "User::Home" %{_sysconfdir}/skel/.applications/dbspace/.widget.db
 %files devel
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
-%{_includedir}/widget_service/widget_service.h
-%{_includedir}/widget_service/widget_service_internal.h
-%{_includedir}/widget_service/widget_errno.h
-%{_includedir}/widget_service/widget_conf.h
+%{_includedir}/widget_service/*
 %{_libdir}/pkgconfig/widget_service.pc
 
 # End of a file

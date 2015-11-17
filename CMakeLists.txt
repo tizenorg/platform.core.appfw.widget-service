@@ -16,7 +16,6 @@ pkg_check_modules(pkgs REQUIRED
 	dlog
 	glib-2.0
 	gio-2.0
-	com-core
 	sqlite3
 	db-util
 	pkgmgr-info
@@ -24,8 +23,8 @@ pkg_check_modules(pkgs REQUIRED
 	icu-uc
 	bundle
 	capi-base-common
-	libdrm
 	capi-system-info
+	aul
 )
 
 FOREACH(flag ${pkgs_CFLAGS})
@@ -49,6 +48,7 @@ ADD_DEFINITIONS("-DDEFAULT_MASTER_CONF=\"/usr/share/widget-service/conf.ini\"")
 SET(BUILD_SOURCE
 	src/widget_service.c
 	src/widget_conf.c
+	src/widget_instance.c
 )
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${BUILD_SOURCE})
@@ -67,6 +67,7 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_service.h DESTINATION i
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_service_internal.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_errno.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_conf.h DESTINATION include/${PROJECT_NAME})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_instance.h DESTINATION include/${PROJECT_NAME})
 
 ADD_SUBDIRECTORY(parser)
 
