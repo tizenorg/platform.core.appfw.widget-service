@@ -24,6 +24,8 @@ BuildRequires: pkgconfig(bundle)
 BuildRequires: pkgconfig(capi-base-common)
 BuildRequires: pkgconfig(libdrm)
 BuildRequires: pkgconfig(capi-system-info)
+BuildRequires: pkgconfig(aul)
+BuildRequires: pkgconfig(libtzplatform-config)
 
 %if %{with wayland}
 BuildRequires: pkgconfig(wayland-client)
@@ -109,6 +111,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %{_includedir}/widget_service/widget_conf.h
 %{_includedir}/widget_service/widget_abi.h
 %{_includedir}/widget_service/widget_util.h
+%{_includedir}/widget_service/widget_instance.h
 %if %{with wayland}
 %{_includedir}/widget_service/widget_wayland-drm-client-protocol.h
 %{_includedir}/widget_service/widget_wayland-drm-server-protocol.h
