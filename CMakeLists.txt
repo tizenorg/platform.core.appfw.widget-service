@@ -26,6 +26,7 @@ pkg_check_modules(pkgs REQUIRED
 	capi-base-common
 	libdrm
 	capi-system-info
+	aul
 )
 
 FOREACH(flag ${pkgs_CFLAGS})
@@ -49,6 +50,7 @@ ADD_DEFINITIONS("-DDEFAULT_MASTER_CONF=\"/usr/share/widget-service/conf.ini\"")
 SET(BUILD_SOURCE
 	src/widget_service.c
 	src/widget_conf.c
+	src/widget_instance.c
 )
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${BUILD_SOURCE})

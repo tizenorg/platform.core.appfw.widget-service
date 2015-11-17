@@ -23,6 +23,7 @@ BuildRequires: pkgconfig(capi-base-common)
 BuildRequires: pkgconfig(capi-system-info)
 BuildRequires: pkgconfig(libtzplatform-config)
 BuildRequires: pkgconfig(libxml-2.0)
+BuildRequires: pkgconfig(aul)
 
 %if "%{model_build_feature_widget}" == "0"
 ExclusiveArch:
