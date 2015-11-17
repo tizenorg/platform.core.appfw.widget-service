@@ -28,6 +28,7 @@ pkg_check_modules(pkgs REQUIRED
 	capi-base-common
 	libdrm
 	capi-system-info
+	aul
 )
 
 IF (X11_SUPPORT)
@@ -73,6 +74,7 @@ SET(BUILD_SOURCE
 	src/widget_conf.c
 	src/widget_abi.c
 	src/widget_monitor.c
+	src/widget_instance.c
 )
 
 IF (X11_SUPPORT)
@@ -114,6 +116,7 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_script.h DESTINATION in
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_conf.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_abi.h DESTINATION include/${PROJECT_NAME})
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_util.h DESTINATION include/${PROJECT_NAME})
+INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/widget_instance.h DESTINATION include/${PROJECT_NAME})
 
 IF (WAYLAND_SUPPORT)
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/wayland-drm/include/widget_wayland-drm-client-protocol.h DESTINATION include/${PROJECT_NAME})
