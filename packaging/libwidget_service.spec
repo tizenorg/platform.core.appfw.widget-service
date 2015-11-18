@@ -96,6 +96,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %defattr(-,root,root,-)
 %{_libdir}/libwidget_service.so*
 %{_datarootdir}/license/libwidget_service
+%{_sysconfdir}/package-manager/parserlib/libwidget-application.so
 
 %files devel
 %manifest %{name}.manifest
