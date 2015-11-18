@@ -24,6 +24,8 @@ BuildRequires: pkgconfig(bundle)
 BuildRequires: pkgconfig(capi-base-common)
 BuildRequires: pkgconfig(libdrm)
 BuildRequires: pkgconfig(capi-system-info)
+BuildRequires: pkgconfig(libtzplatform-config)
+BuildRequires: pkgconfig(libxml-2.0)
 
 %if %{with wayland}
 BuildRequires: pkgconfig(wayland-client)
@@ -96,6 +98,7 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %defattr(-,root,root,-)
 %{_libdir}/libwidget_service.so*
 %{_datarootdir}/license/libwidget_service
+%{_sysconfdir}/package-manager/parserlib/libwidget-application.so
 
 %files devel
 %manifest %{name}.manifest
