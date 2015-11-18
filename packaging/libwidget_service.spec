@@ -24,6 +24,8 @@ BuildRequires: pkgconfig(bundle)
 BuildRequires: pkgconfig(capi-base-common)
 BuildRequires: pkgconfig(libdrm)
 BuildRequires: pkgconfig(capi-system-info)
+BuildRequires: pkgconfig(libtzplatform-config)
+BuildRequires: pkgconfig(libxml-2.0)
 
 %if %{with wayland}
 BuildRequires: pkgconfig(wayland-client)
@@ -80,15 +82,25 @@ export WAYLAND_SUPPORT=Off
 export X11_SUPPORT=On
 %endif
 
+sqlite3 .widget.db < ./parser/widget.sql
+
 %cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT}
 make %{?jobs:-j%jobs}
 
 %install
 rm -rf %{buildroot}
 %make_install
-mkdir -p %{buildroot}/%{_datarootdir}/license
+mkdir -p %{buildroot}%{_datarootdir}/license
+mkdir -p %{buildroot}%{TZ_SYS_DB}
+mkdir -p %{buildroot}%{_sysconfdir}/skel/.applications/dbspace
+
+install -m 0644 .widget.db %{buildroot}%{TZ_SYS_DB}
+install -m 0644 .widget.db %{buildroot}%{_sysconfdir}/skel/.applications/dbspace
 
 %post -n %{name} -p /sbin/ldconfig
+chsmack -a "User::Home" %{TZ_SYS_DB}/.widget.db
+chsmack -a "User::Home" %{_sysconfdir}/skel/.applications/dbspace/.widget.db
+
 %postun -n %{name} -p /sbin/ldconfig
 
 %files -n %{name}
@@ -96,6 +108,9 @@ mkdir -p %{buildroot}/%{_datarootdir}/license
 %defattr(-,root,root,-)
 %{_libdir}/libwidget_service.so*
 %{_datarootdir}/license/libwidget_service
+%{_sysconfdir}/package-manager/parserlib/libwidget-application.so
+%{_sysconfdir}/skel/.applications/dbspace/.widget.db
+%{TZ_SYS_DB}/.widget.db
 
 %files devel
 %manifest %{name}.manifest
