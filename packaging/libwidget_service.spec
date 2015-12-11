@@ -97,11 +97,13 @@ mkdir -p %{buildroot}%{_sysconfdir}/skel/.applications/dbspace
 install -m 0644 .widget.db %{buildroot}%{TZ_SYS_DB}
 install -m 0644 .widget.db %{buildroot}%{_sysconfdir}/skel/.applications/dbspace
 
-%post -n %{name} -p /sbin/ldconfig
+%post -n %{name}
+/sbin/ldconfig
 chsmack -a "User::Home" %{TZ_SYS_DB}/.widget.db
 chsmack -a "User::Home" %{_sysconfdir}/skel/.applications/dbspace/.widget.db
 
-%postun -n %{name} -p /sbin/ldconfig
+%postun -n %{name}
+/sbin/ldconfig
 
 %files -n %{name}
 %manifest %{name}.manifest
