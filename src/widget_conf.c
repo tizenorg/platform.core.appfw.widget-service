@@ -241,23 +241,23 @@ struct widget_conf {
 
 	union _conf_flags {
 		struct _conf_flag_bitfields {
-			unsigned int enable_resource_lock: 1;
-			unsigned int update_on_pause: 1;
-			unsigned int force_to_terminate: 1;
-			unsigned int reactivate_on_pause: 1;
-			unsigned int slave_auto_cache_flush: 1;
-			unsigned int slave_limit_to_ttl: 1;
-			unsigned int use_gettimeofday: 1;
-			unsigned int check_lcd: 1;
-			unsigned int use_event_time: 1;
-			unsigned int auto_align: 1;
-			unsigned int use_xmonitor: 1;
-			unsigned int com_core_thread: 1;
-			unsigned int overwrite_content: 1;
-			unsigned int debug_mode: 1;
-			unsigned int use_sw_backend: 1;
+			unsigned int enable_resource_lock:1;
+			unsigned int update_on_pause:1;
+			unsigned int force_to_terminate:1;
+			unsigned int reactivate_on_pause:1;
+			unsigned int slave_auto_cache_flush:1;
+			unsigned int slave_limit_to_ttl:1;
+			unsigned int use_gettimeofday:1;
+			unsigned int check_lcd:1;
+			unsigned int use_event_time:1;
+			unsigned int auto_align:1;
+			unsigned int use_xmonitor:1;
+			unsigned int com_core_thread:1;
+			unsigned int overwrite_content:1;
+			unsigned int debug_mode:1;
+			unsigned int use_sw_backend:1;
 
-			unsigned int reserved: 17;
+			unsigned int reserved:17;
 		} field;
 		unsigned int flags;
 	} flags;
