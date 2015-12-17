@@ -1,5 +1,4 @@
-PRAGMA tizen_version = 30; /* Tizen 3.0 */
-PRAGMA db_version = 1;
+PRAGMA user_version = 30; /* Tizen 3.0 */
 PRAGMA journal_mode = PERSIST;
 PRAGMA foreign_keys = ON;
 

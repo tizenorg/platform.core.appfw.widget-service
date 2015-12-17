@@ -126,6 +126,13 @@ sqlite3 *_open_db(uid_t uid, bool readonly)
 		return NULL;
 	}
 
+	/* turn on foreign keys */
+	if (sqlite3_exec(db, "PRAGMA foreign_keys = ON", NULL, NULL, NULL)) {
+		free(path);
+		sqlite3_close_v2(db);
+		return NULL;
+	}
+
 	free(path);
 
 	return db;
