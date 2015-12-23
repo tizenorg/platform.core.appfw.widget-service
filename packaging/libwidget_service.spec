@@ -84,7 +84,9 @@ export X11_SUPPORT=On
 
 sqlite3 .widget.db < ./parser/widget.sql
 
-%cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT}
+MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
+%cmake . -DWAYLAND_SUPPORT=${WAYLAND_SUPPORT} -DX11_SUPPORT=${X11_SUPPORT} \
+			   -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
 make %{?jobs:-j%jobs}
 
 %install
