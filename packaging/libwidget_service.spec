@@ -90,7 +90,6 @@ make %{?jobs:-j%jobs}
 %install
 rm -rf %{buildroot}
 %make_install
-mkdir -p %{buildroot}%{_datarootdir}/license
 mkdir -p %{buildroot}%{TZ_SYS_DB}
 mkdir -p %{buildroot}%{_sysconfdir}/skel/.applications/dbspace
 
@@ -108,8 +107,8 @@ chsmack -a "User::Home" %{_sysconfdir}/skel/.applications/dbspace/.widget.db
 %files -n %{name}
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
+%license LICENSE
 %{_libdir}/libwidget_service.so*
-%{_datarootdir}/license/libwidget_service
 %{_sysconfdir}/package-manager/parserlib/libwidget-application.so
 %{_sysconfdir}/skel/.applications/dbspace/.widget.db
 %{TZ_SYS_DB}/.widget.db

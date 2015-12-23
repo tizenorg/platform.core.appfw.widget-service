@@ -120,8 +120,6 @@ INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/wayland-drm/include/widget_wayland-drm
 INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/wayland-drm/include/widget_wayland-drm-server-protocol.h DESTINATION include/${PROJECT_NAME})
 ENDIF (WAYLAND_SUPPORT)
 
-INSTALL(FILES ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE DESTINATION /usr/share/license RENAME "lib${PROJECT_NAME}")
-
 ADD_SUBDIRECTORY(parser)
 
 # End of a file
