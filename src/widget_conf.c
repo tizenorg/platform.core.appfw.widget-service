@@ -35,7 +35,6 @@
 
 #include "debug.h"
 #include "widget_conf.h"
-#include "util.h"
 #include "debug.h"
 
 #define BASE_SHARE_DIR "/opt/usr/share/live_magazine/"
@@ -1581,7 +1580,9 @@ EAPI int widget_conf_load(void)
 		return WIDGET_ERROR_ALREADY_EXIST;
 	}
 
-	util_screen_size_get(&s_conf.width, &s_conf.height);
+
+//	util_screen_size_get(&s_conf.width, &s_conf.height);
+
 
 	conf_file = conf_path();
 	if (!conf_file) {
