@@ -17,6 +17,7 @@
 #include "widget_instance.h"
 #include <dlog.h>
 #include "debug.h"
+#include <uuid/uuid.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,7 +59,6 @@ struct _widget_instance {
 struct widget_app {
 	char *viewer_id;
 	char *widget_id;
-	int cnt;
 	GList *instances;
 };
 
@@ -202,7 +202,6 @@ static struct widget_app *__add_app(const char *widget_id, const char *viewer_id
 	app->viewer_id = g_strdup(viewer_id);
 	app->widget_id = g_strdup(widget_id);
 	app->instances = NULL;
-	app->cnt = 0;
 
 	_widget_apps = g_list_append(_widget_apps, app);
 
@@ -211,8 +210,9 @@ static struct widget_app *__add_app(const char *widget_id, const char *viewer_id
 
 static const char *__create_instance_id(const char *widget_id)
 {
+	char uuid[37];
 	char instance_id[MAX_INSTANCE_ID_LEN];
-	int id = 0;
+	uuid_t u;
 	struct widget_app *app = NULL;
 
 	if (widget_id == NULL)
@@ -226,10 +226,10 @@ static const char *__create_instance_id(const char *widget_id)
 			return NULL;
 	}
 
-	id = app->cnt;
-	app->cnt++;
+	uuid_generate(u);
+	uuid_unparse(u, uuid);
 
-	snprintf(instance_id, MAX_INSTANCE_ID_LEN, "%d:%s", id, widget_id);
+	snprintf(instance_id, MAX_INSTANCE_ID_LEN, "%s:%s", uuid, widget_id);
 
 	_D("new instance: %s", instance_id);
 
@@ -346,7 +346,6 @@ static int __load_instance_list()
 				_E("failed to add app: %s", widget_id);
 				continue;
 			}
-			/* TODO set app->cnt to last instance number, or need to replace how to create id */
 		}
 
 		instance = __add_instance(instance_id, widget_id);
