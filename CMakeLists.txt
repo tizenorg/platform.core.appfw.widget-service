@@ -25,6 +25,8 @@ pkg_check_modules(pkgs REQUIRED
 	capi-base-common
 	capi-system-info
 	aul
+	libtzplatform-config
+	uuid
 )
 
 FOREACH(flag ${pkgs_CFLAGS})
