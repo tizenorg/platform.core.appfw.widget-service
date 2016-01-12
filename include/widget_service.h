@@ -40,20 +40,20 @@ extern "C" {
  * @since_tizen 2.3.1
  */
 typedef enum widget_size_type {
-	WIDGET_SIZE_TYPE_1x1 = 0x0001,      /**< 175x175 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_2x1 = 0x0002,      /**< 354x175 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_2x2 = 0x0004,      /**< 354x354 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_4x1 = 0x0008,      /**< 712x175 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_4x2 = 0x0010,      /**< 712x354 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_4x3 = 0x0020,      /**< 712x533 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_4x4 = 0x0040,      /**< 712x712 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_4x5 = 0x0080,      /**< 712x891 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_4x6 = 0x0100,      /**< 712x1070 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_EASY_1x1 = 0x1000, /**< 224x215 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_EASY_3x1 = 0x2000, /**< 680x215 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_EASY_3x3 = 0x4000, /**< 680x653 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_FULL = 0x0800,     /**< 720x1280 based on 720x1280 resolution */
-	WIDGET_SIZE_TYPE_UNKNOWN = 0xFFFF   /**< Error case */
+	WIDGET_SIZE_TYPE_UNKNOWN = -1,  /**< Error case */
+	WIDGET_SIZE_TYPE_1x1,           /**< 175x175 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_2x1,           /**< 354x175 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_2x2,           /**< 354x354 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_4x1,           /**< 712x175 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_4x2,           /**< 712x354 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_4x3,           /**< 712x533 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_4x4,           /**< 712x712 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_4x5,           /**< 712x891 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_4x6,           /**< 712x1070 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_EASY_1x1,      /**< 224x215 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_EASY_3x1,      /**< 680x215 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_EASY_3x3,      /**< 680x653 based on 720x1280 resolution */
+	WIDGET_SIZE_TYPE_FULL,          /**< 720x1280 based on 720x1280 resolution */
 } widget_size_type_e;
 
 /**
