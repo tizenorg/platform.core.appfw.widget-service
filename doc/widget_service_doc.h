@@ -20,15 +20,35 @@
 /**
  * @defgroup CAPI_WIDGET_FRAMEWORK Widget
  * @ingroup CAPI_APPLICATION_FRAMEWORK
+ * @section CAPI_WIDGET_FRAMEWORK_OVERVIEW Overview
+<table>
+<tr>
+<th>API </th><th>Description  </th></tr>
+<tr>
+<td><a class="el" href="group__CAPI__WIDGET__APP__MODULE.html">Widget Application</a> </td>
+<td>Provides functions for handling Tizen widget application state changes or system events. </td>
+</tr>
+<tr>
+<td><a class="el" href="group__CAPI__WIDGET__SERVICE__MODULE.html">Widget Service</a> </td>
+<td>Provides functions to get the information of installed widgets.</td>
+</tr>
+<tr>
+<td><a class="el" href="group__CAPI__WIDGET__VIEWER__EVAS__MODULE.html">Widget Viewer</a> </td>
+<td>Provides functions to replace and handle instances of widgets.</td>
+</tr>
+</table>
  */
 
 /**
  * @defgroup CAPI_WIDGET_SERVICE_MODULE Widget Service
  * @brief To get the information of installed widgets
- * @ingroup CAPI_WIDGET_FRAMEWORK 
+ * @ingroup CAPI_WIDGET_FRAMEWORK
  * @section CAPI_WIDGET_SERVICE_MODULE_HEADER Required Header
  *   \#include <widget_service.h>
  *   \#include <widget_errno.h>
+ * @section CAPI_WIDGET_SERVICE_MODULE_FEATURE Related Features
+ * This API is related with the following feature:
+ *  - http://tizen.org/feature/shell.appwidget
  * @section CAPI_WIDGET_SERVICE_MODULE_OVERVIEW Overview
 <H1>1. widget service API</H1>
 Tizen supports various kinds of API set for retrieving information of widgets.
