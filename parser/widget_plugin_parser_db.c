@@ -98,7 +98,8 @@ static int _insert_label(sqlite3 *db, const char *classid, GList *labels)
 
 		idx = 1;
 		_bind_text(stmt, idx++, classid);
-		_bind_text(stmt, idx++, label->lang);
+		_bind_text(stmt, idx++,
+				label->lang ? label->lang : "No Locale");
 		_bind_text(stmt, idx++, label->label);
 
 		ret = sqlite3_step(stmt);
@@ -139,7 +140,7 @@ static int _insert_icon(sqlite3 *db, const char *classid, GList *icons)
 
 		idx = 1;
 		_bind_text(stmt, idx++, classid);
-		_bind_text(stmt, idx++, icon->lang);
+		_bind_text(stmt, idx++, icon->lang ? icon->lang : "No Locale");
 		_bind_text(stmt, idx++, icon->icon);
 
 		ret = sqlite3_step(stmt);

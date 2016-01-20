@@ -24,14 +24,14 @@ CREATE TABLE support_size (
 
 CREATE TABLE label (
   classid TEXT NOT NULL,
-  locale  TEXT DEFAULT 'No Locale',
+  locale  TEXT NOT NULL,
   label   TEXT NOT NULL,
   FOREIGN KEY(classid) REFERENCES widget_class (classid) ON DELETE CASCADE
 );
 
 CREATE TABLE icon (
   classid TEXT NOT NULL,
-  locale  TEXT DEFAULT 'No Locale',
+  locale  TEXT NOT NULL,
   icon    TEXT NOT NULL,
   FOREIGN KEY(classid) REFERENCES widget_class (classid) ON DELETE CASCADE
 );
