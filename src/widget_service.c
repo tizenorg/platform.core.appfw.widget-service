@@ -1030,3 +1030,23 @@ EAPI int widget_service_get_size_type(int width, int height,
 
 	return WIDGET_ERROR_NONE;
 }
+
+EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, bundle **b)
+{
+	return WIDGET_ERROR_NOT_SUPPORTED;
+}
+
+EAPI int widget_service_get_widget_instance_list(const char *widget_id, widget_instance_list_cb cb, void *data)
+{
+	return WIDGET_ERROR_NOT_SUPPORTED;
+}
+
+EAPI int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_lifecycle_event_cb cb, void *data)
+{
+	return WIDGET_ERROR_NOT_SUPPORTED;
+}
+
+EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **user_data)
+{
+	return WIDGET_ERROR_NOT_SUPPORTED;
+}
