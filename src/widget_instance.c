@@ -29,6 +29,7 @@
 #include <sqlite3.h>
 #include <tzplatform_config.h>
 #include <aul.h>
+#include <aul_svc.h>
 #include <aul_app_com.h>
 #include <widget_service.h>
 
@@ -529,6 +530,8 @@ static int __send_aul_cmd(const char *widget_id, const char *instance_id, bundle
 	bundle_add_str(b, WIDGET_K_INSTANCE, instance_id);
 
 	bundle_add_str(b, WIDGET_K_CLASS, classid);
+
+	aul_svc_set_loader_id(b, 1);
 
 	ret = aul_launch_app(appid, b);
 
