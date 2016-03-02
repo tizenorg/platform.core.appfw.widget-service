@@ -30,6 +30,7 @@
 #include "widget_errno.h"
 #include "debug.h"
 #include "widget_conf.h"
+#include "widget_instance.h"
 #include "widget_service.h"
 
 static inline bool _is_widget_feature_enabled(void)
@@ -627,8 +628,8 @@ EAPI int widget_service_get_nodisplay(const char *widget_id)
 	}
 
 	set_last_result(WIDGET_ERROR_NONE);
-
-	return (int)nodisplay;
+	return 0;
+//	return (int)nodisplay;
 }
 
 EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e size_type, bool *need_of_frame)
@@ -1033,20 +1034,103 @@ EAPI int widget_service_get_size_type(int width, int height,
 
 EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, bundle **b)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	widget_instance_h instance;
+	bundle *kb = NULL;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (widget_id == NULL || widget_instance_id == NULL || b == NULL) {
+		_E("invalid parameter");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	instance = widget_instance_get_instance(widget_id, widget_instance_id);
+	
+	if (instance) {
+		widget_instance_get_content(instance, &kb);
+		if (kb) {
+			*b = bundle_dup(kb);
+			widget_instance_unref(instance);
+			return WIDGET_ERROR_NONE;
+		}
+	}
+
+	return WIDGET_ERROR_NOT_EXIST;
+}
+
+struct instance_cb {
+	widget_instance_list_cb cb;
+	void *data;
+};
+
+static int __instance_list_cb(const char *widget_id, const char *instance_id, void *data)
+{
+	struct instance_cb *cb_data = (struct instance_cb *)data;
+
+	if (cb_data && cb_data->cb)
+		return cb_data->cb(widget_id, instance_id, cb_data->data);
+
+	return -1;
 }
 
 EAPI int widget_service_get_widget_instance_list(const char *widget_id, widget_instance_list_cb cb, void *data)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	struct instance_cb cb_data;
+	int ret = WIDGET_ERROR_NONE;
+
+	cb_data.cb = cb;
+	cb_data.data = data;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (widget_id == NULL || cb == NULL) {
+		_E("inavlid parameter");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	ret = widget_instance_get_instance_list(widget_id, __instance_list_cb, &cb_data);
+
+	return ret < 0 ? WIDGET_ERROR_NOT_EXIST : WIDGET_ERROR_NONE;
 }
 
 EAPI int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_lifecycle_event_cb cb, void *data)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	int ret = WIDGET_ERROR_NONE;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (widget_id == NULL || cb == NULL) {
+		_E("invalid parameter");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	
+
+	return ret;
 }
 
 EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **user_data)
 {
-	return WIDGET_ERROR_NOT_SUPPORTED;
+	int ret = WIDGET_ERROR_NONE;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (widget_id == NULL) {
+		_E("invalid parameter");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	return ret;
 }

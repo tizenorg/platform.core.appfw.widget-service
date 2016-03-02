@@ -65,6 +65,12 @@ int widget_instance_destroy(const char *widget_id, const char *instance_id);
 int widget_instance_init(const char *viewer_id);
 int widget_instance_fini();
 
+widget_instance_h widget_instance_get_instance(const char *widget_id, const char *instance_id);
+int widget_instance_get_instance_list(const char *widget_id, int (*cb)(const char *widget_id, const char *instance_id, void *data), void *data);
+void widget_instance_unref(widget_instance_h instance);
+widget_instance_h widget_instance_ref(widget_instance_h instance);
+int widget_instance_listen_status(const char *widget_id, int (*cb)(const char *widget_id, int status, const char *instance_id, void *data), void *data);
+
 #ifdef __cplusplus
 }
 #endif
