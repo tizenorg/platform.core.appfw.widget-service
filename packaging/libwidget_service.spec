@@ -77,6 +77,7 @@ chsmack -a "User::Home" %{_sysconfdir}/skel/.applications/dbspace/.widget.db
 %{_sysconfdir}/package-manager/parserlib/libwidget-application.so
 %{_sysconfdir}/skel/.applications/dbspace/.widget.db
 %{TZ_SYS_DB}/.widget.db
+%{_bindir}/widget_test
 
 %files devel
 %manifest %{name}.manifest
