@@ -59,6 +59,7 @@ struct _widget_instance {
 	bundle *content_info;
 	int status;
 	int stored;
+	int ref;
 };
 
 struct widget_app {
@@ -76,6 +77,7 @@ static GList *_widget_apps = NULL;
 static sqlite3 *_widget_db = NULL;
 static char *viewer_appid = NULL;
 static aul_app_com_connection_h conn = NULL;
+
 
 #define QUERY_CREATE_TABLE_WIDGET \
 	"create table if not exists widget_instance" \
@@ -248,6 +250,7 @@ static struct _widget_instance *__add_instance(const char *id, const char *widge
 	instance->stored = 0;
 	instance->widget_id = g_strdup(widget_id);
 	instance->content_info = NULL;
+	instance->ref = 0;
 
 	_widget_instances = g_list_append(_widget_instances, instance);
 
@@ -446,10 +449,9 @@ static int __update_instance_info(struct _widget_instance *instance)
 	rc = sqlite3_step(p_statement);
 
 	if (rc == SQLITE_DONE) {
-		if (instance->status == WIDGET_INSTANCE_DELETED) {
-			__remove_instance(instance);
-			instance = NULL;
-		} else
+		if (instance->status == WIDGET_INSTANCE_DELETED)
+			widget_instance_unref(instance);
+		else
 			instance->stored = 1;
 	}
 
@@ -690,7 +692,6 @@ EAPI int widget_instance_foreach(const char *widget_id, widget_instance_foreach_
 	return 0;
 }
 
-
 static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundle *envelope, void *user_data)
 {
 	char *widget_id = NULL;
@@ -758,6 +759,11 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 		break;
 	}
 
+	return 0;
+}
+
+static int __status_handler(const char *viewer_id, aul_app_com_result_e e, bundle *envelope, void *user_data)
+{
 	return 0;
 }
 
@@ -841,3 +847,80 @@ EAPI int widget_instance_get_period(widget_instance_h instance, double *period)
 	*period = instance->period;
 	return 0;
 }
+
+EAPI int widget_instance_change_period(widget_instance_h instance, double period)
+{
+	return 0;
+}
+
+EAPI int widget_instance_trigger_update(widget_instance_h instance, bundle *b, int force)
+{
+	return 0;
+}
+
+EAPI widget_instance_h widget_instance_get_instance(const char *widget_id, const char *instance_id)
+{
+	widget_instance_h instance;
+
+	if (widget_id == NULL || instance_id == NULL)
+		return NULL;
+
+	if (_widget_apps && _widget_instances) {
+		instance = __pick_instance(widget_id, instance_id);
+		return widget_instance_ref(instance);
+	}
+
+	return NULL;
+}
+
+EAPI int widget_instance_get_instance_list(const char *widget_id, widget_instance_list_cb cb, void *data)
+{
+	widget_instance_h instance;
+	struct widget_app *app;
+	GList *head = NULL;
+
+	if (widget_id == NULL)
+		return -1;
+
+	if (_widget_apps)
+		app = __pick_app(widget_id);
+	else
+		return -2;
+
+	if (app) {
+		head = app->instances;
+
+		while (head) {
+			instance = (widget_instance_h)head->data;
+			if (cb(instance->widget_id, instance->id, data) != 0)
+				break;
+
+			head = head->next;
+		}
+	}
+
+	return 0;
+}
+
+EAPI void widget_instance_unref(widget_instance_h instance)
+{
+	if (instance == NULL)
+		return;
+
+	instance->ref--;
+
+	if (instance->ref > -1)
+		return;
+
+	__remove_instance(instance);
+}
+
+EAPI widget_instance_h widget_instance_ref(widget_instance_h instance)
+{
+	if (instance)
+		instance->ref++;
+
+	return instance;
+}
+
+
