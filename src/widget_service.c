@@ -208,9 +208,8 @@ static int _get_widget_supported_sizes(const char *widget_id, int *cnt,
 	int *height;
 
 	db = _open_db(getuid());
-	if (db == NULL) {
+	if (db == NULL)
 		return WIDGET_ERROR_IO_ERROR;
-	}
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {

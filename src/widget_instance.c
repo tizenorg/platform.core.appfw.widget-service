@@ -73,7 +73,8 @@ static sqlite3 *_widget_db = NULL;
 static char *viewer_appid = NULL;
 static aul_app_com_connection_h conn = NULL;
 
-#define QUERY_CREATE_TABLE_WIDGET "create table if not exists widget_instance" \
+#define QUERY_CREATE_TABLE_WIDGET \
+	"create table if not exists widget_instance" \
 	"(widget_id text, " \
 	"viewer_id text, " \
 	"content_info text, " \
@@ -111,20 +112,20 @@ static int __init(bool readonly)
 
 	rc = sqlite3_open_v2(__get_widget_db(uid), &_widget_db,
 			readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-	if (SQLITE_OK != rc) {
+	if (rc != SQLITE_OK) {
 		_E("Can't open database: %d, %s, extended: %d", rc, sqlite3_errmsg(_widget_db),
-			sqlite3_extended_errcode(_widget_db));
-                goto err;
-        }
+				sqlite3_extended_errcode(_widget_db));
+		goto err;
+	}
 
 	rc = sqlite3_exec(_widget_db, "PRAGMA journal_mode = PERSIST", NULL, NULL, NULL);
-	if (SQLITE_OK != rc) {
+	if (rc != SQLITE_OK) {
 		_E("Fail to change journal mode\n");
 		goto err;
 	}
 
 	rc = sqlite3_exec(_widget_db, QUERY_CREATE_TABLE_WIDGET, NULL, NULL, NULL);
-	if (SQLITE_OK != rc) {
+	if (rc != SQLITE_OK) {
 		_E("Fail to create tables\n");
 		goto err;
 	}
@@ -162,9 +163,8 @@ static struct _widget_instance *__pick_instance(const char *widget_id, const cha
 			instances = app->instances;
 			while (instances) {
 				instance = instances->data;
-				if (instance && g_strcmp0(instance_id, instance->id) == 0) {
+				if (instance && g_strcmp0(instance_id, instance->id) == 0)
 					return instance;
-				}
 				instances = instances->next;
 			}
 		}
@@ -325,11 +325,11 @@ static int __load_instance_list()
 	}
 
 	rc = sqlite3_prepare_v2(_widget_db, select_query, strlen(select_query),
-		&p_statement, NULL);
+			&p_statement, NULL);
 
 	if (rc != SQLITE_OK) {
 		_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-			sqlite3_errmsg(_widget_db));
+				sqlite3_errmsg(_widget_db));
 		return -1;
 	}
 
@@ -363,10 +363,10 @@ static int __load_instance_list()
 	}
 
 	rc = sqlite3_finalize(p_statement);
-        if (rc != SQLITE_OK) {
-                _E("Sqlite3 error [%d] : <%s> finalizing statement\n", rc,
-                   sqlite3_errmsg(_widget_db));
-        }
+	if (rc != SQLITE_OK) {
+		_E("Sqlite3 error [%d] : <%s> finalizing statement\n", rc,
+				sqlite3_errmsg(_widget_db));
+	}
 
 	return 0;
 }
@@ -377,7 +377,7 @@ static int __update_instance_info(struct _widget_instance *instance)
 	const char insert_query[] = "INSERT INTO widget_instance(widget_id, viewer_id, content_info, instance_id) VALUES(?,?,?,?)";
 	const char update_query[] = "UPDATE widget_instance SET content_info=? WHERE instance_id=?";
 	const char delete_query[] = "DELETE FROM widget_instance WHERE instance_id=?";
-        sqlite3_stmt* p_statement;
+	sqlite3_stmt* p_statement;
 	struct widget_app  *app = NULL;
 	char *content = NULL;
 	int content_len = 0;
@@ -406,21 +406,21 @@ static int __update_instance_info(struct _widget_instance *instance)
 	if (instance->stored) {
 		if (instance->status == WIDGET_INSTANCE_DELETED) {
 			rc = sqlite3_prepare_v2(_widget_db, delete_query, strlen(delete_query),
-				&p_statement, NULL);
+					&p_statement, NULL);
 			if (rc != SQLITE_OK) {
 				_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-					sqlite3_errmsg(_widget_db));
+						sqlite3_errmsg(_widget_db));
 				goto cleanup;
 			}
 
 			sqlite3_bind_text(p_statement, 1, instance->id, -1, SQLITE_TRANSIENT);
 		} else {
 			rc = sqlite3_prepare_v2(_widget_db, update_query, strlen(update_query),
-				&p_statement, NULL);
+					&p_statement, NULL);
 
 			if (rc != SQLITE_OK) {
 				_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-					sqlite3_errmsg(_widget_db));
+						sqlite3_errmsg(_widget_db));
 				goto cleanup;
 			}
 
@@ -435,11 +435,11 @@ static int __update_instance_info(struct _widget_instance *instance)
 		}
 
 		rc = sqlite3_prepare_v2(_widget_db, insert_query, strlen(insert_query),
-			&p_statement, NULL);
+				&p_statement, NULL);
 
 		if (rc != SQLITE_OK) {
 			_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-				sqlite3_errmsg(_widget_db));
+					sqlite3_errmsg(_widget_db));
 			goto cleanup;
 		}
 
@@ -459,19 +459,19 @@ static int __update_instance_info(struct _widget_instance *instance)
 			instance->stored = 1;
 	}
 
-        if (rc != SQLITE_DONE) {
-                _E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-                   sqlite3_errmsg(_widget_db));
-        }
+	if (rc != SQLITE_DONE) {
+		_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
+				sqlite3_errmsg(_widget_db));
+	}
 
 cleanup:
 
 	if (p_statement) {
-	        rc = sqlite3_finalize(p_statement);
-        	if (rc != SQLITE_OK) {
-	                _E("Sqlite3 error [%d] : <%s> finalizing statement\n", rc,
-        	           sqlite3_errmsg(_widget_db));
-	        }
+		rc = sqlite3_finalize(p_statement);
+		if (rc != SQLITE_OK) {
+			_E("Sqlite3 error [%d] : <%s> finalizing statement\n", rc,
+					sqlite3_errmsg(_widget_db));
+		}
 	}
 
 	if (content) {
@@ -479,7 +479,7 @@ cleanup:
 		content = NULL;
 	}
 
-        return rc;
+	return rc;
 }
 
 EAPI int widget_instance_create(const char *widget_id, char **instance_id)
@@ -523,12 +523,10 @@ static int __send_aul_cmd(const char *widget_id, const char *instance_id, bundle
 		appid = widget_id;
 	}
 
-	if (b == NULL) {
+	if (b == NULL)
 		b = bundle_create();
-	}
 
 	bundle_add_str(b, WIDGET_K_INSTANCE, instance_id);
-
 	bundle_add_str(b, WIDGET_K_CLASS, classid);
 
 	aul_svc_set_loader_id(b, 1);
@@ -686,9 +684,9 @@ EAPI int widget_instance_foreach(const char *widget_id, widget_instance_foreach_
 			instances = app->instances;
 			while (instances) {
 				instance = instances->data;
-				if (instance && cb(instance, data) < 0) {
+				if (instance && cb(instance, data) < 0)
 					break;
-				}
+
 				instances = instances->next;
 			}
 		}
@@ -714,9 +712,9 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 
 	if (widget_id == NULL || instance_id == NULL || status == NULL) {
 		_E("undefined class or instance %s of %s", instance_id, widget_id);
-		if (status != NULL) {
+		if (status != NULL)
 			_E("cmd: %d", *status);
-		}
+
 		return 0;
 	}
 

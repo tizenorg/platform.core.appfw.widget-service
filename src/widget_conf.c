@@ -283,25 +283,22 @@ static void visibility_change_delay_handler(char *buffer)
 static void app_abi_handler(char *buffer)
 {
 	s_conf.app_abi = strdup(buffer);
-	if (!s_conf.app_abi) {
+	if (!s_conf.app_abi)
 		ErrPrint("strdup: %d\n", errno);
-	}
 }
 
 static void sdk_viewer_handler(char *buffer)
 {
 	s_conf.sdk_viewer = strdup(buffer);
-	if (!s_conf.sdk_viewer) {
+	if (!s_conf.sdk_viewer)
 		ErrPrint("strdup: %d\n", errno);
-	}
 }
 
 static void ee_key_for_update_handler(char *buffer)
 {
 	s_conf.ee_key_for_update = strdup(buffer);
-	if (!s_conf.ee_key_for_update) {
+	if (!s_conf.ee_key_for_update)
 		ErrPrint("strdup: %d\n", errno);
-	}
 }
 
 static void detect_fault_handler(char *buffer)
@@ -334,9 +331,8 @@ static void slave_auto_cache_flush_handler(char *buffer)
 
 static void frame_skip_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.frame_skip) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.frame_skip) != 1)
 		ErrPrint("Unable to get frame skip: %d\n", s_conf.frame_skip);
-	}
 }
 
 static void slave_limit_to_ttl_handler(char *buffer)
@@ -346,30 +342,26 @@ static void slave_limit_to_ttl_handler(char *buffer)
 
 static void event_filter_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.event_filter) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.event_filter) != 1)
 		ErrPrint("Unable to get event filter: %lf\n", s_conf.event_filter);
-	}
 }
 
 static void slave_event_boost_on_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.slave_event_boost_on) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.slave_event_boost_on) != 1)
 		ErrPrint("Unable to get boost on: %d\n", s_conf.slave_event_boost_on);
-	}
 }
 
 static void slave_event_boost_off_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.slave_event_boost_off) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.slave_event_boost_off) != 1)
 		ErrPrint("Unable to get boost on: %d\n", s_conf.slave_event_boost_off);
-	}
 }
 
 static void extra_buffer_count_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.extra_buffer_count) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.extra_buffer_count) != 1)
 		ErrPrint("Extra buffer count is not valid: [%s], remained %d\n", buffer, s_conf.extra_buffer_count);
-	}
 }
 
 static void use_xmonitor_handler(char *buffer)
@@ -380,9 +372,8 @@ static void use_xmonitor_handler(char *buffer)
 static void emergency_disk_handler(char *buffer)
 {
 	s_conf.emergency_disk = strdup(buffer);
-	if (!s_conf.emergency_disk) {
+	if (!s_conf.emergency_disk)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void check_lcd_handler(char *buffer)
@@ -408,9 +399,8 @@ static void auto_align_handler(char *buffer)
 static void services_handler(char *buffer)
 {
 	s_conf.services = strdup(buffer);
-	if (!s_conf.services) {
+	if (!s_conf.services)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void use_sw_backend_handler(char *buffer)
@@ -421,9 +411,8 @@ static void use_sw_backend_handler(char *buffer)
 static void provider_method_handler(char *buffer)
 {
 	s_conf.provider_method = strdup(buffer);
-	if (!s_conf.provider_method) {
+	if (!s_conf.provider_method)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void debug_mode_handler(char *buffer)
@@ -467,204 +456,186 @@ static void base_height_handler(char *buffer)
 
 static void minimum_period_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.minimum_period) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.minimum_period) != 1)
 		ErrPrint("Failed to parse the minimum_period\n");
-	}
+
 	DbgPrint("Minimum period: %lf\n", s_conf.minimum_period);
 }
 
 static void pixels_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.default_conf.pixels) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.default_conf.pixels) != 1)
 		ErrPrint("Failed to parse the minimum_period\n");
-	}
+
 	DbgPrint("Default pixels: %lf\n", s_conf.default_conf.pixels);
 }
 
 static void script_handler(char *buffer)
 {
 	s_conf.default_conf.script = strdup(buffer);
-	if (!s_conf.default_conf.script) {
+	if (!s_conf.default_conf.script)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void default_abi_handler(char *buffer)
 {
 	s_conf.default_conf.abi = strdup(buffer);
-	if (!s_conf.default_conf.abi) {
+	if (!s_conf.default_conf.abi)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void default_group_handler(char *buffer)
 {
 	s_conf.default_conf.gbar_group = strdup(buffer);
-	if (!s_conf.default_conf.gbar_group) {
+	if (!s_conf.default_conf.gbar_group)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void default_period_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.default_conf.period) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.default_conf.period) != 1)
 		ErrPrint("Failed to parse the default_period\n");
-	}
+
 	DbgPrint("Default Period: %lf\n", s_conf.default_conf.period);
 }
 
 static void default_packet_time_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.default_packet_time) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.default_packet_time) != 1)
 		ErrPrint("Failed to parse the default_packet_time\n");
-	}
+
 	DbgPrint("Default packet time: %lf\n", s_conf.default_packet_time);
 }
 
 static void default_content_handler(char *buffer)
 {
 	s_conf.default_content = strdup(buffer);
-	if (!s_conf.default_content) {
+	if (!s_conf.default_content)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void default_title_handler(char *buffer)
 {
 	s_conf.default_title = strdup(buffer);
-	if (!s_conf.default_title) {
+	if (!s_conf.default_title)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void minimum_space_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lu", &s_conf.minimum_space) != 1) {
+	if (sscanf(buffer, "%lu", &s_conf.minimum_space) != 1)
 		ErrPrint("Failed to parse the minimum_space\n");
-	}
 }
 
 static void replace_tag_handler(char *buffer)
 {
 	s_conf.replace_tag = strdup(buffer);
-	if (!s_conf.replace_tag) {
+	if (!s_conf.replace_tag)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void slave_ttl_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.slave_ttl) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.slave_ttl) != 1)
 		ErrPrint("Failed to parse the slave_ttl\n");
-	}
+
 	DbgPrint("Slave TTL: %lf\n", s_conf.slave_ttl);
 }
 
 static void slave_activate_time_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.slave_activate_time) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.slave_activate_time) != 1)
 		ErrPrint("Failed to parse the slave_activate_time\n");
-	}
+
 	DbgPrint("Slave activate time: %lf\n", s_conf.slave_activate_time);
 }
 
 static void slave_terminate_time_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.slave_terminate_time) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.slave_terminate_time) != 1)
 		ErrPrint("Failed to parse the slave_terminate_time\n");
-	}
+
 	DbgPrint("Slave terminate time: %lf\n", s_conf.slave_terminate_time);
 }
 
 static void slave_relaunch_time_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.slave_relaunch_time) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.slave_relaunch_time) != 1)
 		ErrPrint("Failed to parse the slave_relaunch_time\n");
-	}
+
 	DbgPrint("Slave relaunch time: %lf\n", s_conf.slave_relaunch_time);
 }
 
 static void slave_relaunch_count_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.slave_relaunch_count) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.slave_relaunch_count) != 1)
 		ErrPrint("Failed to parse the max_log_line\n");
-	}
 }
 
 static void max_log_line_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.max_log_line) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.max_log_line) != 1)
 		ErrPrint("Failed to parse the max_log_line\n");
-	}
 }
 
 static void max_log_file_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.max_log_file) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.max_log_file) != 1)
 		ErrPrint("Failed to parse the max_log_file\n");
-	}
 }
 
 static void sqlite_flush_max_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lu", &s_conf.sqlite_flush_max) != 1) {
+	if (sscanf(buffer, "%lu", &s_conf.sqlite_flush_max) != 1)
 		ErrPrint("Failed to parse the sqlite_flush_max\n");
-	}
 }
 
 static void db_path_handler(char *buffer)
 {
 	s_conf.path.db = strdup(buffer);
-	if (!s_conf.path.db) {
+	if (!s_conf.path.db)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void reader_path_handler(char *buffer)
 {
 	s_conf.path.reader = strdup(buffer);
-	if (!s_conf.path.reader) {
+	if (!s_conf.path.reader)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void always_path_handler(char *buffer)
 {
 	s_conf.path.always = strdup(buffer);
-	if (!s_conf.path.always) {
+	if (!s_conf.path.always)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void log_path_handler(char *buffer)
 {
 	s_conf.path.slave_log = strdup(buffer);
-	if (!s_conf.path.slave_log) {
+	if (!s_conf.path.slave_log)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void script_port_path_handler(char *buffer)
 {
 	s_conf.path.script_port = strdup(buffer);
-	if (!s_conf.path.script_port) {
+	if (!s_conf.path.script_port)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void share_path_handler(char *buffer)
 {
 	s_conf.path.image = strdup(buffer);
-	if (!s_conf.path.image) {
+	if (!s_conf.path.image)
 		ErrPrint("Heap: %d\n", errno);
-	}
 }
 
 static void click_region_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.click_region) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.click_region) != 1)
 		ErrPrint("Failed to parse the click_region\n");
-	}
 }
 
 static void force_to_terminate_handler(char *buffer)
@@ -770,28 +741,24 @@ static char *find_input_device_by_path(const char *name)
 		}
 
 		ret = ioctl(fd, EVIOCGNAME(sizeof(dev_name) - 1), &dev_name);
-		if (ret < 0) {
+		if (ret < 0)
 			ErrPrint("ioctl: %d\n", errno);
-		}
 
-		if (close(fd) < 0) {
+		if (close(fd) < 0)
 			ErrPrint("close: %d\n", errno);
-		}
 
 		if (ret == strlen(name) + 1 && !strcasecmp(name, dev_name)) {
 			return_path = strdup(path);
-			if (!return_path) {
+			if (!return_path)
 				ErrPrint("strdup: %d\n", errno);
-			}
 
 			DbgPrint("Found node: [%s]\n", return_path);
 			break;
 		}
 	}
 
-	if (closedir(dir) < 0) {
+	if (closedir(dir) < 0)
 		ErrPrint("closedir: %d\n", errno);
-	}
 
 	return return_path;
 }
@@ -838,9 +805,9 @@ static char *find_input_device(const char *name)
 				state = STATE_BEGIN;
 				if (idx > 0) {
 					/* Remove last double-quotes */
-					if (name_buffer[idx - 1] == '"') {
+					if (name_buffer[idx - 1] == '"')
 						idx--;
-					}
+
 					name_buffer[idx] = '\0';
 					idx = -1;
 					DbgPrint("Name: [%s]\n", name_buffer);
@@ -856,9 +823,8 @@ static char *find_input_device(const char *name)
 				break;
 			case STATE_BEGIN:
 				DbgPrint("name: [%s], name_buffer[%s]\n", name, name_buffer);
-				if (!strcasecmp(name, name_buffer)) {
+				if (!strcasecmp(name, name_buffer))
 					node = parse_handler(handler_buffer);
-				}
 				break;
 			default:
 				/* Ignore other attributes */
@@ -901,24 +867,22 @@ static char *find_input_device(const char *name)
 			}
 			break;
 		case STATE_NAME:
-			if (ch == '=') {
+			if (ch == '=')
 				idx = 0;
-			} else if (idx == MAX_LINE_BUFFER - 1) {
+			else if (idx == MAX_LINE_BUFFER - 1)
 				ErrPrint("Out of buffer\n");
-			} else if (idx == 0 && ch == '"') {
+			/* else if (idx == 0 && ch == '"') */
 				/* Ignore the first quotes */
-			} else if (idx >= 0) {
+			else if (idx >= 0)
 				name_buffer[idx++] = ch;
-			}
 			break;
 		case STATE_HANDLER:
-			if (ch == '=') {
+			if (ch == '=')
 				idx = 0;
-			} else if (idx == MAX_LINE_BUFFER - 1) {
+			else if (idx == MAX_LINE_BUFFER - 1)
 				ErrPrint("Out of buffer\n");
-			} else if (idx >= 0) {
+			else if (idx >= 0)
 				handler_buffer[idx++] = ch;
-			}
 			break;
 		case STATE_ID:
 		case STATE_PHYSICAL:
@@ -932,13 +896,11 @@ static char *find_input_device(const char *name)
 		}
 	}
 
-	if (state == STATE_ERROR) {
+	if (state == STATE_ERROR)
 		ErrPrint("Invalid state: ROW[%d] COL[%d]\n", row, col);
-	}
 
-	if (close(fd) < 0) {
+	if (close(fd) < 0)
 		ErrPrint("close: %d\n", errno);
-	}
 
 	return node;
 }
@@ -948,9 +910,8 @@ static void input_path_handler(char *buffer)
 	if (buffer[0] == '/' || !s_info.search_input_node) {
 		DbgPrint("Specifying the input device [%d]\n", s_info.search_input_node);
 		s_conf.path.input = strdup(buffer);
-		if (!s_conf.path.input) {
+		if (!s_conf.path.input)
 			ErrPrint("Heap: %d\n", errno);
-		}
 	} else {
 		DbgPrint("Find the input device (%s)\n", buffer);
 		s_conf.path.input = find_input_device_by_path(buffer);
@@ -960,9 +921,8 @@ static void input_path_handler(char *buffer)
 			if (!s_conf.path.input) {
 				ErrPrint("Fallback to raw string\n");
 				s_conf.path.input = strdup(buffer);
-				if (!s_conf.path.input) {
+				if (!s_conf.path.input)
 					ErrPrint("Heap: %d\n", errno);
-				}
 			}
 		}
 	}
@@ -970,33 +930,31 @@ static void input_path_handler(char *buffer)
 
 static void ping_time_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.ping_time) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.ping_time) != 1)
 		ErrPrint("Failed to parse the ping_time\n");
-	}
+
 	DbgPrint("Default ping time: %lf\n", s_conf.ping_time);
 }
 
 static void slave_max_loader(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.slave_max_load) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.slave_max_load) != 1)
 		ErrPrint("Failed to parse the slave_max_load\n");
-	}
 }
 
 static void premultiplied_handler(char *buffer)
 {
-	if (sscanf(buffer, "%d", &s_conf.premultiplied) != 1) {
+	if (sscanf(buffer, "%d", &s_conf.premultiplied) != 1)
 		ErrPrint("Failed to parse the premultiplied color\n");
-	}
 
 	DbgPrint("Premultiplied: %d\n", s_conf.premultiplied);
 }
 
 static void gbar_request_timeout_handler(char *buffer)
 {
-	if (sscanf(buffer, "%lf", &s_conf.gbar_request_timeout) != 1) {
+	if (sscanf(buffer, "%lf", &s_conf.gbar_request_timeout) != 1)
 		ErrPrint("Failed to parse the request_timeout\n");
-	}
+
 	DbgPrint("Default GBAR request timeout: %lf\n", s_conf.gbar_request_timeout);
 }
 
@@ -1191,11 +1149,10 @@ EAPI int widget_conf_parser(const char *conf_file, const widget_conf_parser_tabl
 			}
 			break;
 		case SPACE:
-			if (c == '=') {
+			if (c == '=')
 				state = VALUE;
-			} else if (!isspace(c)) {
+			else if (!isspace(c))
 				state = ERROR;
-			}
 			break;
 		case VALUE:
 			if (c == '"') {
@@ -1204,9 +1161,8 @@ EAPI int widget_conf_parser(const char *conf_file, const widget_conf_parser_tabl
 					state = END;
 				} else if (buffer_idx != 0) {
 					buffer[buffer_idx++] = c;
-					if (buffer_idx >= sizeof(buffer)) {
+					if (buffer_idx >= sizeof(buffer))
 						state = ERROR;
-					}
 				} else {
 					quote = 1;
 				}
@@ -1215,9 +1171,8 @@ EAPI int widget_conf_parser(const char *conf_file, const widget_conf_parser_tabl
 					/* Ignore */
 				} else if (quote == 1) {
 					buffer[buffer_idx++] = c;
-					if (buffer_idx >= sizeof(buffer)) {
+					if (buffer_idx >= sizeof(buffer))
 						state = ERROR;
-					}
 				} else {
 					buffer[buffer_idx] = '\0';
 					ungetc(c, fp);
@@ -1225,28 +1180,24 @@ EAPI int widget_conf_parser(const char *conf_file, const widget_conf_parser_tabl
 				}
 			} else {
 				buffer[buffer_idx++] = c;
-				if (buffer_idx >= sizeof(buffer)) {
+				if (buffer_idx >= sizeof(buffer))
 					state = ERROR;
-				}
 			}
 			break;
 		case TOKEN:
 			if (c == '=') {
-				if (token_idx < 0) {
+				if (token_idx < 0)
 					state = ERROR;
-				} else {
+				else
 					state = VALUE;
-				}
 			} else if (isspace(c)) {
-				if (token_idx < 0) {
+				if (token_idx < 0)
 					break;
-				}
 
-				if (token_handler[token_idx].name[ch_idx] != '\0') {
+				if (token_handler[token_idx].name[ch_idx] != '\0')
 					state = ERROR;
-				} else {
+				else
 					state = SPACE;
-				}
 			} else  {
 				if (token_idx < 0) {
 					/* Now start to find a token! */
@@ -1262,11 +1213,10 @@ EAPI int widget_conf_parser(const char *conf_file, const widget_conf_parser_tabl
 
 					token_idx++;
 
-					if (token_handler[token_idx].name == NULL) {
+					if (token_handler[token_idx].name == NULL)
 						state = ERROR;
-					} else {
+					else
 						ch_idx = 0;
-					}
 				}
 			}
 			break;
@@ -1309,9 +1259,8 @@ EAPI int widget_conf_parser(const char *conf_file, const widget_conf_parser_tabl
 		linelen++;
 	} while (c != EOF);
 
-	if (fclose(fp) != 0) {
+	if (fclose(fp) != 0)
 		ErrPrint("fclose: %d\n", errno);
-	}
 
 	return WIDGET_ERROR_NONE;
 }
@@ -1581,13 +1530,12 @@ EAPI int widget_conf_load(void)
 	}
 
 
-//	util_screen_size_get(&s_conf.width, &s_conf.height);
+	/* util_screen_size_get(&s_conf.width, &s_conf.height); */
 
 
 	conf_file = conf_path();
-	if (!conf_file) {
+	if (!conf_file)
 		return WIDGET_ERROR_IO_ERROR;
-	}
 
 	ret = widget_conf_parser(conf_file, token_handler);
 	free(conf_file);
