@@ -24,6 +24,7 @@ pkg_check_modules(pkgs REQUIRED
 	bundle
 	capi-base-common
 	capi-system-info
+	capi-appfw-app-common
 	aul
 	libtzplatform-config
 	uuid

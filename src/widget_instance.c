@@ -27,16 +27,20 @@
 #include <sys/types.h>
 #include <glib.h>
 #include <sqlite3.h>
-#include <tzplatform_config.h>
 #include <aul.h>
 #include <aul_svc.h>
 #include <aul_app_com.h>
 #include <widget_service.h>
+#include <app.h>
 
 #define USER_UID_MIN 5000
 #define MAX_INSTANCE_ID_LEN 256
 #define WIDGET_CLASS_DELIMITER "@"
 #define QUERY_MAX_LEN 8192
+
+#ifndef TIZEN_PATH_MAX
+#define TIZEN_PATH_MAX 1024
+#endif
 
 enum {
 	WIDGET_INSTANCE_CREATED,
@@ -81,36 +85,26 @@ static aul_app_com_connection_h conn = NULL;
 	"instance_id text, " \
 	"PRIMARY KEY(instance_id)) "
 
-static const char *__get_widget_db(uid_t uid)
-{
-	const char *widget_db = NULL;
-
-	if (uid >= USER_UID_MIN) {
-		tzplatform_set_user(uid);
-		widget_db = tzplatform_mkpath(TZ_USER_DB, ".widget_instance.db");
-		tzplatform_reset_user();
-	} else {
-		_E("Fail to get widget db. only regular user has widget db");
-		return NULL;
-	}
-
-	_E("%s", widget_db);
-
-	return widget_db;
-}
-
 static int __init(bool readonly)
 {
 	int rc;
-
-	uid_t uid = getuid();
+	char db_path[TIZEN_PATH_MAX];
+	char *app_path = NULL;
 
 	if (_widget_db) {
 		_D("already initialized");
 		return 0;
 	}
 
-	rc = sqlite3_open_v2(__get_widget_db(uid), &_widget_db,
+	app_path = app_get_data_path();
+	if (!app_path) {
+		_D("failed to get app path");
+		return 0;
+	}
+
+	snprintf(db_path, sizeof(db_path), "%s/%s", app_path, ".widget_instance.db");
+
+	rc = sqlite3_open_v2(db_path, &_widget_db,
 			readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
 	if (rc != SQLITE_OK) {
 		_E("Can't open database: %d, %s, extended: %d", rc, sqlite3_errmsg(_widget_db),
