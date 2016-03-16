@@ -262,6 +262,9 @@ static int _get_widget_supported_sizes(const char *widget_id, int *cnt,
 
 EAPI int widget_service_change_period(const char *pkgname, const char *id, double period)
 {
+	widget_instance_h instance;
+	int ret;
+
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
 		return WIDGET_ERROR_NOT_SUPPORTED;
@@ -271,9 +274,6 @@ EAPI int widget_service_change_period(const char *pkgname, const char *id, doubl
 		_E("invalid parameter");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
-
-	widget_instance_h instance;
-	int ret;
 
 	instance = widget_instance_get_instance(pkgname, id);
 
@@ -291,18 +291,18 @@ EAPI int widget_service_change_period(const char *pkgname, const char *id, doubl
 
 EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bundle *b, int force)
 {
+	widget_instance_h instance;
+	int ret;
+
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
 
-	if (!widget_id || !id || !b) {
+	if (!widget_id) {
 		_E("invalid parameter");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
-
-	widget_instance_h instance;
-	int ret;
 
 	instance = widget_instance_get_instance(widget_id, id);
 	if (!instance) {
@@ -1186,7 +1186,7 @@ EAPI int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_lif
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
 
-	if (widget_id == NULL || cb == NULL) {
+	if (cb == NULL) {
 		_E("invalid parameter");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
@@ -1204,12 +1204,6 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 		_E("not supported");
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
-
-	if (widget_id == NULL) {
-		_E("invalid parameter");
-		return WIDGET_ERROR_INVALID_PARAMETER;
-	}
-
 	/* TODO */
 
 	return ret;

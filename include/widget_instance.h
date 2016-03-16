@@ -35,6 +35,7 @@ extern "C" {
 #define WIDGET_K_WIDTH		"__WIDGET_WIDTH__"
 #define WIDGET_K_HEIGHT		"__WIDGET_HEIGHT__"
 #define WIDGET_K_REASON		"__WIDGET_REASON__"
+#define WIDGET_K_PERIOD		"__WIDGET_PERIOD__"
 
 typedef enum widget_instance_event {
 	WIDGET_INSTANCE_EVENT_CREATE = 0,

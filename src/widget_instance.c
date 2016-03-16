@@ -845,12 +845,66 @@ EAPI int widget_instance_get_period(widget_instance_h instance, double *period)
 
 EAPI int widget_instance_change_period(widget_instance_h instance, double period)
 {
-	return 0;
+	int ret;
+	bundle *b;
+
+	if (!instance)
+		return -1;
+
+	b = bundle_create();
+	if (!b) {
+		_E("out of memory");
+		return -1;
+	}
+
+	bundle_add_str(b, WIDGET_K_OPERATION, "period");
+	bundle_add_byte(b, WIDGET_K_PERIOD, &period, sizeof(double));
+
+	ret = __send_aul_cmd(instance->widget_id, instance->id, b);
+
+	bundle_free(b);
+
+	if (ret > 0) {
+		if (instance->pid != ret) {
+			_E("instance %s(%d) has been launched with different pid.");
+			instance->pid = ret;
+		}
+	}
+
+	return ret;
 }
 
 EAPI int widget_instance_trigger_update(widget_instance_h instance, bundle *b, int force)
 {
-	return 0;
+	int ret;
+	bundle *kb = b;
+
+	if (!instance)
+		return -1;
+
+	if (!kb) {
+		kb = bundle_create();
+		if (!kb) {
+			_E("out of memory");
+			return -1;
+		}
+	}
+
+	bundle_add_str(kb, WIDGET_K_OPERATION, "update");
+
+	ret = __send_aul_cmd(instance->widget_id, instance->id, kb);
+
+	if (!b)
+		bundle_free(kb);
+
+	if (ret > 0) {
+		if (instance->pid != ret) {
+			_E("instance %s(%d) has been launched with different pid.");
+			instance->pid = ret;
+		}
+	}
+
+	return ret;
 }
 
 EAPI widget_instance_h widget_instance_get_instance(const char *widget_id, const char *instance_id)
