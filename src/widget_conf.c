@@ -705,7 +705,8 @@ static char *parse_handler(const char *buffer)
 static char *find_input_device_by_path(const char *name)
 {
 	DIR *dir;
-	struct dirent *entry;
+	struct dirent entry;
+	struct dirent *result;
 	char path[PATH_MAX];
 	char *ptr;
 	int len;
@@ -725,13 +726,14 @@ static char *find_input_device_by_path(const char *name)
 	ptr = path + len;
 	len = PATH_MAX - len - 1;
 
-	while ((entry = readdir(dir))) {
-		if (entry->d_name[0] == '.' &&
-			(entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0'))) {
+	while ((readdir_r(dir, &entry, &result) == 0) && (result != NULL)) {
+		if (result->d_name[0] == '.' &&
+			(result->d_name[1] == '\0' 
+			|| (result->d_name[1] == '.' && result->d_name[2] == '\0'))) {
 			continue;
 		}
 
-		strncpy(ptr, entry->d_name, len);
+		strncpy(ptr, result->d_name, len);
 		ptr[len] = '\0';
 
 		fd = open(path, O_RDONLY);
