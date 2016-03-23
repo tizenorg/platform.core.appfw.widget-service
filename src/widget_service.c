@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/types.h>
 
+#include <glib.h>
 #include <sqlite3.h>
 
 #include <tzplatform_config.h>
@@ -32,6 +34,8 @@
 #include "widget_conf.h"
 #include "widget_instance.h"
 #include "widget_service.h"
+
+#define MAX_BUF_SIZE 4096
 
 static inline bool _is_widget_feature_enabled(void)
 {
@@ -54,10 +58,29 @@ static inline bool _is_widget_feature_enabled(void)
 	return feature;
 }
 
+#define ROOT_USER 0
+#define GLOBALAPP_USER tzplatform_getuid(TZ_SYS_GLOBALAPP_USER)
+static int _is_global(uid_t uid)
+{
+	if (uid == ROOT_USER || uid == GLOBALAPP_USER)
+		return 1;
+	else
+		return 0;
+}
+
 static const char *_get_db_path(uid_t uid)
 {
-	/* TODO: tizenglobalapp */
-	return tzplatform_mkpath(TZ_USER_DB, ".widget.db");
+	const char *path;
+
+	if (!_is_global(uid))
+		tzplatform_set_user(uid);
+
+	path = tzplatform_mkpath(_is_global(uid) ?
+			TZ_SYS_DB : TZ_USER_DB, ".widget.db");
+
+	tzplatform_reset_user();
+
+	return path;
 }
 
 static sqlite3 *_open_db(uid_t uid)
@@ -195,8 +218,8 @@ static int _convert_to_support_size_ratio(int width, int height, int *w, int *h)
 	return 0;
 }
 
-static int _get_widget_supported_sizes(const char *widget_id, int *cnt,
-		int **w, int **h)
+static int _get_widget_supported_sizes(const char *widget_id, uid_t uid,
+		int *cnt, int **w, int **h)
 {
 	static const char query[] =
 		"SELECT width, height FROM support_size WHERE classid=?";
@@ -208,7 +231,7 @@ static int _get_widget_supported_sizes(const char *widget_id, int *cnt,
 	int *width;
 	int *height;
 
-	db = _open_db(getuid());
+	db = _open_db(uid);
 	if (db == NULL)
 		return WIDGET_ERROR_IO_ERROR;
 
@@ -225,7 +248,6 @@ static int _get_widget_supported_sizes(const char *widget_id, int *cnt,
 		count++;
 
 	if (count == 0) {
-		_E("cannot find supported sizes for widget %s", widget_id);
 		sqlite3_finalize(stmt);
 		sqlite3_close_v2(db);
 		*cnt = 0;
@@ -317,15 +339,77 @@ EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bu
 	return ret;
 }
 
-EAPI int widget_service_get_widget_list(widget_list_cb cb, void *data)
+struct widget_list_item {
+	char *classid;
+	char *pkgid;
+	int is_prime;
+};
+
+static void __free_widget_list(gpointer data)
+{
+	struct widget_list_item *item = (struct widget_list_item *)data;
+
+	free(item->classid);
+	free(item->pkgid);
+	free(item);
+}
+
+static int _get_widget_list(const char *pkgid, uid_t uid, GList **list)
 {
 	static const char query[] =
 		"SELECT classid, pkgid FROM widget_class";
+	static const char query_where[] =
+		" WHERE pkgid = ?";
+	char query_buf[MAX_BUF_SIZE];
 	int ret;
+	int len;
 	sqlite3 *db;
 	sqlite3_stmt *stmt;
-	char *classid;
-	char *pkgid;
+	struct widget_list_item *item;
+
+	len = snprintf(query_buf, sizeof(query_buf), "%s", query);
+	if (pkgid != NULL)
+		strncat(query_buf, query_where, MAX_BUF_SIZE - len - 1);
+
+	db = _open_db(uid);
+	if (db == NULL)
+		return WIDGET_ERROR_IO_ERROR;
+
+	ret = sqlite3_prepare_v2(db, query_buf, strlen(query_buf), &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		_E("prepare error: %s", sqlite3_errmsg(db));
+		sqlite3_close_v2(db);
+		return WIDGET_ERROR_FAULT;
+	}
+
+	if (pkgid != NULL)
+		sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_STATIC);
+
+	while (sqlite3_step(stmt) == SQLITE_ROW) {
+		item = calloc(1, sizeof(struct widget_list_item));
+		if (item == NULL) {
+			_E("out of memory");
+			return WIDGET_ERROR_OUT_OF_MEMORY;
+		}
+
+		_get_column_str(stmt, 0, &item->classid);
+		_get_column_str(stmt, 1, &item->pkgid);
+
+		*list = g_list_append(*list, item);
+	}
+
+	sqlite3_finalize(stmt);
+	sqlite3_close_v2(db);
+
+	return WIDGET_ERROR_NONE;
+}
+
+EAPI int widget_service_get_widget_list(widget_list_cb cb, void *data)
+{
+	int ret;
+	GList *list = NULL;
+	GList *tmp;
+	struct widget_list_item *item;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -337,43 +421,31 @@ EAPI int widget_service_get_widget_list(widget_list_cb cb, void *data)
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	db = _open_db(getuid());
-	if (db == NULL)
-		return WIDGET_ERROR_IO_ERROR;
+	ret = _get_widget_list(NULL, getuid(), &list);
+	if (ret == WIDGET_ERROR_NONE)
+		ret = _get_widget_list(NULL, GLOBALAPP_USER, &list);
 
-	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		_E("prepare error: %s", sqlite3_errmsg(db));
-		sqlite3_close_v2(db);
-		return WIDGET_ERROR_FAULT;
-	}
-
-	while (sqlite3_step(stmt) == SQLITE_ROW) {
-		_get_column_str(stmt, 0, &classid);
-		_get_column_str(stmt, 0, &pkgid);
+	for (tmp = list; tmp; tmp = tmp->next) {
+		item = (struct widget_list_item *)tmp->data;
 		/* TODO: get 'is_prime' */
-		ret = cb(pkgid, classid, 0, data);
-		free(classid);
-		free(pkgid);
-		if (ret != WIDGET_ERROR_NONE)
+		if (cb(item->pkgid, item->classid, item->is_prime, data)
+				!= WIDGET_ERROR_NONE)
 			break;
 	}
 
-	sqlite3_finalize(stmt);
-	sqlite3_close_v2(db);
+	ret = g_list_length(list);
+	g_list_free_full(list, __free_widget_list);
 
-	return WIDGET_ERROR_NONE;
+	return ret;
 }
 
 EAPI int widget_service_get_widget_list_by_pkgid(const char *pkgid,
 		widget_list_by_pkgid_cb cb, void *data)
 {
-	static const char query[] =
-		"SELECT classid FROM widget_class WHERE pkgid=?";
 	int ret;
-	sqlite3 *db;
-	sqlite3_stmt *stmt;
-	char *classid;
+	GList *list = NULL;
+	GList *tmp;
+	struct widget_list_item *item;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -385,35 +457,25 @@ EAPI int widget_service_get_widget_list_by_pkgid(const char *pkgid,
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	db = _open_db(getuid());
-	if (db == NULL)
-		return WIDGET_ERROR_IO_ERROR;
+	ret = _get_widget_list(pkgid, getuid(), &list);
+	if (ret == WIDGET_ERROR_NONE)
+		ret = _get_widget_list(pkgid, GLOBALAPP_USER, &list);
 
-	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		_E("prepare error: %s", sqlite3_errmsg(db));
-		sqlite3_close_v2(db);
-		return WIDGET_ERROR_FAULT;
-	}
-
-	sqlite3_bind_text(stmt, 1, pkgid, -1, SQLITE_STATIC);
-
-	while (sqlite3_step(stmt) == SQLITE_ROW) {
-		_get_column_str(stmt, 0, &classid);
+	for (tmp = list; tmp; tmp = tmp->next) {
+		item = (struct widget_list_item *)tmp->data;
 		/* TODO: get 'is_prime' */
-		ret = cb(classid, 0, data);
-		free(classid);
-		if (ret != WIDGET_ERROR_NONE)
+		if (cb(item->classid, item->is_prime, data)
+				!= WIDGET_ERROR_NONE)
 			break;
 	}
 
-	sqlite3_finalize(stmt);
-	sqlite3_close_v2(db);
+	ret = g_list_length(list);
+	g_list_free_full(list, __free_widget_list);
 
-	return WIDGET_ERROR_NONE;
+	return ret;
 }
 
-EAPI char *widget_service_get_main_app_id(const char *widget_id)
+static char *_get_main_app_id(const char *widget_id, uid_t uid)
 {
 	static const char query[] =
 		"SELECT pkgid FROM widget_class WHERE classid=?";
@@ -425,19 +487,7 @@ EAPI char *widget_service_get_main_app_id(const char *widget_id)
 	char *mainappid;
 	char *appid;
 
-	if (!_is_widget_feature_enabled()) {
-		_E("not supported");
-		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
-		return NULL;
-	}
-
-	if (widget_id == NULL) {
-		_E("invalid parameter");
-		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-		return NULL;
-	}
-
-	db = _open_db(getuid());
+	db = _open_db(uid);
 	if (db == NULL) {
 		set_last_result(WIDGET_ERROR_IO_ERROR);
 		return NULL;
@@ -492,6 +542,29 @@ EAPI char *widget_service_get_main_app_id(const char *widget_id)
 	return appid;
 }
 
+EAPI char *widget_service_get_main_app_id(const char *widget_id)
+{
+	char *appid;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
+	if (widget_id == NULL) {
+		_E("invalid parameter");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	appid = _get_main_app_id(widget_id, getuid());
+	if (appid == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
+		appid = _get_main_app_id(widget_id, GLOBALAPP_USER);
+
+	return appid;
+}
+
 EAPI int widget_service_get_supported_size_types(const char *widget_id,
 		int *cnt, int **types)
 {
@@ -511,8 +584,14 @@ EAPI int widget_service_get_supported_size_types(const char *widget_id,
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	ret = _get_widget_supported_sizes(widget_id, cnt, &width, &height);
+	ret = _get_widget_supported_sizes(widget_id, getuid(), cnt,
+			&width, &height);
+	if (ret == WIDGET_ERROR_NOT_EXIST)
+		ret = _get_widget_supported_sizes(widget_id, GLOBALAPP_USER,
+				cnt, &width, &height);
+
 	if (ret == WIDGET_ERROR_NOT_EXIST) {
+		_E("cannot find supported sizes for widget %s", widget_id);
 		*types = NULL;
 		return WIDGET_ERROR_NONE;
 	} else if (ret != WIDGET_ERROR_NONE) {
@@ -529,13 +608,13 @@ EAPI int widget_service_get_supported_size_types(const char *widget_id,
 
 	for (i = 0; i < (*cnt); i++) {
 		if (_get_supported_size_type(width[i], height[i], &type)) {
-			free(types);
+			free(*types);
 			free(width);
 			free(height);
 			return WIDGET_ERROR_NOT_SUPPORTED;
 		}
 
-		*types[i] = type;
+		(*types)[i] = type;
 	}
 
 	free(width);
@@ -544,7 +623,7 @@ EAPI int widget_service_get_supported_size_types(const char *widget_id,
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI char *widget_service_get_app_id_of_setup_app(const char *widget_id)
+static char *_get_app_id_of_setup_app(const char *widget_id, uid_t uid)
 {
 	static const char query[] =
 		"SELECT setup_appid FROM widget_class WHERE classid=?";
@@ -553,19 +632,7 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widget_id)
 	sqlite3_stmt *stmt;
 	char *appid;
 
-	if (!_is_widget_feature_enabled()) {
-		_E("not supported");
-		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
-		return NULL;
-	}
-
-	if (widget_id == NULL) {
-		_E("invalid parameter");
-		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-		return NULL;
-	}
-
-	db = _open_db(getuid());
+	db = _open_db(uid);
 	if (db == NULL) {
 		set_last_result(WIDGET_ERROR_IO_ERROR);
 		return NULL;
@@ -602,7 +669,30 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widget_id)
 	return appid;
 }
 
-EAPI int widget_service_get_nodisplay(const char *widget_id)
+EAPI char *widget_service_get_app_id_of_setup_app(const char *widget_id)
+{
+	char *appid;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
+	if (widget_id == NULL) {
+		_E("invalid parameter");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	appid = _get_app_id_of_setup_app(widget_id, getuid());
+	if (appid == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
+		appid = _get_app_id_of_setup_app(widget_id, GLOBALAPP_USER);
+
+	return appid;
+}
+
+static bool _get_nodisplay(const char *widget_id, uid_t uid)
 {
 	static const char query[] =
 		"SELECT appid FROM widget_class WHERE classid=?";
@@ -613,21 +703,10 @@ EAPI int widget_service_get_nodisplay(const char *widget_id)
 	pkgmgrinfo_appinfo_h appinfo;
 	bool nodisplay;
 
-	if (!_is_widget_feature_enabled()) {
-		_E("not supported");
-		return WIDGET_ERROR_NOT_SUPPORTED;
-	}
-
-	if (widget_id == NULL) {
-		_E("invalid parameter");
-		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-		return 0;
-	}
-
-	db = _open_db(getuid());
+	db = _open_db(uid);
 	if (db == NULL) {
 		set_last_result(WIDGET_ERROR_IO_ERROR);
-		return 0;
+		return false;
 	}
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
@@ -635,7 +714,7 @@ EAPI int widget_service_get_nodisplay(const char *widget_id)
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		set_last_result(WIDGET_ERROR_FAULT);
-		return 0;
+		return false;
 	}
 
 	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
@@ -648,7 +727,7 @@ EAPI int widget_service_get_nodisplay(const char *widget_id)
 		/* TODO: which error should be set? */
 		set_last_result(ret == SQLITE_DONE ? WIDGET_ERROR_NOT_EXIST :
 				WIDGET_ERROR_FAULT);
-		return 0;
+		return false;
 	}
 
 	_get_column_str(stmt, 0, &appid);
@@ -660,7 +739,7 @@ EAPI int widget_service_get_nodisplay(const char *widget_id)
 	free(appid);
 	if (ret != PMINFO_R_OK) {
 		set_last_result(WIDGET_ERROR_FAULT);
-		return 0;
+		return false;
 	}
 
 	ret = pkgmgrinfo_appinfo_is_nodisplay(appinfo, &nodisplay);
@@ -668,10 +747,34 @@ EAPI int widget_service_get_nodisplay(const char *widget_id)
 	if (ret != PMINFO_R_OK) {
 		_E("failed to get nodisplay of widget %s", widget_id);
 		set_last_result(WIDGET_ERROR_FAULT);
-		return 0;
+		return false;
 	}
 
 	set_last_result(WIDGET_ERROR_NONE);
+
+	return nodisplay;
+}
+
+EAPI int widget_service_get_nodisplay(const char *widget_id)
+{
+	bool nodisplay;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return 0;
+	}
+
+	if (widget_id == NULL) {
+		_E("invalid parameter");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return 0;
+	}
+
+	nodisplay = _get_nodisplay(widget_id, getuid());
+	if (get_last_result() == WIDGET_ERROR_NOT_EXIST)
+		nodisplay = _get_nodisplay(widget_id, GLOBALAPP_USER);
+
 	return (int)nodisplay;
 }
 
@@ -728,8 +831,8 @@ EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_t
 	return WIDGET_ERROR_NONE;
 }
 
-EAPI char *widget_service_get_preview_image_path(const char *widget_id,
-		widget_size_type_e size_type)
+static char *_get_preview_image_path(const char *widget_id, int width,
+		int height, uid_t uid)
 {
 	static const char query[] =
 		"SELECT preview FROM support_size WHERE "
@@ -737,11 +840,55 @@ EAPI char *widget_service_get_preview_image_path(const char *widget_id,
 	int ret;
 	sqlite3 *db;
 	sqlite3_stmt *stmt;
+	char *path;
+
+	db = _open_db(uid);
+	if (db == NULL) {
+		set_last_result(WIDGET_ERROR_IO_ERROR);
+		return NULL;
+	}
+
+	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		_E("prepare error: %s", sqlite3_errmsg(db));
+		sqlite3_close_v2(db);
+		set_last_result(WIDGET_ERROR_FAULT);
+		return NULL;
+	}
+
+	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
+	sqlite3_bind_int(stmt, 2, width);
+	sqlite3_bind_int(stmt, 3, height);
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		_E("step error: %s", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close_v2(db);
+		/* TODO: which error should be set? */
+		set_last_result(ret == SQLITE_DONE ? WIDGET_ERROR_NOT_EXIST :
+				WIDGET_ERROR_FAULT);
+		return NULL;
+	}
+
+	_get_column_str(stmt, 0, &path);
+
+	sqlite3_finalize(stmt);
+	sqlite3_close_v2(db);
+
+	set_last_result(WIDGET_ERROR_NONE);
+
+	return path;
+}
+
+EAPI char *widget_service_get_preview_image_path(const char *widget_id,
+		widget_size_type_e size_type)
+{
+	char *path;
 	int width = -1;
 	int height = -1;
 	int w = -1;
 	int h = -1;
-	char *path;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -766,46 +913,14 @@ EAPI char *widget_service_get_preview_image_path(const char *widget_id,
 		return NULL;
 	}
 
-	db = _open_db(getuid());
-	if (db == NULL) {
-		set_last_result(WIDGET_ERROR_IO_ERROR);
-		return NULL;
-	}
-
-	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		_E("prepare error: %s", sqlite3_errmsg(db));
-		sqlite3_close_v2(db);
-		set_last_result(WIDGET_ERROR_FAULT);
-		return NULL;
-	}
-
-	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
-	sqlite3_bind_int(stmt, 2, w);
-	sqlite3_bind_int(stmt, 3, h);
-
-	ret = sqlite3_step(stmt);
-	if (ret != SQLITE_ROW) {
-		_E("step error: %s", sqlite3_errmsg(db));
-		sqlite3_finalize(stmt);
-		sqlite3_close_v2(db);
-		/* TODO: which error should be set? */
-		set_last_result(ret == SQLITE_DONE ? WIDGET_ERROR_NOT_EXIST :
-				WIDGET_ERROR_FAULT);
-		return NULL;
-	}
-
-	_get_column_str(stmt, 0, &path);
-
-	sqlite3_finalize(stmt);
-	sqlite3_close_v2(db);
-
-	set_last_result(WIDGET_ERROR_NONE);
+	path = _get_preview_image_path(widget_id, w, h, getuid());
+	if (path == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
+		path = _get_preview_image_path(widget_id, w, h, GLOBALAPP_USER);
 
 	return path;
 }
 
-EAPI char *widget_service_get_icon(const char *widget_id, const char *lang)
+static char *_get_icon(const char *widget_id, const char *lang, uid_t uid)
 {
 	static const char query[] =
 		"SELECT icon FROM icon "
@@ -816,19 +931,7 @@ EAPI char *widget_service_get_icon(const char *widget_id, const char *lang)
 	sqlite3_stmt *stmt;
 	char *icon;
 
-	if (!_is_widget_feature_enabled()) {
-		_E("not supported");
-		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
-		return NULL;
-	}
-
-	if (widget_id == NULL) {
-		_E("invalid parameter");
-		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-		return NULL;
-	}
-
-	db = _open_db(getuid());
+	db = _open_db(uid);
 	if (db == NULL) {
 		set_last_result(WIDGET_ERROR_IO_ERROR);
 		return NULL;
@@ -872,16 +975,9 @@ EAPI char *widget_service_get_icon(const char *widget_id, const char *lang)
 	return icon;
 }
 
-EAPI char *widget_service_get_name(const char *widget_id, const char *lang)
+EAPI char *widget_service_get_icon(const char *widget_id, const char *lang)
 {
-	static const char query[] =
-		"SELECT label FROM label "
-		"WHERE classid=? AND (locale=? OR locale IS NULL) "
-		"ORDER BY locale DESC";
-	int ret;
-	sqlite3 *db;
-	sqlite3_stmt *stmt;
-	char *label;
+	char *icon;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -895,7 +991,25 @@ EAPI char *widget_service_get_name(const char *widget_id, const char *lang)
 		return NULL;
 	}
 
-	db = _open_db(getuid());
+	icon = _get_icon(widget_id, lang, getuid());
+	if (icon == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
+		icon = _get_icon(widget_id, lang, GLOBALAPP_USER);
+
+	return icon;
+}
+
+static char *_get_name(const char *widget_id, const char *lang, uid_t uid)
+{
+	static const char query[] =
+		"SELECT label FROM label "
+		"WHERE classid=? AND (locale=? OR locale IS NULL) "
+		"ORDER BY locale DESC";
+	int ret;
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	char *label;
+
+	db = _open_db(uid);
 	if (db == NULL) {
 		set_last_result(WIDGET_ERROR_IO_ERROR);
 		return NULL;
@@ -938,11 +1052,36 @@ EAPI char *widget_service_get_name(const char *widget_id, const char *lang)
 	set_last_result(WIDGET_ERROR_NONE);
 
 	return label;
+
+}
+
+EAPI char *widget_service_get_name(const char *widget_id, const char *lang)
+{
+	char *name;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
+	if (widget_id == NULL) {
+		_E("invalid parameter");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+	name = _get_name(widget_id, lang, getuid());
+	if (name == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
+		name = _get_name(widget_id, lang, GLOBALAPP_USER);
+
+	return name;
 }
 
 EAPI int widget_service_get_supported_sizes(const char *widget_id, int *cnt,
 		int **w, int **h)
 {
+	int ret;
+
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
 		return WIDGET_ERROR_NOT_SUPPORTED;
@@ -953,10 +1092,18 @@ EAPI int widget_service_get_supported_sizes(const char *widget_id, int *cnt,
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	return _get_widget_supported_sizes(widget_id, cnt, w, h);
+	ret = _get_widget_supported_sizes(widget_id, getuid(), cnt, w, h);
+	if (ret == WIDGET_ERROR_NOT_EXIST)
+		ret = _get_widget_supported_sizes(widget_id, GLOBALAPP_USER,
+				cnt, w, h);
+
+	if (ret == WIDGET_ERROR_NOT_EXIST)
+		_E("cannot find supported sizes for widget %s", widget_id);
+
+	return ret;
 }
 
-EAPI char *widget_service_get_widget_id(const char *appid)
+static char *_get_widget_id(const char *appid, uid_t uid)
 {
 	static const char query[] =
 		"SELECT classid FROM widget_class WHERE appid=?";
@@ -965,19 +1112,7 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	sqlite3_stmt *stmt;
 	char *classid;
 
-	if (!_is_widget_feature_enabled()) {
-		_E("not supported");
-		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
-		return NULL;
-	}
-
-	if (appid == NULL) {
-		_E("invalid parameter");
-		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-		return NULL;
-	}
-
-	db = _open_db(getuid());
+	db = _open_db(uid);
 	if (db == NULL) {
 		set_last_result(WIDGET_ERROR_IO_ERROR);
 		return NULL;
@@ -1014,7 +1149,30 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 	return classid;
 }
 
-EAPI char *widget_service_get_package_id(const char *widget_id)
+EAPI char *widget_service_get_widget_id(const char *appid)
+{
+	char *classid;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
+	if (appid == NULL) {
+		_E("invalid parameter");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	classid = _get_widget_id(appid, getuid());
+	if (classid == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
+		classid = _get_widget_id(appid, GLOBALAPP_USER);
+
+	return classid;
+}
+
+static char *_get_package_id(const char *widget_id, uid_t uid)
 {
 	static const char query[] =
 		"SELECT pkgid FROM widget_class WHERE classid=?";
@@ -1023,19 +1181,7 @@ EAPI char *widget_service_get_package_id(const char *widget_id)
 	sqlite3_stmt *stmt;
 	char *pkgid;
 
-	if (!_is_widget_feature_enabled()) {
-		_E("not supported");
-		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
-		return NULL;
-	}
-
-	if (widget_id == NULL) {
-		_E("invalid parameter");
-		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
-		return NULL;
-	}
-
-	db = _open_db(getuid());
+	db = _open_db(uid);
 	if (db == NULL) {
 		set_last_result(WIDGET_ERROR_IO_ERROR);
 		return NULL;
@@ -1068,6 +1214,29 @@ EAPI char *widget_service_get_package_id(const char *widget_id)
 	sqlite3_close_v2(db);
 
 	set_last_result(WIDGET_ERROR_NONE);
+
+	return pkgid;
+}
+
+EAPI char *widget_service_get_package_id(const char *widget_id)
+{
+	char *pkgid;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("not supported");
+		set_last_result(WIDGET_ERROR_NOT_SUPPORTED);
+		return NULL;
+	}
+
+	if (widget_id == NULL) {
+		_E("invalid parameter");
+		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	pkgid = _get_package_id(widget_id, getuid());
+	if (pkgid == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
+		pkgid = _get_package_id(widget_id, GLOBALAPP_USER);
 
 	return pkgid;
 }
