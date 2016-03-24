@@ -257,6 +257,12 @@ static int _parse_widget_application(xmlNode *node, GList **list)
 	if (val)
 		wc->update_period = atoi(val);
 
+	val = _get_attribute(node, "nodisplay");
+	if (val && strncmp(val, "true", strlen("true")) == 0)
+		wc->nodisplay = 1;
+	else
+		wc->nodisplay = 0;
+
 	wc->setup_appid = _get_attribute(node, "setup-appid");
 
 	for (tmp = node->children; tmp; tmp = tmp->next) {

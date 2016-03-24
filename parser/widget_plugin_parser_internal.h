@@ -39,6 +39,7 @@ struct widget_class {
 	int update_period;
 	char *setup_appid;
 	char *appid;
+	int nodisplay;
 	GList *support_size;
 	GList *label;
 	GList *icon;
