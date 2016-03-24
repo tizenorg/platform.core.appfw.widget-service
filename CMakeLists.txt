@@ -28,6 +28,7 @@ pkg_check_modules(pkgs REQUIRED
 	aul
 	libtzplatform-config
 	uuid
+	cynara-client
 )
 
 FOREACH(flag ${pkgs_CFLAGS})

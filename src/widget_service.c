@@ -28,6 +28,9 @@
 #include <pkgmgr-info.h>
 #include <system_info.h>
 #include <dlog.h>
+#include <cynara-client.h>
+#include <stdio.h>
+#include <fcntl.h>
 
 #include "widget_errno.h"
 #include "debug.h"
@@ -36,6 +39,7 @@
 #include "widget_service.h"
 
 #define MAX_BUF_SIZE 4096
+#define SMACK_LABEL_LEN 255
 
 static GList *lifecycle_cbs;
 
@@ -58,6 +62,58 @@ static inline bool _is_widget_feature_enabled(void)
 	retrieved = true;
 
 	return feature;
+}
+
+static int check_privilege(const char *privilege)
+{
+	cynara *p_cynara;
+
+	int fd = 0;
+	int ret = 0;
+
+	char subject_label[SMACK_LABEL_LEN + 1] = "";
+	char uid[10] = {0,};
+	char *client_session = "";
+
+	ret = cynara_initialize(&p_cynara, NULL);
+	if (ret != CYNARA_API_SUCCESS) {
+		LOGE("cannot init cynara [%d] failed!", ret);
+		ret = -1;
+		goto out;
+	}
+
+	fd = open("/proc/self/attr/current", O_RDONLY);
+	if (fd < 0) {
+		LOGE("open [%d] failed!", errno);
+		ret = -1;
+		goto out;
+	}
+
+	ret = read(fd, subject_label, SMACK_LABEL_LEN);
+	if (ret < 0) {
+		LOGE("read [%d] failed!", errno);
+		close(fd);
+		ret = -1;
+		goto out;
+	}
+	close(fd);
+
+	snprintf(uid, 10, "%d", getuid());
+
+	ret = cynara_check(p_cynara, subject_label, client_session, uid,
+				privilege);
+	if (ret != CYNARA_API_ACCESS_ALLOWED) {
+		LOGE("cynara access check [%d] failed!", ret);
+		ret = -1;
+		goto out;
+	}
+
+	ret = 0;
+out:
+	if (p_cynara)
+		cynara_finish(p_cynara);
+
+	return ret;
 }
 
 #define ROOT_USER 0
@@ -422,6 +478,9 @@ EAPI int widget_service_get_widget_list(widget_list_cb cb, void *data)
 		_E("invalid parameter");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
+
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
 
 	ret = _get_widget_list(NULL, getuid(), &list);
 	if (ret == WIDGET_ERROR_NONE)
