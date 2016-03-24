@@ -37,6 +37,8 @@
 
 #define MAX_BUF_SIZE 4096
 
+static GList *lifecycle_cbs;
+
 static inline bool _is_widget_feature_enabled(void)
 {
 	static bool feature = false;
@@ -1346,9 +1348,17 @@ EAPI int widget_service_get_widget_instance_list(const char *widget_id, widget_i
 	return ret < 0 ? (ret == -2 ? WIDGET_ERROR_PERMISSION_DENIED : WIDGET_ERROR_NOT_EXIST) : WIDGET_ERROR_NONE;
 }
 
+struct lifecycle_s {
+	char *widget_id;
+	widget_lifecycle_event_cb cb;
+	void *data;
+};
+
 EAPI int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_lifecycle_event_cb cb, void *data)
 {
 	int ret = WIDGET_ERROR_NONE;
+	struct lifecycle_s *cb_info;
+	GList *head = lifecycle_cbs;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -1360,20 +1370,75 @@ EAPI int widget_service_set_lifecycle_event_cb(const char *widget_id, widget_lif
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	/* TODO */
+	while (head) {
+		cb_info = (struct lifecycle_s *)head->data;
+		if (cb_info && widget_id && cb_info->widget_id) {
+			if (strncmp(cb_info->widget_id, widget_id, strlen(widget_id)) == 0)
+				return WIDGET_ERROR_INVALID_PARAMETER;
+
+		} else if (cb_info && widget_id == NULL && cb_info->widget_id == NULL) {
+			return WIDGET_ERROR_INVALID_PARAMETER;
+		}
+
+		head = head->next;
+	}
+
+	cb_info = (struct lifecycle_s *)malloc(sizeof(struct lifecycle_s));
+	if (cb_info == NULL)
+		return WIDGET_ERROR_OUT_OF_MEMORY;
+
+	if (widget_id)
+		cb_info->widget_id = strdup(widget_id);
+	else
+		cb_info->widget_id = NULL;
+
+	cb_info->cb = cb;
+	cb_info->data = data;
+
+	lifecycle_cbs = g_list_append(lifecycle_cbs, cb_info);
 
 	return ret;
 }
 
 EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **user_data)
 {
-	int ret = WIDGET_ERROR_NONE;
+	struct lifecycle_s *cb_info;
+	struct lifecycle_s *found = NULL;
+	GList *head = lifecycle_cbs;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
 		return WIDGET_ERROR_NOT_SUPPORTED;
 	}
-	/* TODO */
 
-	return ret;
+	while (head) {
+		cb_info = (struct lifecycle_s *)head->data;
+		if (cb_info && widget_id && cb_info->widget_id) {
+			if (strncmp(cb_info->widget_id, widget_id, strlen(widget_id)) == 0) {
+				found = cb_info;
+				break;
+			}
+		} else if (cb_info && widget_id == NULL && cb_info->widget_id == NULL) {
+			found = cb_info;
+			break;
+		}
+
+		head = head->next;
+	}
+
+	if (found) {
+		lifecycle_cbs = g_list_remove(lifecycle_cbs, found);
+		if (user_data)
+			*user_data = found->data;
+
+		if (found->widget_id)
+			free(found->widget_id);
+
+		free(found);
+
+		return WIDGET_ERROR_NONE;
+	}
+
+	return WIDGET_ERROR_NOT_EXIST;
 }
+
