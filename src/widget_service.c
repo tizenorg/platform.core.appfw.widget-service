@@ -694,16 +694,14 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widget_id)
 	return appid;
 }
 
-static bool _get_nodisplay(const char *widget_id, uid_t uid)
+static int _get_nodisplay(const char *widget_id, uid_t uid)
 {
 	static const char query[] =
-		"SELECT appid FROM widget_class WHERE classid=?";
+		"SELECT nodisplay FROM widget_class WHERE classid=?";
 	int ret;
 	sqlite3 *db;
 	sqlite3_stmt *stmt;
-	char *appid;
-	pkgmgrinfo_appinfo_h appinfo;
-	bool nodisplay;
+	int nodisplay = 0;
 
 	db = _open_db(uid);
 	if (db == NULL) {
@@ -732,25 +730,10 @@ static bool _get_nodisplay(const char *widget_id, uid_t uid)
 		return false;
 	}
 
-	_get_column_str(stmt, 0, &appid);
+	_get_column_int(stmt, 0, &nodisplay);
 
 	sqlite3_finalize(stmt);
 	sqlite3_close_v2(db);
-
-	ret = pkgmgrinfo_appinfo_get_usr_appinfo(appid, getuid(), &appinfo);
-	free(appid);
-	if (ret != PMINFO_R_OK) {
-		set_last_result(WIDGET_ERROR_FAULT);
-		return false;
-	}
-
-	ret = pkgmgrinfo_appinfo_is_nodisplay(appinfo, &nodisplay);
-	pkgmgrinfo_appinfo_destroy_appinfo(appinfo);
-	if (ret != PMINFO_R_OK) {
-		_E("failed to get nodisplay of widget %s", widget_id);
-		set_last_result(WIDGET_ERROR_FAULT);
-		return false;
-	}
 
 	set_last_result(WIDGET_ERROR_NONE);
 
@@ -759,7 +742,7 @@ static bool _get_nodisplay(const char *widget_id, uid_t uid)
 
 EAPI int widget_service_get_nodisplay(const char *widget_id)
 {
-	bool nodisplay;
+	int nodisplay;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -777,7 +760,7 @@ EAPI int widget_service_get_nodisplay(const char *widget_id)
 	if (get_last_result() == WIDGET_ERROR_NOT_EXIST)
 		nodisplay = _get_nodisplay(widget_id, GLOBALAPP_USER);
 
-	return (int)nodisplay;
+	return nodisplay;
 }
 
 /* deprecated, always return need_of_frame as false */

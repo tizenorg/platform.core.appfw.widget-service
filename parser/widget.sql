@@ -10,6 +10,7 @@ CREATE TABLE widget_class (
   setup_appid   TEXT,
   appid         TEXT NOT NULL,
   pkgid         TEXT NOT NULL,
+  nodisplay     INTEGER DEFAULT 0,
   PRIMARY KEY(classid)
 );
 
