@@ -78,6 +78,14 @@ static sqlite3 *_widget_db = NULL;
 static char *viewer_appid = NULL;
 static aul_app_com_connection_h conn = NULL;
 
+static GHashTable *lifecycle_tbl;
+static int is_update_hook_registered;
+
+struct lifecycle_local_s {
+	char *widget_id;
+	int (*cb)(const char *, const char *, int, void *);
+	void *data;
+};
 
 #define QUERY_CREATE_TABLE_WIDGET \
 	"create table if not exists widget_instance" \
@@ -85,6 +93,7 @@ static aul_app_com_connection_h conn = NULL;
 	"viewer_id text, " \
 	"content_info text, " \
 	"instance_id text, " \
+	"status integer, " \
 	"PRIMARY KEY(instance_id)) "
 
 static int __init(bool readonly)
@@ -371,8 +380,8 @@ static int __load_instance_list()
 static int __update_instance_info(struct _widget_instance *instance)
 {
 	int rc = 0;
-	const char insert_query[] = "INSERT INTO widget_instance(widget_id, viewer_id, content_info, instance_id) VALUES(?,?,?,?)";
-	const char update_query[] = "UPDATE widget_instance SET content_info=? WHERE instance_id=?";
+	const char insert_query[] = "INSERT INTO widget_instance(widget_id, viewer_id, content_info, instance_id, status) VALUES(?,?,?,?,?)";
+	const char update_query[] = "UPDATE widget_instance SET content_info=? status=? WHERE instance_id=?";
 	const char delete_query[] = "DELETE FROM widget_instance WHERE instance_id=?";
 	sqlite3_stmt* p_statement;
 	struct widget_app  *app = NULL;
@@ -422,7 +431,8 @@ static int __update_instance_info(struct _widget_instance *instance)
 			}
 
 			sqlite3_bind_text(p_statement, 1, content, -1, SQLITE_TRANSIENT);
-			sqlite3_bind_text(p_statement, 2, instance->id, -1, SQLITE_TRANSIENT);
+			sqlite3_bind_int(p_statement, 2, instance->status);
+			sqlite3_bind_text(p_statement, 3, instance->id, -1, SQLITE_TRANSIENT);
 		}
 	} else {
 		app = __pick_app(instance->widget_id);
@@ -444,6 +454,7 @@ static int __update_instance_info(struct _widget_instance *instance)
 		sqlite3_bind_text(p_statement, 2, app->viewer_id, -1, SQLITE_TRANSIENT);
 		sqlite3_bind_text(p_statement, 3, content, -1, SQLITE_TRANSIENT);
 		sqlite3_bind_text(p_statement, 4, instance->id, -1, SQLITE_TRANSIENT);
+		sqlite3_bind_int(p_statement, 5, instance->status);
 	}
 
 	rc = sqlite3_step(p_statement);
@@ -972,4 +983,105 @@ EAPI widget_instance_h widget_instance_ref(widget_instance_h instance)
 	return instance;
 }
 
+static void __update_cb(void *data, int action, char const *db_name, char const *table_name, sqlite_int64 rowid)
+{
+	char *buf;
+	int ret;
+	sqlite3_stmt* p_statement;
+	char *widget_id;
+	char *instance_id;
+	int status;
+	struct lifecycle_local_s *cb_info;
 
+	buf = sqlite3_mprintf("SELECT widget_id, instance_id, status FROM widget_instance WHERE rowid='%lld';", rowid);
+	if (buf == NULL)
+		return;
+
+	ret = sqlite3_prepare_v2(_widget_db, buf, strlen(buf), &p_statement, NULL);
+	if (ret != SQLITE_OK) {
+		_E("sqlite3 error [%d] : <%s> executing statement\n", ret, sqlite3_errmsg(_widget_db));
+		return;
+	}
+
+	ret = sqlite3_step(p_statement);
+	if (ret != SQLITE_ROW) {
+		_E("step error: %s", sqlite3_errmsg(_widget_db));
+		sqlite3_finalize(p_statement);
+		return;
+	}
+
+	widget_id = (char *)sqlite3_column_text(p_statement, 0);
+	instance_id = (char *)sqlite3_column_text(p_statement, 1);
+	status = sqlite3_column_int(p_statement, 2);
+
+	cb_info = (struct lifecycle_local_s *)g_hash_table_lookup(lifecycle_tbl, "NULL");
+	if (cb_info)
+		cb_info->cb(widget_id, instance_id, status, cb_info->data);
+
+	cb_info = (struct lifecycle_local_s *)g_hash_table_lookup(lifecycle_tbl, widget_id);
+	if (cb_info)
+		cb_info->cb(widget_id, instance_id, status, cb_info->data);
+
+	ret = sqlite3_finalize(p_statement);
+	if (ret != SQLITE_OK)
+		_E("sqlite3 error [%d] : <%s> finalize", ret, sqlite3_errmsg(_widget_db));
+
+	return;
+}
+
+/* within package only */
+EAPI int widget_instance_listen_status(const char *widget_id, int (*cb)(const char *widget_id, const char *instance_id, int status, void *data), void *data)
+{
+	struct lifecycle_local_s *cb_info;
+
+	if (!widget_id)
+		widget_id = "NULL"; /* listen all widget */
+
+	cb_info = (struct lifecycle_local_s *)malloc(sizeof(struct lifecycle_local_s));
+	if (!cb_info) {
+		_E("out of memory");
+		return -1;
+	}
+
+	cb_info->widget_id = strdup(widget_id);
+	cb_info->cb = cb;
+	cb_info->data = data;
+	if (!lifecycle_tbl) {
+		lifecycle_tbl = g_hash_table_new(g_str_hash, g_str_equal);
+		if (!lifecycle_tbl) {
+			free(cb_info);
+			return -1;
+		}
+	}
+
+	g_hash_table_insert(lifecycle_tbl, cb_info->widget_id, cb_info);
+
+	if (!is_update_hook_registered) {
+		if (!__init(true)) {
+			sqlite3_update_hook(_widget_db, _update_cb, NULL);
+			is_update_hook_registered = 1;
+		} else {
+			_E("failed to register update hook");
+		}
+	}
+
+	return 0;
+}
+
+EAPI  int widget_instance_unlisten_status(const char *widget_id)
+{
+	struct lifecycle_local_s *cb_info;
+
+	if (!widget_id)
+		widget_id = "NULL";
+
+	cb_info = (struct lifecycle_local_s *)g_hash_table_lookup(lifecycle_tbl, widget_id);
+	if (!cb_info)
+		return -1;
+
+	g_hash_table_remove(lifecycle_tbl, widget_id);
+	free(cb_info->widget_id);
+	free(cb_info);
+
+	return 0;
+}

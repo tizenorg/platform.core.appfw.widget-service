@@ -72,7 +72,8 @@ void widget_instance_unref(widget_instance_h instance);
 widget_instance_h widget_instance_ref(widget_instance_h instance);
 int widget_instance_change_period(widget_instance_h instance, double period);
 int widget_instance_trigger_update(widget_instance_h instance, bundle *b, int force);
-int widget_instance_listen_status(const char *widget_id, int (*cb)(const char *widget_id, int status, const char *instance_id, void *data), void *data);
+int widget_instance_listen_status(const char *widget_id, int (*cb)(const char *widget_id, const char *instance_id, int status, void *data), void *data);
+int widget_instance_unlisten_status(const char *widget_id);
 
 #ifdef __cplusplus
 }
