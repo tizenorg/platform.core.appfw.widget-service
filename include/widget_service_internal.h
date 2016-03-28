@@ -750,7 +750,7 @@ extern int widget_service_get_widget_max_count(const char *widget_id);
 
 /**
  * @brief Getting the auto_align option
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  * @param[in] widget_id widget application id
  * @return state of auto_align mode. 1 if it is turned on or 0 if it is turned off. otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter
