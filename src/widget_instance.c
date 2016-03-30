@@ -620,6 +620,7 @@ EAPI int widget_instance_launch(const char *widget_id, const char *instance_id, 
 
 	snprintf(pid_buf, sizeof(pid_buf), "%d", getpid());
 	bundle_add_str(b, WIDGET_K_CALLER, pid_buf);
+	bundle_add_str(b, WIDGET_K_ENDPOINT, viewer_appid);
 	bundle_add_str(b, AUL_K_WAYLAND_DISPLAY, wayland_display);
 	bundle_add_str(b, AUL_K_WAYLAND_WORKING_DIR, xdg_runtime_dir);
 	bundle_add_str(b, WIDGET_K_OPERATION, "create");
@@ -723,6 +724,8 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 
 		return 0;
 	}
+
+	_D("update status %s on %s", instance_id, status);
 
 	instance = __pick_instance(widget_id, instance_id);
 
