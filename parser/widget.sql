@@ -1,5 +1,5 @@
 PRAGMA user_version = 30; /* Tizen 3.0 */
-PRAGMA journal_mode = PERSIST;
+PRAGMA journal_mode = WAL;
 PRAGMA foreign_keys = ON;
 
 BEGIN EXCLUSIVE TRANSACTION;
