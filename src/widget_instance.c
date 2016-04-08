@@ -205,8 +205,8 @@ static struct widget_app *__add_app(const char *widget_id, const char *viewer_id
 		return NULL;
 	}
 
-	app->viewer_id = g_strdup(viewer_id);
-	app->widget_id = g_strdup(widget_id);
+	app->viewer_id = strdup(viewer_id);
+	app->widget_id = strdup(widget_id);
 	app->instances = NULL;
 
 	_widget_apps = g_list_append(_widget_apps, app);
@@ -214,7 +214,7 @@ static struct widget_app *__add_app(const char *widget_id, const char *viewer_id
 	return app;
 }
 
-static const char *__create_instance_id(const char *widget_id)
+static char *__create_instance_id(const char *widget_id)
 {
 	char uuid[37];
 	char instance_id[MAX_INSTANCE_ID_LEN];
@@ -239,7 +239,7 @@ static const char *__create_instance_id(const char *widget_id)
 
 	_D("new instance: %s", instance_id);
 
-	return g_strdup(instance_id);
+	return strdup(instance_id);
 }
 
 static struct _widget_instance *__add_instance(const char *id, const char *widget_id)
@@ -254,10 +254,10 @@ static struct _widget_instance *__add_instance(const char *id, const char *widge
 	}
 
 	instance->status = WIDGET_INSTANCE_CREATED;
-	instance->id = (char *)id;
+	instance->id = strdup(id);
 	instance->pid = 0;
 	instance->stored = 0;
-	instance->widget_id = g_strdup(widget_id);
+	instance->widget_id = strdup(widget_id);
 	instance->content_info = NULL;
 	instance->ref = 0;
 
@@ -341,6 +341,7 @@ static int __load_instance_list()
 
 	sqlite3_bind_text(p_statement, 1, viewer_appid, -1, SQLITE_TRANSIENT);
 
+
 	while (sqlite3_step(p_statement) == SQLITE_ROW) {
 		widget_id = (char *)sqlite3_column_text(p_statement, 0);
 		content_info = (char *)sqlite3_column_text(p_statement, 1);
@@ -360,6 +361,8 @@ static int __load_instance_list()
 			_E("failed to add instance: %s", instance_id);
 			continue;
 		}
+
+		_D("added %s, %d", instance_id, content_info);
 
 		instance->content_info = bundle_decode((const bundle_raw *)content_info, strlen(content_info));
 		if (instance->content_info == NULL)
@@ -381,7 +384,7 @@ static int __update_instance_info(struct _widget_instance *instance)
 {
 	int rc = 0;
 	const char insert_query[] = "INSERT INTO widget_instance(widget_id, viewer_id, content_info, instance_id, status) VALUES(?,?,?,?,?)";
-	const char update_query[] = "UPDATE widget_instance SET content_info=? status=? WHERE instance_id=?";
+	const char update_query[] = "UPDATE widget_instance SET content_info=?, status=? WHERE instance_id=?";
 	const char delete_query[] = "DELETE FROM widget_instance WHERE instance_id=?";
 	sqlite3_stmt* p_statement;
 	struct widget_app  *app = NULL;
@@ -405,7 +408,7 @@ static int __update_instance_info(struct _widget_instance *instance)
 	}
 
 	if (content == NULL) {
-		content = g_strdup("NULL");
+		content = strdup("NULL");
 		content_len = strlen("NULL");
 	}
 
@@ -491,7 +494,7 @@ cleanup:
 
 EAPI int widget_instance_create(const char *widget_id, char **instance_id)
 {
-	const char *id = NULL;
+	char *id = NULL;
 	struct _widget_instance *instance = NULL;
 
 	_D("create: %s", widget_id);
@@ -504,8 +507,10 @@ EAPI int widget_instance_create(const char *widget_id, char **instance_id)
 
 	instance = __add_instance(id, widget_id);
 
+	free((gpointer)id);
+
 	if (instance) {
-		*instance_id = (char *)id;
+		*instance_id = instance->id;
 		_D("create done");
 		return 0;
 	}
@@ -781,7 +786,7 @@ EAPI int widget_instance_init(const char *viewer_id)
 	if (viewer_id == NULL)
 		return -1;
 
-	viewer_appid = g_strdup(viewer_id);
+	viewer_appid = strdup(viewer_id);
 	__init(false);
 
 	__load_instance_list();
@@ -805,7 +810,7 @@ EAPI int widget_instance_fini()
 	__fini();
 
 	if (viewer_appid) {
-		g_free(viewer_appid);
+		free(viewer_appid);
 		viewer_appid = NULL;
 	}
 
@@ -995,6 +1000,8 @@ static void __update_cb(void *data, int action, char const *db_name, char const 
 	char *instance_id;
 	int status;
 	struct lifecycle_local_s *cb_info;
+
+	_D("update cb");
 
 	buf = sqlite3_mprintf("SELECT widget_id, instance_id, status FROM widget_instance WHERE rowid='%lld';", rowid);
 	if (buf == NULL)
