@@ -34,9 +34,8 @@ static void print_usage(char *pname)
 	printf("[usage] %s <cmd> ...\n", pname);
 	printf(" - available cmd list \n");
 
-	for (i = 0; i < sizeof(test_func) / sizeof(test_func_t); i++) {
+	for (i = 0; i < sizeof(test_func) / sizeof(test_func_t); i++)
 		printf("%s %s %s\n\n", pname, test_func[i].cmd, test_func[i].usage);
-	}
 	printf(" - end cmd list\n");
 }
 
@@ -50,9 +49,8 @@ int main(int argc, char **argv)
 	}
 
 	for (i = 0; i < (sizeof(test_func) / sizeof(test_func_t)); i++) {
-		if (strcmp(test_func[i].cmd, argv[1]) == 0) {
+		if (strcmp(test_func[i].cmd, argv[1]) == 0)
 			return test_func[i].fn(argc, argv);
-		}
 	}
 
 	print_usage(argv[0]);
