@@ -518,6 +518,9 @@ EAPI int widget_service_get_widget_list_by_pkgid(const char *pkgid,
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
+
 	ret = _get_widget_list(pkgid, getuid(), &list);
 	if (ret == WIDGET_ERROR_NONE)
 		ret = _get_widget_list(pkgid, GLOBALAPP_USER, &list);
@@ -619,6 +622,11 @@ EAPI char *widget_service_get_main_app_id(const char *widget_id)
 		return NULL;
 	}
 
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0) {
+		set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
+		return NULL;
+	}
+
 	appid = _get_main_app_id(widget_id, getuid());
 	if (appid == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
 		appid = _get_main_app_id(widget_id, GLOBALAPP_USER);
@@ -644,6 +652,11 @@ EAPI int widget_service_get_supported_size_types(const char *widget_id,
 		_E("invalid parameter");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
+
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
+
+	_D("id : %s", widget_id);
 
 	ret = _get_widget_supported_sizes(widget_id, getuid(), cnt,
 			&width, &height);
@@ -746,6 +759,12 @@ EAPI char *widget_service_get_app_id_of_setup_app(const char *widget_id)
 		return NULL;
 	}
 
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0) {
+		_E("permission denied");
+		set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
+		return NULL;
+	}
+
 	appid = _get_app_id_of_setup_app(widget_id, getuid());
 	if (appid == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
 		appid = _get_app_id_of_setup_app(widget_id, GLOBALAPP_USER);
@@ -815,6 +834,12 @@ EAPI int widget_service_get_nodisplay(const char *widget_id)
 		return 0;
 	}
 
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0) {
+		_E("permission denied");
+		set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
+		return 0;
+	}
+
 	nodisplay = _get_nodisplay(widget_id, getuid());
 	if (get_last_result() == WIDGET_ERROR_NOT_EXIST)
 		nodisplay = _get_nodisplay(widget_id, GLOBALAPP_USER);
@@ -835,6 +860,9 @@ EAPI int widget_service_get_need_of_frame(const char *pkgid, widget_size_type_e 
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
+
 	*need_of_frame = false;
 
 	return WIDGET_ERROR_NONE;
@@ -853,6 +881,9 @@ EAPI int widget_service_get_need_of_touch_effect(const char *pkgid, widget_size_
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
+
 	*need_of_touch_event = false;
 
 	return WIDGET_ERROR_NONE;
@@ -870,6 +901,9 @@ EAPI int widget_service_get_need_of_mouse_event(const char *pkgid, widget_size_t
 		_E("invalid parameter");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
+
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
 
 	*need_of_mouse_event = false;
 	return WIDGET_ERROR_NONE;
@@ -944,6 +978,11 @@ EAPI char *widget_service_get_preview_image_path(const char *widget_id,
 	if (widget_id == NULL) {
 		_E("invalid parameter");
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0) {
+		set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
 		return NULL;
 	}
 
@@ -1035,6 +1074,11 @@ EAPI char *widget_service_get_icon(const char *widget_id, const char *lang)
 		return NULL;
 	}
 
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0) {
+		set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
+		return NULL;
+	}
+
 	icon = _get_icon(widget_id, lang, getuid());
 	if (icon == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
 		icon = _get_icon(widget_id, lang, GLOBALAPP_USER);
@@ -1114,6 +1158,12 @@ EAPI char *widget_service_get_name(const char *widget_id, const char *lang)
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
 		return NULL;
 	}
+
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0) {
+		set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
+		return NULL;
+	}
+
 	name = _get_name(widget_id, lang, getuid());
 	if (name == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
 		name = _get_name(widget_id, lang, GLOBALAPP_USER);
@@ -1135,6 +1185,9 @@ EAPI int widget_service_get_supported_sizes(const char *widget_id, int *cnt,
 		_E("invalid parameter");
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
+
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
 
 	ret = _get_widget_supported_sizes(widget_id, getuid(), cnt, w, h);
 	if (ret == WIDGET_ERROR_NOT_EXIST)
