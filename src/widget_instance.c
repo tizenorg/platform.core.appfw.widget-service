@@ -87,6 +87,12 @@ struct lifecycle_local_s {
 	void *data;
 };
 
+static GList *event_cbs;
+struct event_cb_s {
+	int (*cb)(const char *, const char *, int, void *);
+	void *data;
+};
+
 #define QUERY_CREATE_TABLE_WIDGET \
 	"create table if not exists widget_instance" \
 	"(widget_id text, " \
@@ -100,20 +106,13 @@ static int __init(bool readonly)
 {
 	int rc;
 	char db_path[TIZEN_PATH_MAX];
-	char *app_path = NULL;
 
 	if (_widget_db) {
 		_D("already initialized");
 		return 0;
 	}
 
-	app_path = app_get_data_path();
-	if (!app_path) {
-		_D("failed to get app path");
-		return 0;
-	}
-
-	snprintf(db_path, sizeof(db_path), "%s/%s", app_path, ".widget_instance.db");
+	snprintf(db_path, sizeof(db_path), "%s/%d/%s", "/run/user/", getuid(), ".widget_instance.db");
 
 	rc = sqlite3_open_v2(db_path, &_widget_db,
 			readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
@@ -323,7 +322,7 @@ static int __load_instance_list()
 	struct _widget_instance *instance = NULL;
 	struct widget_app *app = NULL;
 
-	sqlite3_stmt* p_statement;
+	sqlite3_stmt *p_statement;
 
 	if (_widget_db == NULL) {
 		_E("widget db is not initialized");
@@ -614,6 +613,10 @@ EAPI int widget_instance_launch(const char *widget_id, const char *instance_id, 
 			_E("failed to create instance for %s", widget_id);
 			return -1;
 		}
+	} else {
+		if (__pick_instance(widget_id, instance) == NULL) {
+			__add_instance(widget_id, instance);
+		}
 	}
 
 	if (b == NULL) {
@@ -682,6 +685,60 @@ EAPI int widget_instance_destroy(const char *widget_id, const char *instance_id)
 	return ret;
 }
 
+EAPI int widget_instance_resume(const char  *widget_id, const char *instance_id)
+{
+	int ret = 0;
+	bundle *b = bundle_create();
+
+	if (widget_id == NULL || instance_id == NULL || b == NULL)
+		return -1;
+
+	bundle_add_str(b, WIDGET_K_OPERATION, "resume");
+
+	ret = __send_aul_cmd(widget_id, instance_id, b);
+
+	bundle_free(b);
+
+	return ret;
+}
+
+EAPI int widget_instance_pause(const char *widget_id, const char *instance_id)
+{
+	int ret = 0;
+	bundle *b = bundle_create();
+
+	if (widget_id == NULL || instance_id == NULL || b == NULL)
+		return -1;
+
+	bundle_add_str(b, WIDGET_K_OPERATION, "pause");
+
+	ret = __send_aul_cmd(widget_id, instance_id, b);
+
+	bundle_free(b);
+
+	return ret;
+}
+
+EAPI int widget_instance_resize(const char *widget_id, const char *instance_id, int w, int h)
+{
+	int ret = 0;
+	bundle *b = bundle_create();
+
+	if (widget_id == NULL || instance_id == NULL || b == NULL)
+		return -1;
+
+	bundle_add_str(b, WIDGET_K_OPERATION, "resize");
+
+	__set_width(b, w);
+	__set_height(b, h);
+
+	ret = __send_aul_cmd(widget_id, instance_id, b);
+
+	bundle_free(b);
+
+	return ret;
+}
+
 EAPI int widget_instance_foreach(const char *widget_id, widget_instance_foreach_cb cb, void *data)
 {
 	GList *apps = _widget_apps;
@@ -708,6 +765,20 @@ EAPI int widget_instance_foreach(const char *widget_id, widget_instance_foreach_
 	}
 
 	return 0;
+}
+
+static void __notify_event(int event, const char *widget_id, const char *instance_id)
+{
+	struct event_cb_s *cb_info;
+	GList *iter = event_cbs;
+
+	while (iter) {
+		cb_info = (struct event_cb_s *)iter->data;
+		if (cb_info && cb_info->cb)
+			cb_info->cb(widget_id, instance_id, event, cb_info->data);
+
+		iter = iter->next;
+	}
 }
 
 static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundle *envelope, void *user_data)
@@ -768,16 +839,23 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 		instance->status = WIDGET_INSTANCE_RUNNING;
 		break;
 	case WIDGET_INSTANCE_EVENT_UPDATE:
+		break;
+	case WIDGET_INSTANCE_EVENT_EXTRA_UPDATED:
 		if (instance->content_info)
 			bundle_free(instance->content_info);
 
 		instance->content_info = bundle_dup(envelope);
 		__update_instance_info(instance);
 		break;
+	case WIDGET_INSTANCE_EVENT_FAULT:
+
+		break;
 	default:
 		_E("unknown command: %d", cmd);
 		break;
 	}
+
+	__notify_event(cmd, widget_id, instance_id);
 
 	return 0;
 }
@@ -912,6 +990,9 @@ EAPI int widget_instance_trigger_update(widget_instance_h instance, bundle *b, i
 
 	bundle_add_str(kb, WIDGET_K_OPERATION, "update");
 
+	if (force)
+		bundle_add_str(kb, WIDGET_K_FORCE, "true");
+
 	ret = __send_aul_cmd(instance->widget_id, instance->id, kb);
 
 	if (!b)
@@ -996,7 +1077,7 @@ static void __update_cb(void *data, int action, char const *db_name, char const 
 {
 	char *buf;
 	int ret;
-	sqlite3_stmt* p_statement;
+	sqlite3_stmt *p_statement;
 	char *widget_id;
 	char *instance_id;
 	int status;
@@ -1038,6 +1119,53 @@ static void __update_cb(void *data, int action, char const *db_name, char const 
 		_E("sqlite3 error [%d] : <%s> finalize", ret, sqlite3_errmsg(_widget_db));
 
 	return;
+}
+
+EAPI int widget_instance_listen_event(int (*cb)(const char *widget_id, const char *instance_id, int event, void *data), void *data)
+{
+	struct event_cb_s *cb_info;
+
+	cb_info = (struct event_cb_s *)malloc(sizeof(struct event_cb_s));
+	if (!cb_info) {
+		_E("out of memory");
+		return -1;
+	}
+
+	cb_info->cb = cb;
+	cb_info->data = data;
+
+	event_cbs = g_list_append(event_cbs, cb_info);
+	if (!event_cbs) {
+		_E("out of memory");
+		return -1;
+	}
+
+	return 0;
+}
+
+EAPI int widget_instance_unlisten_event(int (*cb)(const char *widget_id, const char *instance_id, int event, void *data))
+{
+	struct event_cb_s *cb_info;
+	GList *iter = event_cbs;
+
+	if (!cb) {
+		_E("invalid parameter");
+		return -1;
+	}
+
+	while (iter) {
+		cb_info = (struct event_cb_s *)iter->data;
+		if (cb_info && cb_info->cb == cb) {
+			event_cbs = g_list_remove_link(event_cbs, iter);
+			free(cb_info);
+			g_list_free(iter);
+			return 0;
+		}
+		iter = iter->next;
+	}
+
+	_E("wrong argument");
+	return -1;
 }
 
 /* within package only */

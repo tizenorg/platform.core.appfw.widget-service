@@ -36,6 +36,7 @@ extern "C" {
 #define WIDGET_K_HEIGHT		"__WIDGET_HEIGHT__"
 #define WIDGET_K_REASON		"__WIDGET_REASON__"
 #define WIDGET_K_PERIOD		"__WIDGET_PERIOD__"
+#define WIDGET_K_FORCE		"__WIDGET_FORCE__"
 
 typedef enum widget_instance_event {
 	WIDGET_INSTANCE_EVENT_CREATE = 0,
@@ -46,10 +47,12 @@ typedef enum widget_instance_event {
 	WIDGET_INSTANCE_EVENT_UPDATE = 5,
 	WIDGET_INSTANCE_EVENT_PERIOD_CHANGED = 6,
 	WIDGET_INSTANCE_EVENT_SIZE_CHANGED = 7,
+	WIDGET_INSTANCE_EVENT_EXTRA_UPDATED = 8,
+	WIDGET_INSTANCE_EVENT_FAULT = 9,
 	WIDGET_INSTANCE_EVENT_MAX,
 } widget_instance_event_e;
 
-typedef struct _widget_instance* widget_instance_h;
+typedef struct _widget_instance *widget_instance_h;
 typedef int (*widget_instance_foreach_cb)(widget_instance_h instance, void *data);
 int widget_instance_foreach(const char *widget_id, widget_instance_foreach_cb cb, void *data);
 
@@ -63,6 +66,9 @@ int widget_instance_create(const char *widget_id, char **instance_id);
 int widget_instance_launch(const char *widget_id, const char *instance_id, bundle *content_info, int w, int h);
 int widget_instance_terminate(const char *widget_id, const char *instance_id);
 int widget_instance_destroy(const char *widget_id, const char *instance_id);
+int widget_instance_resume(const char *widget_id, const char *instance_id);
+int widget_instance_pause(const char *widget_id, const char *instance_id);
+int widget_instance_resize(const char *widget_id, const char *instance_id, int w, int h);
 int widget_instance_init(const char *viewer_id);
 int widget_instance_fini();
 
@@ -72,6 +78,8 @@ void widget_instance_unref(widget_instance_h instance);
 widget_instance_h widget_instance_ref(widget_instance_h instance);
 int widget_instance_change_period(widget_instance_h instance, double period);
 int widget_instance_trigger_update(widget_instance_h instance, bundle *b, int force);
+int widget_instance_listen_event(int (*cb)(const char *widget_id, const char *instance_id, int event, void *data), void *data);
+int widget_instance_unlisten_event(int (*cb)(const char *widget_id, const char *instance_id, int event, void *data));
 int widget_instance_listen_status(const char *widget_id, int (*cb)(const char *widget_id, const char *instance_id, int status, void *data), void *data);
 int widget_instance_unlisten_status(const char *widget_id);
 
