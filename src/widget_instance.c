@@ -658,9 +658,13 @@ EAPI int widget_instance_launch(const char *widget_id, const char *instance_id, 
 EAPI int widget_instance_terminate(const char *widget_id, const char *instance_id)
 {
 	int ret = 0;
-	bundle *b = bundle_create();
+	bundle *b = NULL;
 
-	if (widget_id == NULL || instance_id == NULL || b == NULL)
+	if (widget_id == NULL || instance_id == NULL)
+		return -1;
+
+	b = bundle_create();
+	if (b == NULL)
 		return -1;
 
 	bundle_add_str(b, WIDGET_K_OPERATION, "terminate");
@@ -675,9 +679,13 @@ EAPI int widget_instance_terminate(const char *widget_id, const char *instance_i
 EAPI int widget_instance_destroy(const char *widget_id, const char *instance_id)
 {
 	int ret = 0;
-	bundle *b = bundle_create();
+	bundle *b = NULL;
 
-	if (widget_id == NULL || instance_id == NULL || b == NULL)
+	if (widget_id == NULL || instance_id == NULL)
+		return -1;
+
+	b = bundle_create();
+	if (b == NULL)
 		return -1;
 
 	bundle_add_str(b, WIDGET_K_OPERATION, "destroy");
@@ -692,9 +700,13 @@ EAPI int widget_instance_destroy(const char *widget_id, const char *instance_id)
 EAPI int widget_instance_resume(const char  *widget_id, const char *instance_id)
 {
 	int ret = 0;
-	bundle *b = bundle_create();
+	bundle *b = NULL;
 
-	if (widget_id == NULL || instance_id == NULL || b == NULL)
+	if (widget_id == NULL || instance_id == NULL)
+		return -1;
+
+	b = bundle_create();
+	if (b == NULL)
 		return -1;
 
 	bundle_add_str(b, WIDGET_K_OPERATION, "resume");
@@ -709,9 +721,13 @@ EAPI int widget_instance_resume(const char  *widget_id, const char *instance_id)
 EAPI int widget_instance_pause(const char *widget_id, const char *instance_id)
 {
 	int ret = 0;
-	bundle *b = bundle_create();
+	bundle *b = NULL;
 
-	if (widget_id == NULL || instance_id == NULL || b == NULL)
+	if (widget_id == NULL || instance_id == NULL)
+		return -1;
+
+	b = bundle_create();
+	if (b == NULL)
 		return -1;
 
 	bundle_add_str(b, WIDGET_K_OPERATION, "pause");
@@ -726,9 +742,13 @@ EAPI int widget_instance_pause(const char *widget_id, const char *instance_id)
 EAPI int widget_instance_resize(const char *widget_id, const char *instance_id, int w, int h)
 {
 	int ret = 0;
-	bundle *b = bundle_create();
+	bundle *b = NULL;
 
-	if (widget_id == NULL || instance_id == NULL || b == NULL)
+	if (widget_id == NULL || instance_id == NULL)
+		return -1;
+
+	b = bundle_create();
+	if (b == NULL)
 		return -1;
 
 	bundle_add_str(b, WIDGET_K_OPERATION, "resize");
@@ -910,6 +930,25 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 	return 0;
 }
 
+static int __fault_handler(int pid, void *data)
+{
+	GList *iter;
+	struct _widget_instance *instance;
+
+	iter = _widget_instances;
+
+	while (iter) {
+		instance = (struct _widget_instance *)iter->data;
+		if (instance && instance->pid == pid) {
+			instance->pid = 0;
+			instance->status = WIDGET_INSTANCE_TERMINATED;
+			__update_instance_info(instance);
+			__notify_event(WIDGET_INSTANCE_EVENT_FAULT, instance->widget_id, instance->id);
+		}
+		iter = iter->next;
+	}
+}
+
 EAPI int widget_instance_init(const char *viewer_id)
 {
 	if (viewer_id == NULL)
@@ -920,6 +959,7 @@ EAPI int widget_instance_init(const char *viewer_id)
 	__init(false);
 	__load_instance_list();
 	__connect_status_handler();
+	aul_listen_app_dead_signal(__fault_handler, NULL);
 
 	if (aul_app_com_create(viewer_id, NULL, __widget_handler, NULL, &conn_viewer) < 0) {
 		_E("failed to create app com endpoint");
