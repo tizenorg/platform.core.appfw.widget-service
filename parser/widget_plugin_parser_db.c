@@ -17,11 +17,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <linux/limits.h>
 
 #include <glib.h>
 #include <sqlite3.h>
 
 #include <dlog.h>
+#include <tzplatform_config.h>
 
 #include "widget_plugin_parser_internal.h"
 
@@ -118,7 +120,26 @@ static int _insert_label(sqlite3 *db, const char *classid, GList *labels)
 	return 0;
 }
 
-static int _insert_icon(sqlite3 *db, const char *classid, GList *icons)
+static const char *_get_root_path(const char *pkgid)
+{
+	const char *path;
+	uid_t uid = getuid();
+
+	if (uid == 0) {
+		path = tzplatform_mkpath(TZ_SYS_RO_APP, pkgid);
+	} else if (uid == tzplatform_getuid(TZ_SYS_GLOBALAPP_USER)) {
+		path = tzplatform_mkpath(TZ_SYS_RW_APP, pkgid);
+	} else {
+		tzplatform_set_user(uid);
+		path = tzplatform_mkpath(TZ_USER_APP, pkgid);
+		tzplatform_reset_user();
+	}
+
+	return path;
+}
+
+static int _insert_icon(sqlite3 *db, const char *pkgid,
+		const char *classid, GList *icons)
 {
 	int ret;
 	static const char query[] =
@@ -128,6 +149,7 @@ static int _insert_icon(sqlite3 *db, const char *classid, GList *icons)
 	struct icon *icon;
 	sqlite3_stmt *stmt = NULL;
 	int idx;
+	char buf[PATH_MAX];
 
 	for (tmp = icons; tmp; tmp = tmp->next) {
 		icon = (struct icon *)tmp->data;
@@ -140,7 +162,13 @@ static int _insert_icon(sqlite3 *db, const char *classid, GList *icons)
 		idx = 1;
 		_bind_text(stmt, idx++, classid);
 		_bind_text(stmt, idx++, icon->lang);
-		_bind_text(stmt, idx++, icon->icon);
+		/* adjust icon path */
+		if (icon->icon[0] == '/')
+			snprintf(buf, sizeof(buf), "%s", icon->icon);
+		else
+			snprintf(buf, sizeof(buf), "%s/%s",
+					_get_root_path(pkgid), icon->icon);
+		_bind_text(stmt, idx++, buf);
 
 		ret = sqlite3_step(stmt);
 		if (ret != SQLITE_DONE) {
@@ -200,7 +228,7 @@ static int _insert_widget_class(sqlite3 *db, const char *pkgid, GList *wcs)
 			return -1;
 		if (_insert_label(db, wc->classid, wc->label))
 			return -1;
-		if (_insert_icon(db, wc->classid, wc->icon))
+		if (_insert_icon(db, pkgid, wc->classid, wc->icon))
 			return -1;
 	}
 
