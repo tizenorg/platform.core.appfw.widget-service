@@ -17,11 +17,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <linux/limits.h>
 
 #include <glib.h>
 #include <sqlite3.h>
 
 #include <dlog.h>
+#include <tzplatform_config.h>
 
 #include "widget_plugin_parser_internal.h"
 
@@ -33,7 +35,26 @@ static int _bind_text(sqlite3_stmt *stmt, int idx, const char *text)
 		return sqlite3_bind_null(stmt, idx);
 }
 
-static int _insert_support_size(sqlite3 *db, const char *classid, GList *sizes)
+static const char *_get_root_path(const char *pkgid)
+{
+	const char *path;
+	uid_t uid = getuid();
+
+	if (uid == 0) {
+		path = tzplatform_mkpath(TZ_SYS_RO_APP, pkgid);
+	} else if (uid == tzplatform_getuid(TZ_SYS_GLOBALAPP_USER)) {
+		path = tzplatform_mkpath(TZ_SYS_RW_APP, pkgid);
+	} else {
+		tzplatform_set_user(uid);
+		path = tzplatform_mkpath(TZ_USER_APP, pkgid);
+		tzplatform_reset_user();
+	}
+
+	return path;
+}
+
+static int _insert_support_size(sqlite3 *db, const char *pkgid,
+		const char *classid, GList *sizes)
 {
 	int ret;
 	static const char query[] =
@@ -44,6 +65,7 @@ static int _insert_support_size(sqlite3 *db, const char *classid, GList *sizes)
 	struct support_size *size;
 	sqlite3_stmt *stmt = NULL;
 	int idx;
+	char buf[PATH_MAX];
 
 	for (tmp = sizes; tmp; tmp = tmp->next) {
 		size = (struct support_size *)tmp->data;
@@ -55,7 +77,13 @@ static int _insert_support_size(sqlite3 *db, const char *classid, GList *sizes)
 
 		idx = 1;
 		_bind_text(stmt, idx++, classid);
-		_bind_text(stmt, idx++, size->preview);
+		/* adjust preview image path */
+		if (size->preview[0] == '/')
+			snprintf(buf, sizeof(buf), "%s", size->preview);
+		else
+			snprintf(buf, sizeof(buf), "%s/shared/res/%s",
+					_get_root_path(pkgid), size->preview);
+		_bind_text(stmt, idx++, buf);
 		sqlite3_bind_int(stmt, idx++, size->frame);
 		sqlite3_bind_int(stmt, idx++, size->width);
 		sqlite3_bind_int(stmt, idx++, size->height);
@@ -118,7 +146,8 @@ static int _insert_label(sqlite3 *db, const char *classid, GList *labels)
 	return 0;
 }
 
-static int _insert_icon(sqlite3 *db, const char *classid, GList *icons)
+static int _insert_icon(sqlite3 *db, const char *pkgid,
+		const char *classid, GList *icons)
 {
 	int ret;
 	static const char query[] =
@@ -128,6 +157,7 @@ static int _insert_icon(sqlite3 *db, const char *classid, GList *icons)
 	struct icon *icon;
 	sqlite3_stmt *stmt = NULL;
 	int idx;
+	char buf[PATH_MAX];
 
 	for (tmp = icons; tmp; tmp = tmp->next) {
 		icon = (struct icon *)tmp->data;
@@ -140,7 +170,13 @@ static int _insert_icon(sqlite3 *db, const char *classid, GList *icons)
 		idx = 1;
 		_bind_text(stmt, idx++, classid);
 		_bind_text(stmt, idx++, icon->lang);
-		_bind_text(stmt, idx++, icon->icon);
+		/* adjust icon path */
+		if (icon->icon[0] == '/')
+			snprintf(buf, sizeof(buf), "%s", icon->icon);
+		else
+			snprintf(buf, sizeof(buf), "%s/shared/res/%s",
+					_get_root_path(pkgid), icon->icon);
+		_bind_text(stmt, idx++, buf);
 
 		ret = sqlite3_step(stmt);
 		if (ret != SQLITE_DONE) {
@@ -196,11 +232,12 @@ static int _insert_widget_class(sqlite3 *db, const char *pkgid, GList *wcs)
 		sqlite3_reset(stmt);
 		sqlite3_clear_bindings(stmt);
 
-		if (_insert_support_size(db, wc->classid, wc->support_size))
+		if (_insert_support_size(db, pkgid, wc->classid,
+					wc->support_size))
 			return -1;
 		if (_insert_label(db, wc->classid, wc->label))
 			return -1;
-		if (_insert_icon(db, wc->classid, wc->icon))
+		if (_insert_icon(db, pkgid, wc->classid, wc->icon))
 			return -1;
 	}
 
