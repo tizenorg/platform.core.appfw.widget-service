@@ -543,6 +543,7 @@ static int __send_aul_cmd(const char *widget_id, const char *instance_id, bundle
 
 	bundle_add_str(b, WIDGET_K_INSTANCE, instance_id);
 	bundle_add_str(b, WIDGET_K_CLASS, classid);
+	bundle_add_str(b, AUL_K_WIDGET_VIEWER, viewer_appid);
 
 	aul_svc_set_loader_id(b, 1);
 	aul_svc_set_operation(b, AUL_SVC_OPERATION_LAUNCH_WIDGET);
