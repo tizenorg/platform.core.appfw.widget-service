@@ -1262,6 +1262,11 @@ EAPI char *widget_service_get_widget_id(const char *appid)
 		return NULL;
 	}
 
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0) {
+		set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
+		return NULL;
+	}
+
 	classid = _get_widget_id(appid, getuid());
 	if (classid == NULL && get_last_result() == WIDGET_ERROR_NOT_EXIST)
 		classid = _get_widget_id(appid, GLOBALAPP_USER);
@@ -1328,6 +1333,11 @@ EAPI char *widget_service_get_package_id(const char *widget_id)
 	if (widget_id == NULL) {
 		_E("invalid parameter");
 		set_last_result(WIDGET_ERROR_INVALID_PARAMETER);
+		return NULL;
+	}
+
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0) {
+		set_last_result(WIDGET_ERROR_PERMISSION_DENIED);
 		return NULL;
 	}
 
