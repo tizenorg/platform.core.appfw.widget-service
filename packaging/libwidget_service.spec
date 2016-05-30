@@ -46,9 +46,6 @@ Gathering the installed widget information.
 cp %{SOURCE1001} .
 
 %build
-
-sqlite3 .widget.db < ./parser/widget.sql
-
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
 make %{?jobs:-j%jobs}
@@ -56,16 +53,9 @@ make %{?jobs:-j%jobs}
 %install
 rm -rf %{buildroot}
 %make_install
-mkdir -p %{buildroot}%{TZ_SYS_DB}
-mkdir -p %{buildroot}%{_sysconfdir}/skel/.applications/dbspace
-
-install -m 0644 .widget.db %{buildroot}%{TZ_SYS_DB}
-install -m 0644 .widget.db %{buildroot}%{_sysconfdir}/skel/.applications/dbspace
 
 %post -n %{name}
 /sbin/ldconfig
-chsmack -a "User::Home" %{TZ_SYS_DB}/.widget.db
-chsmack -a "User::Home" %{_sysconfdir}/skel/.applications/dbspace/.widget.db
 
 %postun -n %{name}
 /sbin/ldconfig
@@ -76,8 +66,6 @@ chsmack -a "User::Home" %{_sysconfdir}/skel/.applications/dbspace/.widget.db
 %license LICENSE
 %{_libdir}/libwidget_service.so*
 %{_sysconfdir}/package-manager/parserlib/libwidget-application.so
-%{_sysconfdir}/skel/.applications/dbspace/.widget.db
-%{TZ_SYS_DB}/.widget.db
 %{_bindir}/widget_test
 
 %files devel
