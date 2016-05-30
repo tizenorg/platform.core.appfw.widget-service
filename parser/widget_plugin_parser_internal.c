@@ -25,6 +25,7 @@
 #include <tzplatform_config.h>
 
 #include "widget_plugin_parser_internal.h"
+#include "widget_db_query.h"
 
 void _free_support_size(gpointer data)
 {
@@ -89,7 +90,7 @@ static int _is_global(uid_t uid)
 		return 0;
 }
 
-static char *_get_db_path(uid_t uid)
+static const char *_get_db_path(uid_t uid)
 {
 	const char *path;
 
@@ -101,20 +102,68 @@ static char *_get_db_path(uid_t uid)
 
 	tzplatform_reset_user();
 
-	return strdup(path);
+	return path;
+}
+
+static int _create_and_initialize_db(uid_t uid)
+{
+	int ret;
+	sqlite3 *db;
+	sqlite3_stmt *stmt = NULL;
+	const char *start;
+	const char *tail;
+	int len;
+	const char *path;
+
+	path = _get_db_path(uid);
+
+	ret = sqlite3_open_v2(path, &db,
+			SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+	if (ret != SQLITE_OK) {
+		LOGE("open and create db(%s) error: %d", path, ret);
+		return -1;
+	}
+
+	len = strlen(initialize_query);
+	start = initialize_query;
+	do {
+		ret = sqlite3_prepare_v2(db, start, strlen(start), &stmt,
+				&tail);
+		if (ret != SQLITE_OK) {
+			LOGE("prepare error: %s", sqlite3_errmsg(db));
+			unlink(path);
+			break;
+		}
+
+		ret = sqlite3_step(stmt);
+		if (ret != SQLITE_DONE && ret != SQLITE_ROW) {
+			LOGE("step error: %s", sqlite3_errmsg(db));
+			unlink(path);
+			break;
+		}
+
+		sqlite3_reset(stmt);
+		start = tail;
+	} while (tail - initialize_query < len);
+
+	if (stmt)
+		sqlite3_finalize(stmt);
+	sqlite3_close(db);
+
+	return ret;
 }
 
 sqlite3 *_open_db(uid_t uid, bool readonly)
 {
 	int ret;
 	sqlite3 *db;
-	char *path;
+	const char *path;
 
 	path = _get_db_path(uid);
-
 	if (access(path, F_OK) == -1) {
 		LOGD("db(%s) does not exist, create one", path);
-		return NULL;
+		if (_create_and_initialize_db(uid))
+			return NULL;
 	}
 
 	ret = sqlite3_open_v2(path, &db,
@@ -122,18 +171,14 @@ sqlite3 *_open_db(uid_t uid, bool readonly)
 			NULL);
 	if (ret != SQLITE_OK) {
 		LOGE("open db(%s) error: %d", path, ret);
-		free(path);
 		return NULL;
 	}
 
 	/* turn on foreign keys */
 	if (sqlite3_exec(db, "PRAGMA foreign_keys = ON", NULL, NULL, NULL)) {
-		free(path);
 		sqlite3_close_v2(db);
 		return NULL;
 	}
-
-	free(path);
 
 	return db;
 }
