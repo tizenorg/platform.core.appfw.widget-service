@@ -89,7 +89,7 @@ static int _is_global(uid_t uid)
 		return 0;
 }
 
-static char *_get_db_path(uid_t uid)
+static const char *_get_db_path(uid_t uid)
 {
 	const char *path;
 
@@ -101,14 +101,14 @@ static char *_get_db_path(uid_t uid)
 
 	tzplatform_reset_user();
 
-	return strdup(path);
+	return path;
 }
 
 sqlite3 *_open_db(uid_t uid, bool readonly)
 {
 	int ret;
 	sqlite3 *db;
-	char *path;
+	const char *path;
 
 	path = _get_db_path(uid);
 
@@ -122,18 +122,14 @@ sqlite3 *_open_db(uid_t uid, bool readonly)
 			NULL);
 	if (ret != SQLITE_OK) {
 		LOGE("open db(%s) error: %d", path, ret);
-		free(path);
 		return NULL;
 	}
 
 	/* turn on foreign keys */
 	if (sqlite3_exec(db, "PRAGMA foreign_keys = ON", NULL, NULL, NULL)) {
-		free(path);
 		sqlite3_close_v2(db);
 		return NULL;
 	}
-
-	free(path);
 
 	return db;
 }
