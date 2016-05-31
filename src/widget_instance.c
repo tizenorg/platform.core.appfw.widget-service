@@ -660,9 +660,21 @@ EAPI int widget_instance_terminate(const char *widget_id, const char *instance_i
 {
 	int ret = 0;
 	bundle *b = NULL;
+	struct _widget_instance *instance;
 
 	if (widget_id == NULL || instance_id == NULL)
 		return -1;
+
+	instance = __pick_instance(widget_id, instance_id);
+	if (!instance) {
+		_E("illegal operation: termiante (instance not yet initialized: %s)", instance_id);
+		return -1;
+	}
+
+	if (instance->status != WIDGET_INSTANCE_RUNNING) {
+		_E("illegal operation: terminate (wrong status: %s %d)", instance_id, instance->status);
+		return -1;
+	}
 
 	b = bundle_create();
 	if (b == NULL)
@@ -681,9 +693,21 @@ EAPI int widget_instance_destroy(const char *widget_id, const char *instance_id)
 {
 	int ret = 0;
 	bundle *b = NULL;
+	struct _widget_instance *instance;
 
 	if (widget_id == NULL || instance_id == NULL)
 		return -1;
+
+	instance = __pick_instance(widget_id, instance_id);
+	if (!instance) {
+		_E("illegal operation: destroy (instance not yet initialized: %s)", instance_id);
+		return -1;
+	}
+
+	if (instance->status != WIDGET_INSTANCE_RUNNING) {
+		_E("illegal operation: destroy (wrong status: %s %d)", instance_id, instance->status);
+		return -1;
+	}
 
 	b = bundle_create();
 	if (b == NULL)
@@ -702,9 +726,21 @@ EAPI int widget_instance_resume(const char  *widget_id, const char *instance_id)
 {
 	int ret = 0;
 	bundle *b = NULL;
+	struct _widget_instance *instance;
 
 	if (widget_id == NULL || instance_id == NULL)
 		return -1;
+
+	instance = __pick_instance(widget_id, instance_id);
+	if (!instance) {
+		_E("illegal operation: resume (instance not yet initialized: %s)", instance_id);
+		return -1;
+	}
+
+	if (instance->status != WIDGET_INSTANCE_RUNNING) {
+		_E("illegal operation: resume (wrong status: %s %d)", instance_id, instance->status);
+		return -1;
+	}
 
 	b = bundle_create();
 	if (b == NULL)
@@ -723,9 +759,21 @@ EAPI int widget_instance_pause(const char *widget_id, const char *instance_id)
 {
 	int ret = 0;
 	bundle *b = NULL;
+	struct _widget_instance *instance;
 
 	if (widget_id == NULL || instance_id == NULL)
 		return -1;
+
+	instance = __pick_instance(widget_id, instance_id);
+	if (!instance) {
+		_E("illegal operation: pause (instance not yet initialized: %s)", instance_id);
+		return -1;
+	}
+
+	if (instance->status != WIDGET_INSTANCE_RUNNING) {
+		_E("illegal operation: pause (wrong status: %s %d)", instance_id, instance->status);
+		return -1;
+	}
 
 	b = bundle_create();
 	if (b == NULL)
@@ -744,9 +792,21 @@ EAPI int widget_instance_resize(const char *widget_id, const char *instance_id, 
 {
 	int ret = 0;
 	bundle *b = NULL;
+	struct _widget_instance *instance;
 
 	if (widget_id == NULL || instance_id == NULL)
 		return -1;
+
+	instance = __pick_instance(widget_id, instance_id);
+	if (!instance) {
+		_E("illegal operation: resize (instance not yet initialized: %s)", instance_id);
+		return -1;
+	}
+
+	if (instance->status != WIDGET_INSTANCE_RUNNING) {
+		_E("illegal operation: resize (wrong status: %s %d)", instance_id, instance->status);
+		return -1;
+	}
 
 	b = bundle_create();
 	if (b == NULL)
