@@ -24,8 +24,27 @@ int get_pkg_id(int argc, char **argv)
 	return 0;
 }
 
+static int list_cb(const char *pkgid, const char *widget_id, int is_prime,
+		void *data)
+{
+	printf("pkgid [%s]\twidget_id [%s]\tis_prime [%d]\n", pkgid, widget_id,
+			is_prime);
+	return 0;
+}
+
+int get_widget_list(int argc, char **argv)
+{
+	if (widget_service_get_widget_list(list_cb, NULL) < 0) {
+		printf("failed to get widget list\n");
+		return -1;
+	}
+
+	return 0;
+}
+
 test_func_t test_func[] = {
-	{"get_pkg_id", get_pkg_id, "<widget_id>"}
+	{"get_pkg_id", get_pkg_id, "<widget_id>"},
+	{"get_widget_list", get_widget_list, ""}
 };
 
 static void print_usage(char *pname)
