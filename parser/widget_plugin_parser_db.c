@@ -78,12 +78,17 @@ static int _insert_support_size(sqlite3 *db, const char *pkgid,
 		idx = 1;
 		_bind_text(stmt, idx++, classid);
 		/* adjust preview image path */
-		if (size->preview[0] == '/')
-			snprintf(buf, sizeof(buf), "%s", size->preview);
-		else
-			snprintf(buf, sizeof(buf), "%s/shared/res/%s",
-					_get_root_path(pkgid), size->preview);
-		_bind_text(stmt, idx++, buf);
+		if (size->preview != NULL) {
+			if (size->preview[0] == '/')
+				snprintf(buf, sizeof(buf), "%s", size->preview);
+			else
+				snprintf(buf, sizeof(buf), "%s/shared/res/%s",
+						_get_root_path(pkgid),
+						size->preview);
+			_bind_text(stmt, idx++, buf);
+		} else {
+			_bind_text(stmt, idx++, NULL);
+		}
 		sqlite3_bind_int(stmt, idx++, size->frame);
 		sqlite3_bind_int(stmt, idx++, size->width);
 		sqlite3_bind_int(stmt, idx++, size->height);
