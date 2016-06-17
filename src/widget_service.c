@@ -66,7 +66,7 @@ static inline bool _is_widget_feature_enabled(void)
 
 static int check_privilege(const char *privilege)
 {
-	cynara *p_cynara;
+	cynara *p_cynara = NULL;
 
 	int fd = 0;
 	int ret = 0;

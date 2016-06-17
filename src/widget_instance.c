@@ -389,7 +389,7 @@ static int __update_instance_info(struct _widget_instance *instance)
 	const char insert_query[] = "INSERT INTO widget_instance(widget_id, viewer_id, content_info, instance_id, status) VALUES(?,?,?,?,?)";
 	const char update_query[] = "UPDATE widget_instance SET content_info=?, status=? WHERE instance_id=?";
 	const char delete_query[] = "DELETE FROM widget_instance WHERE instance_id=?";
-	sqlite3_stmt* p_statement;
+	sqlite3_stmt* p_statement = NULL;
 	struct widget_app  *app = NULL;
 	char *content = NULL;
 	int content_len = 0;
