@@ -26,7 +26,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <glib.h>
-#include <sqlite3.h>
 #include <aul.h>
 #include <aul_svc.h>
 #include <aul_app_com.h>
@@ -74,7 +73,6 @@ static char *xdg_runtime_dir = NULL;
 static GList *_widget_instances = NULL;
 static GList *_widget_apps = NULL;
 
-static sqlite3 *_widget_db = NULL;
 static char *viewer_appid = NULL;
 static aul_app_com_connection_h conn_viewer;
 static aul_app_com_connection_h conn_status;
@@ -94,63 +92,9 @@ struct event_cb_s {
 	void *data;
 };
 
-#define QUERY_CREATE_TABLE_WIDGET \
-	"create table if not exists widget_instance" \
-	"(widget_id text, " \
-	"viewer_id text, " \
-	"content_info text, " \
-	"instance_id text, " \
-	"status integer, " \
-	"PRIMARY KEY(instance_id)) "
-
-static int __init(bool readonly)
-{
-	int rc;
-	char db_path[TIZEN_PATH_MAX];
-
-	if (_widget_db) {
-		_D("already initialized");
-		return 0;
-	}
-
-	snprintf(db_path, sizeof(db_path), "%s/%d/%s", "/run/user/", getuid(), ".widget_instance.db");
-
-	rc = sqlite3_open_v2(db_path, &_widget_db,
-			readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-	if (rc != SQLITE_OK) {
-		_E("Can't open database: %d, %s, extended: %d", rc, sqlite3_errmsg(_widget_db),
-				sqlite3_extended_errcode(_widget_db));
-		goto err;
-	}
-
-	rc = sqlite3_exec(_widget_db, "PRAGMA journal_mode = PERSIST", NULL, NULL, NULL);
-	if (rc != SQLITE_OK) {
-		_E("Fail to change journal mode\n");
-		goto err;
-	}
-
-	rc = sqlite3_exec(_widget_db, QUERY_CREATE_TABLE_WIDGET, NULL, NULL, NULL);
-	if (rc != SQLITE_OK) {
-		_E("Fail to create tables\n");
-		goto err;
-	}
-
-	return 0;
-err:
-	if (_widget_db) {
-		sqlite3_close(_widget_db);
-		_widget_db = NULL;
-	}
-
-	return -1;
-}
 
 static int __fini(void)
 {
-	if (_widget_db) {
-		sqlite3_close(_widget_db);
-		_widget_db = NULL;
-	}
 
 	return 0;
 }
@@ -314,185 +258,6 @@ static void __remove_instance(struct _widget_instance *instance)
 	}
 
 	free(instance);
-}
-
-static int __load_instance_list()
-{
-	int rc;
-	char select_query[] = "SELECT widget_id, content_info, instance_id FROM widget_instance WHERE viewer_id=?";
-	char *widget_id;
-	char *content_info;
-	char *instance_id;
-	struct _widget_instance *instance = NULL;
-	struct widget_app *app = NULL;
-
-	sqlite3_stmt *p_statement;
-
-	if (_widget_db == NULL) {
-		_E("widget db is not initialized");
-		return -1;
-	}
-
-	rc = sqlite3_prepare_v2(_widget_db, select_query, strlen(select_query),
-			&p_statement, NULL);
-
-	if (rc != SQLITE_OK) {
-		_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-				sqlite3_errmsg(_widget_db));
-		return -1;
-	}
-
-	sqlite3_bind_text(p_statement, 1, viewer_appid, -1, SQLITE_TRANSIENT);
-
-
-	while (sqlite3_step(p_statement) == SQLITE_ROW) {
-		widget_id = (char *)sqlite3_column_text(p_statement, 0);
-		content_info = (char *)sqlite3_column_text(p_statement, 1);
-		instance_id = (char *)sqlite3_column_text(p_statement, 2);
-
-		app = __pick_app(widget_id);
-		if (app == NULL) {
-			app = __add_app(widget_id, viewer_appid);
-			if (app == NULL) {
-				_E("failed to add app: %s", widget_id);
-				continue;
-			}
-		}
-
-		instance = __add_instance(instance_id, widget_id);
-		if (instance == NULL) {
-			_E("failed to add instance: %s", instance_id);
-			continue;
-		}
-
-		_D("added %s, %d", instance_id, content_info);
-
-		instance->content_info = bundle_decode((const bundle_raw *)content_info, strlen(content_info));
-		if (instance->content_info == NULL)
-			_E("failed to decode bundle: %s", instance_id);
-		instance->status = WIDGET_INSTANCE_CREATED;
-		instance->stored = 1;
-	}
-
-	rc = sqlite3_finalize(p_statement);
-	if (rc != SQLITE_OK) {
-		_E("Sqlite3 error [%d] : <%s> finalizing statement\n", rc,
-				sqlite3_errmsg(_widget_db));
-	}
-
-	return 0;
-}
-
-static int __update_instance_info(struct _widget_instance *instance)
-{
-	int rc = 0;
-	const char insert_query[] = "INSERT INTO widget_instance(widget_id, viewer_id, content_info, instance_id, status) VALUES(?,?,?,?,?)";
-	const char update_query[] = "UPDATE widget_instance SET content_info=?, status=? WHERE instance_id=?";
-	const char delete_query[] = "DELETE FROM widget_instance WHERE instance_id=?";
-	sqlite3_stmt* p_statement = NULL;
-	struct widget_app  *app = NULL;
-	char *content = NULL;
-	int content_len = 0;
-
-	if (_widget_db == NULL) {
-		_E("call widget_instance_init() first");
-		return -1;
-	}
-
-	if (instance == NULL) {
-		_E("wrong argument");
-		return -1;
-	}
-
-	if (instance->content_info) {
-		rc = bundle_encode(instance->content_info, (bundle_raw **)&content, &content_len);
-		if (rc != BUNDLE_ERROR_NONE)
-			_E("failed to get bundle data: %s", instance->id);
-	}
-
-	if (content == NULL) {
-		content = strdup("NULL");
-		content_len = strlen("NULL");
-	}
-
-	if (instance->stored) {
-		if (instance->status == WIDGET_INSTANCE_DELETED) {
-			rc = sqlite3_prepare_v2(_widget_db, delete_query, strlen(delete_query),
-					&p_statement, NULL);
-			if (rc != SQLITE_OK) {
-				_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-						sqlite3_errmsg(_widget_db));
-				goto cleanup;
-			}
-
-			sqlite3_bind_text(p_statement, 1, instance->id, -1, SQLITE_TRANSIENT);
-		} else {
-			rc = sqlite3_prepare_v2(_widget_db, update_query, strlen(update_query),
-					&p_statement, NULL);
-
-			if (rc != SQLITE_OK) {
-				_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-						sqlite3_errmsg(_widget_db));
-				goto cleanup;
-			}
-
-			sqlite3_bind_text(p_statement, 1, content, -1, SQLITE_TRANSIENT);
-			sqlite3_bind_int(p_statement, 2, instance->status);
-			sqlite3_bind_text(p_statement, 3, instance->id, -1, SQLITE_TRANSIENT);
-		}
-	} else {
-		app = __pick_app(instance->widget_id);
-		if (app == NULL) {
-			_E("can not find app: %s", instance->id);
-			goto cleanup;
-		}
-
-		rc = sqlite3_prepare_v2(_widget_db, insert_query, strlen(insert_query),
-				&p_statement, NULL);
-
-		if (rc != SQLITE_OK) {
-			_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-					sqlite3_errmsg(_widget_db));
-			goto cleanup;
-		}
-
-		sqlite3_bind_text(p_statement, 1, instance->widget_id, -1, SQLITE_TRANSIENT);
-		sqlite3_bind_text(p_statement, 2, app->viewer_id, -1, SQLITE_TRANSIENT);
-		sqlite3_bind_text(p_statement, 3, content, -1, SQLITE_TRANSIENT);
-		sqlite3_bind_text(p_statement, 4, instance->id, -1, SQLITE_TRANSIENT);
-		sqlite3_bind_int(p_statement, 5, instance->status);
-	}
-
-	rc = sqlite3_step(p_statement);
-
-	if (rc == SQLITE_DONE) {
-		if (instance->status == WIDGET_INSTANCE_DELETED)
-			widget_instance_unref(instance);
-		else
-			instance->stored = 1;
-	}
-
-	if (rc != SQLITE_DONE) {
-		_E("Sqlite3 error [%d] : <%s> executing statement\n", rc,
-				sqlite3_errmsg(_widget_db));
-	}
-
-cleanup:
-
-	if (p_statement) {
-		rc = sqlite3_finalize(p_statement);
-		if (rc != SQLITE_OK) {
-			_E("Sqlite3 error [%d] : <%s> finalizing statement\n", rc,
-					sqlite3_errmsg(_widget_db));
-		}
-	}
-
-	if (content) {
-		free(content);
-		content = NULL;
-	}
-
-	return rc;
 }
 
 EAPI int widget_instance_create(const char *widget_id, char **instance_id)
@@ -950,7 +715,7 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 			bundle_free(instance->content_info);
 
 		instance->content_info = bundle_dup(envelope);
-		__update_instance_info(instance);
+		instance->status = WIDGET_INSTANCE_RUNNING;
 		break;
 	case WIDGET_INSTANCE_EVENT_TERMINATE:
 		if (instance->content_info)
@@ -958,16 +723,13 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 
 		instance->content_info = bundle_dup(envelope);
 		instance->status = WIDGET_INSTANCE_TERMINATED;
-		__update_instance_info(instance);
 		break;
 	case WIDGET_INSTANCE_EVENT_DESTROY:
 		instance->status = WIDGET_INSTANCE_DELETED;
-		__update_instance_info(instance);
 		break;
 	case WIDGET_INSTANCE_EVENT_PAUSE:
 		break;
 	case WIDGET_INSTANCE_EVENT_RESUME:
-		instance->status = WIDGET_INSTANCE_RUNNING;
 		break;
 	case WIDGET_INSTANCE_EVENT_UPDATE:
 		break;
@@ -976,7 +738,6 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 			bundle_free(instance->content_info);
 
 		instance->content_info = bundle_dup(envelope);
-		__update_instance_info(instance);
 		break;
 	case WIDGET_INSTANCE_EVENT_FAULT:
 
@@ -1003,7 +764,6 @@ static int __fault_handler(int pid, void *data)
 		if (instance && instance->pid == pid) {
 			instance->pid = 0;
 			instance->status = WIDGET_INSTANCE_TERMINATED;
-			__update_instance_info(instance);
 			__notify_event(WIDGET_INSTANCE_EVENT_FAULT, instance->widget_id, instance->id);
 		}
 		iter = iter->next;
@@ -1019,8 +779,6 @@ EAPI int widget_instance_init(const char *viewer_id)
 
 	viewer_appid = strdup(viewer_id);
 
-	__init(false);
-	__load_instance_list();
 	__connect_status_handler();
 	aul_listen_app_dead_signal(__fault_handler, NULL);
 
