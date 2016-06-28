@@ -313,7 +313,7 @@ static int __send_aul_cmd(const char *widget_id, const char *instance_id, bundle
 	aul_svc_set_loader_id(b, 1);
 	aul_svc_set_operation(b, AUL_SVC_OPERATION_LAUNCH_WIDGET);
 
-	ret = aul_launch_app(appid, b);
+	ret = aul_launch_app_async(appid, b);
 
 	if (!extra) {
 		bundle_free(b);
