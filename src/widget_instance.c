@@ -55,7 +55,7 @@ struct _widget_instance {
 	int w;
 	int h;
 	double period;
-	bundle *content_info;
+	char *content_info;
 	int status;
 	int stored;
 	int ref;
@@ -92,32 +92,17 @@ struct event_cb_s {
 	void *data;
 };
 
-
-static int __fini(void)
+static struct _widget_instance *__pick_instance(const char *instance_id)
 {
-
-	return 0;
-}
-
-static struct _widget_instance *__pick_instance(const char *widget_id, const char *instance_id)
-{
-	GList *apps = _widget_apps;
-	GList *instances = NULL;
-	struct widget_app *app = NULL;
+	GList *instances = _widget_instances;
 	struct _widget_instance *instance = NULL;
 
-	while (apps) {
-		app = apps->data;
-		if (app && g_strcmp0(widget_id, app->widget_id) == 0) {
-			instances = app->instances;
-			while (instances) {
-				instance = instances->data;
-				if (instance && g_strcmp0(instance_id, instance->id) == 0)
-					return instance;
-				instances = instances->next;
-			}
-		}
-		apps = apps->next;
+	while (instances) {
+		instance = (struct _widget_instance *)instances->data;
+		if (instance && g_strcmp0(instance_id, instance->id) == 0)
+			return instance;
+
+		instances = instances->next;
 	}
 
 	return NULL;
@@ -253,7 +238,7 @@ static void __remove_instance(struct _widget_instance *instance)
 	}
 
 	if (instance->content_info) {
-		bundle_free(instance->content_info);
+		free(instance->content_info);
 		instance->content_info = NULL;
 	}
 
@@ -288,7 +273,7 @@ EAPI int widget_instance_create(const char *widget_id, char **instance_id)
 	return -1;
 }
 
-static int __send_aul_cmd(const char *widget_id, const char *instance_id, bundle *extra)
+static int __launch(const char *widget_id, const char *instance_id, bundle *extra)
 {
 	int ret = 0;
 	const char *appid;
@@ -323,6 +308,49 @@ static int __send_aul_cmd(const char *widget_id, const char *instance_id, bundle
 	return ret;
 }
 
+static int __send_aul_cmd(widget_instance_h instance, const char *command, bundle *extra)
+{
+	int ret = 0;
+	bundle *b = extra;
+
+	if (!instance || !command) {
+		_E("inavlid parameter");
+		return -1;
+	}
+
+	if (instance->status != WIDGET_INSTANCE_RUNNING) {
+		_E("instance not yet running: %s to %s (%d)",
+			instance->id, command, instance->status);
+		return -1;
+	}
+
+	if (b == NULL) {
+		b = bundle_create();
+		if (!b) {
+			_E("out of memory");
+			return -1;
+		}
+	}
+
+	bundle_del(b, WIDGET_K_OPERATION);
+	bundle_add_str(b, WIDGET_K_OPERATION, command);
+
+	ret = __launch(instance->widget_id, instance->id, b);
+
+	if (!extra) {
+		bundle_free(b);
+		b = NULL;
+	}
+
+	if (ret != instance->pid) {
+		_E("pid has been changed. new process detected. %s (%d to %d)",
+			instance->id, instance->pid, ret);
+		instance->pid = ret;
+	}
+
+	return ret;
+}
+
 static int __set_width(bundle *content_info, int w)
 {
 	char wbuf[6];
@@ -347,16 +375,16 @@ static int __set_height(bundle *content_info, int h)
 	return 0;
 }
 
-EAPI int widget_instance_launch(const char *widget_id, const char *instance_id, bundle *content_info, int w, int h)
+EAPI int widget_instance_launch(const char *instance_id, char *content_info, int w, int h)
 {
 	int ret = 0;
 	char pid_buf[6];
-	bundle *b = content_info;
-	char *instance = (char *)instance_id;
+	bundle *b;
+	widget_instance_h instance;
 
-	_D("launch: %s %s", widget_id, instance_id);
+	_D("launch: %s", instance_id);
 
-	if (widget_id == NULL) {
+	if (instance_id == NULL) {
 		_E("wrong arguments");
 		return -1;
 	}
@@ -377,24 +405,17 @@ EAPI int widget_instance_launch(const char *widget_id, const char *instance_id, 
 		}
 	}
 
+	instance = __pick_instance(instance_id);
+
 	if (instance == NULL) {
-		ret = widget_instance_create(widget_id, &instance);
-		if (ret < 0 || instance == NULL) {
-			_E("failed to create instance for %s", widget_id);
-			return -1;
-		}
-	} else {
-		if (__pick_instance(widget_id, instance) == NULL) {
-			__add_instance(instance, widget_id);
-		}
+		_E("unknown instance: %s", instance_id);
+		return -1;
 	}
 
+	b = bundle_create();
 	if (b == NULL) {
-		b = bundle_create();
-		if (b == NULL) {
-			_E("out of memory");
-			return -1;
-		}
+		_E("out of memory");
+		return -1;
 	}
 
 	snprintf(pid_buf, sizeof(pid_buf), "%d", getpid());
@@ -403,186 +424,127 @@ EAPI int widget_instance_launch(const char *widget_id, const char *instance_id, 
 	bundle_add_str(b, AUL_K_WAYLAND_DISPLAY, wayland_display);
 	bundle_add_str(b, AUL_K_WAYLAND_WORKING_DIR, xdg_runtime_dir);
 	bundle_add_str(b, WIDGET_K_OPERATION, "create");
+	if (content_info) {
+		bundle_add_str(b, WIDGET_K_CONTENT_INFO, content_info);
+		instance->content_info = strdup(content_info);
+	}
 
 	__set_width(b, w);
 	__set_height(b, h);
 
-	ret = __send_aul_cmd(widget_id, instance, b);
+	ret = __launch(instance->widget_id, instance_id, b);
 
-	if (ret) {
-		struct _widget_instance *i = __pick_instance(widget_id, instance);
-		if (i)
-			i->pid = ret;
-	}
+	if (ret > 0)
+		instance->pid = ret;
 
-	if (content_info == NULL)
-		bundle_free(b);
+	bundle_free(b);
 
 	return ret;
 }
 
-EAPI int widget_instance_terminate(const char *widget_id, const char *instance_id)
+EAPI int widget_instance_terminate(const char *instance_id)
 {
 	int ret = 0;
-	bundle *b = NULL;
 	struct _widget_instance *instance;
 
-	if (widget_id == NULL || instance_id == NULL)
+	if (instance_id == NULL)
 		return -1;
 
-	instance = __pick_instance(widget_id, instance_id);
+	instance = __pick_instance(instance_id);
 	if (!instance) {
 		_E("illegal operation: termiante (instance not yet initialized: %s)", instance_id);
 		return -1;
 	}
 
-	if (instance->status != WIDGET_INSTANCE_RUNNING) {
-		_E("illegal operation: terminate (wrong status: %s %d)", instance_id, instance->status);
-		return -1;
-	}
-
-	b = bundle_create();
-	if (b == NULL)
-		return -1;
-
-	bundle_add_str(b, WIDGET_K_OPERATION, "terminate");
-
-	ret = __send_aul_cmd(widget_id, instance_id, b);
-
-	bundle_free(b);
+	ret = __send_aul_cmd(instance, "terminate", NULL);
 
 	return ret;
 }
 
-EAPI int widget_instance_destroy(const char *widget_id, const char *instance_id)
+EAPI int widget_instance_destroy(const char *instance_id)
 {
 	int ret = 0;
-	bundle *b = NULL;
 	struct _widget_instance *instance;
 
-	if (widget_id == NULL || instance_id == NULL)
+	if (instance_id == NULL)
 		return -1;
 
-	instance = __pick_instance(widget_id, instance_id);
+	instance = __pick_instance(instance_id);
 	if (!instance) {
 		_E("illegal operation: destroy (instance not yet initialized: %s)", instance_id);
 		return -1;
 	}
 
-	if (instance->status != WIDGET_INSTANCE_RUNNING) {
-		_E("illegal operation: destroy (wrong status: %s %d)", instance_id, instance->status);
-		return -1;
+	if (instance->pid) {
+		ret = __send_aul_cmd(instance, "destroy", NULL);
+	} else { /* uninitialized */
+		__remove_instance(instance);
 	}
-
-	b = bundle_create();
-	if (b == NULL)
-		return -1;
-
-	bundle_add_str(b, WIDGET_K_OPERATION, "destroy");
-
-	ret = __send_aul_cmd(widget_id, instance_id, b);
-
-	bundle_free(b);
 
 	return ret;
 }
 
-EAPI int widget_instance_resume(const char  *widget_id, const char *instance_id)
+EAPI int widget_instance_resume(const char *instance_id)
 {
 	int ret = 0;
-	bundle *b = NULL;
 	struct _widget_instance *instance;
 
-	if (widget_id == NULL || instance_id == NULL)
+	if (instance_id == NULL)
 		return -1;
 
-	instance = __pick_instance(widget_id, instance_id);
+	instance = __pick_instance(instance_id);
 	if (!instance) {
 		_E("illegal operation: resume (instance not yet initialized: %s)", instance_id);
 		return -1;
 	}
 
-	if (instance->status != WIDGET_INSTANCE_RUNNING) {
-		_E("illegal operation: resume (wrong status: %s %d)", instance_id, instance->status);
-		return -1;
-	}
-
-	b = bundle_create();
-	if (b == NULL)
-		return -1;
-
-	bundle_add_str(b, WIDGET_K_OPERATION, "resume");
-
-	ret = __send_aul_cmd(widget_id, instance_id, b);
-
-	bundle_free(b);
+	ret = __send_aul_cmd(instance, "resume", NULL);
 
 	return ret;
 }
 
-EAPI int widget_instance_pause(const char *widget_id, const char *instance_id)
+EAPI int widget_instance_pause(const char *instance_id)
 {
 	int ret = 0;
-	bundle *b = NULL;
 	struct _widget_instance *instance;
 
-	if (widget_id == NULL || instance_id == NULL)
+	if (instance_id == NULL)
 		return -1;
 
-	instance = __pick_instance(widget_id, instance_id);
+	instance = __pick_instance(instance_id);
 	if (!instance) {
 		_E("illegal operation: pause (instance not yet initialized: %s)", instance_id);
 		return -1;
 	}
 
-	if (instance->status != WIDGET_INSTANCE_RUNNING) {
-		_E("illegal operation: pause (wrong status: %s %d)", instance_id, instance->status);
-		return -1;
-	}
-
-	b = bundle_create();
-	if (b == NULL)
-		return -1;
-
-	bundle_add_str(b, WIDGET_K_OPERATION, "pause");
-
-	ret = __send_aul_cmd(widget_id, instance_id, b);
-
-	bundle_free(b);
+	ret = __send_aul_cmd(instance, "pause", NULL);
 
 	return ret;
 }
 
-EAPI int widget_instance_resize(const char *widget_id, const char *instance_id, int w, int h)
+EAPI int widget_instance_resize(const char *instance_id, int w, int h)
 {
 	int ret = 0;
-	bundle *b = NULL;
+	bundle *b;
 	struct _widget_instance *instance;
 
-	if (widget_id == NULL || instance_id == NULL)
+	if (instance_id == NULL)
 		return -1;
 
-	instance = __pick_instance(widget_id, instance_id);
+	instance = __pick_instance(instance_id);
 	if (!instance) {
 		_E("illegal operation: resize (instance not yet initialized: %s)", instance_id);
 		return -1;
 	}
 
-	if (instance->status != WIDGET_INSTANCE_RUNNING) {
-		_E("illegal operation: resize (wrong status: %s %d)", instance_id, instance->status);
-		return -1;
-	}
-
 	b = bundle_create();
 	if (b == NULL)
 		return -1;
 
-	bundle_add_str(b, WIDGET_K_OPERATION, "resize");
-
 	__set_width(b, w);
 	__set_height(b, h);
 
-	ret = __send_aul_cmd(widget_id, instance_id, b);
+	ret = __send_aul_cmd(instance, "resize", b);
 
 	bundle_free(b);
 
@@ -685,6 +647,7 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 	size_t status_sz = 0;
 	int cmd = 0;
 	struct _widget_instance *instance;
+	char *content_info = NULL;
 
 	bundle_get_str(envelope, WIDGET_K_ID, &widget_id);
 	bundle_get_str(envelope, WIDGET_K_INSTANCE, &instance_id);
@@ -700,7 +663,7 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 
 	_D("update status %s on %d", instance_id, *status);
 
-	instance = __pick_instance(widget_id, instance_id);
+	instance = __pick_instance(instance_id);
 
 	if (instance == NULL) {
 		_E("undefined instance id: %s of %s", instance_id, widget_id);
@@ -711,17 +674,9 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 
 	switch (cmd) {
 	case WIDGET_INSTANCE_EVENT_CREATE:
-		if (instance->content_info)
-			bundle_free(instance->content_info);
-
-		instance->content_info = bundle_dup(envelope);
 		instance->status = WIDGET_INSTANCE_RUNNING;
 		break;
 	case WIDGET_INSTANCE_EVENT_TERMINATE:
-		if (instance->content_info)
-			bundle_free(instance->content_info);
-
-		instance->content_info = bundle_dup(envelope);
 		instance->status = WIDGET_INSTANCE_TERMINATED;
 		break;
 	case WIDGET_INSTANCE_EVENT_DESTROY:
@@ -734,10 +689,13 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 	case WIDGET_INSTANCE_EVENT_UPDATE:
 		break;
 	case WIDGET_INSTANCE_EVENT_EXTRA_UPDATED:
-		if (instance->content_info)
-			bundle_free(instance->content_info);
+		bundle_get_str(envelope, WIDGET_K_CONTENT_INFO, &content_info);
+		if (content_info) {
+			if (instance->content_info)
+				free(instance->content_info);
 
-		instance->content_info = bundle_dup(envelope);
+			instance->content_info = strdup(content_info);
+		}
 		break;
 	case WIDGET_INSTANCE_EVENT_FAULT:
 
@@ -748,6 +706,9 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 	}
 
 	__notify_event(cmd, widget_id, instance_id);
+
+	if (instance->status == WIDGET_INSTANCE_DELETED)
+		widget_instance_unref(instance);
 
 	return 0;
 }
@@ -803,8 +764,6 @@ EAPI int widget_instance_fini()
 			_E("failed to leave app com endpoint status");
 	}
 
-	__fini();
-
 	if (viewer_appid) {
 		free(viewer_appid);
 		viewer_appid = NULL;
@@ -822,7 +781,7 @@ EAPI int widget_instance_get_id(widget_instance_h instance, char **id)
 	return 0;
 }
 
-EAPI int widget_instance_get_content(widget_instance_h instance, bundle **content)
+EAPI int widget_instance_get_content(widget_instance_h instance, char **content)
 {
 	if (instance == NULL || content == NULL)
 		return -1;
@@ -872,55 +831,38 @@ EAPI int widget_instance_change_period(widget_instance_h instance, double period
 		return -1;
 	}
 
-	bundle_add_str(b, WIDGET_K_OPERATION, "period");
 	bundle_add_byte(b, WIDGET_K_PERIOD, &period, sizeof(double));
 
-	ret = __send_aul_cmd(instance->widget_id, instance->id, b);
+	ret = __send_aul_cmd(instance, "period", b);
 
 	bundle_free(b);
-
-	if (ret > 0) {
-		if (instance->pid != ret) {
-			_E("instance %s(%d) has been launched with different pid.");
-			instance->pid = ret;
-		}
-	}
 
 	return ret;
 }
 
-EAPI int widget_instance_trigger_update(widget_instance_h instance, bundle *b, int force)
+EAPI int widget_instance_trigger_update(widget_instance_h instance, const char *content_info, int force)
 {
 	int ret;
-	bundle *kb = b;
+	bundle *kb;
 
 	if (!instance)
 		return -1;
 
+	kb = bundle_create();
 	if (!kb) {
-		kb = bundle_create();
-		if (!kb) {
-			_E("out of memory");
-			return -1;
-		}
+		_E("out of memory");
+		return -1;
 	}
-
-	bundle_add_str(kb, WIDGET_K_OPERATION, "update");
 
 	if (force)
 		bundle_add_str(kb, WIDGET_K_FORCE, "true");
 
-	ret = __send_aul_cmd(instance->widget_id, instance->id, kb);
+	if (content_info)
+		bundle_add_str(kb, WIDGET_K_CONTENT_INFO, content_info);
 
-	if (!b)
-		bundle_free(kb);
+	ret = __send_aul_cmd(instance, "update", kb);
 
-	if (ret > 0) {
-		if (instance->pid != ret) {
-			_E("instance %s(%d) has been launched with different pid.");
-			instance->pid = ret;
-		}
-	}
+	bundle_free(kb);
 
 	return ret;
 }
@@ -933,7 +875,7 @@ EAPI widget_instance_h widget_instance_get_instance(const char *widget_id, const
 		return NULL;
 
 	if (_widget_apps && _widget_instances) {
-		instance = __pick_instance(widget_id, instance_id);
+		instance = __pick_instance(instance_id);
 		return widget_instance_ref(instance);
 	}
 

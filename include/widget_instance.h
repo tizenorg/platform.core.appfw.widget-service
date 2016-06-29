@@ -38,6 +38,7 @@ extern "C" {
 #define WIDGET_K_REASON		"__WIDGET_REASON__"
 #define WIDGET_K_PERIOD		"__WIDGET_PERIOD__"
 #define WIDGET_K_FORCE		"__WIDGET_FORCE__"
+#define WIDGET_K_CONTENT_INFO	"__WIDGET_CONTENT_INFO__"
 
 typedef enum widget_instance_event {
 	WIDGET_INSTANCE_EVENT_CREATE = 0,
@@ -58,18 +59,18 @@ typedef int (*widget_instance_foreach_cb)(widget_instance_h instance, void *data
 int widget_instance_foreach(const char *widget_id, widget_instance_foreach_cb cb, void *data);
 
 int widget_instance_get_id(widget_instance_h instance, char **id);
-int widget_instance_get_content(widget_instance_h instance, bundle **content);
+int widget_instance_get_content(widget_instance_h instance, char **content);
 int widget_instance_get_width(widget_instance_h instance, int *w);
 int widget_instance_get_height(widget_instance_h instance, int *h);
 int widget_instance_get_period(widget_instance_h instance, double *period);
 
 int widget_instance_create(const char *widget_id, char **instance_id);
-int widget_instance_launch(const char *widget_id, const char *instance_id, bundle *content_info, int w, int h);
-int widget_instance_terminate(const char *widget_id, const char *instance_id);
-int widget_instance_destroy(const char *widget_id, const char *instance_id);
-int widget_instance_resume(const char *widget_id, const char *instance_id);
-int widget_instance_pause(const char *widget_id, const char *instance_id);
-int widget_instance_resize(const char *widget_id, const char *instance_id, int w, int h);
+int widget_instance_launch(const char *instance_id, char *content_info, int w, int h);
+int widget_instance_terminate(const char *instance_id);
+int widget_instance_destroy(const char *instance_id);
+int widget_instance_resume(const char *instance_id);
+int widget_instance_pause(const char *instance_id);
+int widget_instance_resize(const char *instance_id, int w, int h);
 int widget_instance_init(const char *viewer_id);
 int widget_instance_fini();
 
@@ -80,7 +81,7 @@ int widget_instance_get_instance_list(const char *widget_id, widget_instance_lis
 void widget_instance_unref(widget_instance_h instance);
 widget_instance_h widget_instance_ref(widget_instance_h instance);
 int widget_instance_change_period(widget_instance_h instance, double period);
-int widget_instance_trigger_update(widget_instance_h instance, bundle *b, int force);
+int widget_instance_trigger_update(widget_instance_h instance, const char *content_info, int force);
 int widget_instance_listen_event(widget_instance_event_cb cb, void *data);
 int widget_instance_unlisten_event(widget_instance_event_cb cb);
 int widget_instance_listen_status(const char *widget_id, widget_instance_event_cb cb, void *data);

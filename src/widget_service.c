@@ -373,6 +373,8 @@ EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bu
 {
 	widget_instance_h instance;
 	int ret;
+	bundle_raw *raw= NULL;
+	int len;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -390,7 +392,16 @@ EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bu
 		return WIDGET_ERROR_PERMISSION_DENIED;
 	}
 
-	ret = widget_instance_trigger_update(instance, b, force);
+	bundle_encode(b, &raw, &len);
+	if (raw) {
+		ret = widget_instance_trigger_update(instance, (const char *)raw, force);
+	} else {
+		_E("invalid parameter");
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (raw)
+		free(raw);
 
 	widget_instance_unref(instance);
 
@@ -1389,7 +1400,7 @@ EAPI int widget_service_get_size_type(int width, int height,
 EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, bundle **b)
 {
 	widget_instance_h instance;
-	bundle *kb = NULL;
+	char *raw = NULL;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -1404,9 +1415,9 @@ EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, co
 	instance = widget_instance_get_instance(widget_id, widget_instance_id);
 
 	if (instance) {
-		widget_instance_get_content(instance, &kb);
-		if (kb) {
-			*b = bundle_dup(kb);
+		widget_instance_get_content(instance, &raw);
+		if (raw) {
+			*b = bundle_decode((const bundle_raw *)raw, strlen(raw));
 			widget_instance_unref(instance);
 			return WIDGET_ERROR_NONE;
 		}
