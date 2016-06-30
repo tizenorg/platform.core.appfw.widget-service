@@ -946,14 +946,10 @@ EAPI int widget_instance_get_instance_list(const char *widget_id, widget_instanc
 	struct widget_app *app;
 	GList *head = NULL;
 
-	if (widget_id == NULL)
+	if (widget_id == NULL || cb == NULL)
 		return -1;
 
-	if (_widget_apps)
-		app = __pick_app(widget_id);
-	else
-		return -2;
-
+	app = __pick_app(widget_id);
 	if (app) {
 		head = app->instances;
 
@@ -964,6 +960,8 @@ EAPI int widget_instance_get_instance_list(const char *widget_id, widget_instanc
 
 			head = head->next;
 		}
+	} else {
+		return -2;
 	}
 
 	return 0;

@@ -1450,7 +1450,7 @@ EAPI int widget_service_get_widget_instance_list(const char *widget_id, widget_i
 
 	ret = widget_instance_get_instance_list(widget_id, __instance_list_cb, &cb_data);
 
-	return ret < 0 ? (ret == -2 ? WIDGET_ERROR_PERMISSION_DENIED : WIDGET_ERROR_NOT_EXIST) : WIDGET_ERROR_NONE;
+	return ret < 0 ? (ret == -2 ? WIDGET_ERROR_NOT_EXIST : WIDGET_ERROR_INVALID_PARAMETER) : WIDGET_ERROR_NONE;
 }
 
 struct lifecycle_s {
