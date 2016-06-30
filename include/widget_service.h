@@ -473,8 +473,10 @@ typedef int (*widget_instance_list_cb)(const char *widget_id, const char *instan
  * @param[in] cb Callback function
  * @param[in] data user data for callback function
  * @return 0 on success, otherwise a negative error value
- * @retval #WIDGET_ERROR_IO_ERROR Failed to access DB
+ * @retval #WIDGET_ERROR_NOT_SUPPORTED Not supported
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid argument
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #WIDGET_ERROR_NOT_EXIST Event handler callback function is not exist
  * @see #widget_instance_list_cb
  */
 extern int widget_service_get_widget_instance_list(const char *widget_id, widget_instance_list_cb cb, void *data);
