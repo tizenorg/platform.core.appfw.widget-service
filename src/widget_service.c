@@ -24,6 +24,7 @@
 #include <glib.h>
 #include <sqlite3.h>
 
+#include <aul.h>
 #include <tzplatform_config.h>
 #include <pkgmgr-info.h>
 #include <system_info.h>
@@ -371,7 +372,6 @@ EAPI int widget_service_change_period(const char *pkgname, const char *id, doubl
 
 EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bundle *b, int force)
 {
-	widget_instance_h instance;
 	int ret;
 	bundle_raw *raw= NULL;
 	int len;
@@ -386,24 +386,13 @@ EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bu
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	instance = widget_instance_get_instance(widget_id, id);
-	if (!instance) {
-		_E("instance not exists or out of bound(package)");
-		return WIDGET_ERROR_PERMISSION_DENIED;
-	}
+	if (b)
+		bundle_encode(b, &raw, &len);
 
-	bundle_encode(b, &raw, &len);
-	if (raw) {
-		ret = widget_instance_trigger_update(instance, (const char *)raw, force);
-	} else {
-		_E("invalid parameter");
-		ret = WIDGET_ERROR_INVALID_PARAMETER;
-	}
+	ret = widget_instance_trigger_update_v2(widget_id, id, (const char *)raw, force);
 
 	if (raw)
 		free(raw);
-
-	widget_instance_unref(instance);
 
 	return ret;
 }
@@ -1427,18 +1416,20 @@ EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, co
 }
 
 struct instance_cb {
+	const char  *widget_id;
 	widget_instance_list_cb cb;
 	void *data;
+	int cnt;
 };
 
-static int __instance_list_cb(const char *widget_id, const char *instance_id, void *data)
+static void __instance_list_cb(const char *instance_id, void *user_data)
 {
-	struct instance_cb *cb_data = (struct instance_cb *)data;
+	struct instance_cb *cb_data = (struct instance_cb *)user_data;
+	cb_data->cnt++;
 
+	_D("instance list: %s %s", cb_data->widget_id, instance_id);
 	if (cb_data && cb_data->cb)
-		return cb_data->cb(widget_id, instance_id, cb_data->data);
-
-	return -1;
+		cb_data->cb(cb_data->widget_id, instance_id, cb_data->data);
 }
 
 EAPI int widget_service_get_widget_instance_list(const char *widget_id, widget_instance_list_cb cb, void *data)
@@ -1446,8 +1437,10 @@ EAPI int widget_service_get_widget_instance_list(const char *widget_id, widget_i
 	struct instance_cb cb_data;
 	int ret = WIDGET_ERROR_NONE;
 
+	cb_data.widget_id = widget_id;
 	cb_data.cb = cb;
 	cb_data.data = data;
+	cb_data.cnt = 0;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -1459,9 +1452,15 @@ EAPI int widget_service_get_widget_instance_list(const char *widget_id, widget_i
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	ret = widget_instance_get_instance_list(widget_id, __instance_list_cb, &cb_data);
+	ret = aul_widget_instance_foreach(widget_id, __instance_list_cb, &cb_data);
 
-	return ret < 0 ? (ret == -2 ? WIDGET_ERROR_PERMISSION_DENIED : WIDGET_ERROR_NOT_EXIST) : WIDGET_ERROR_NONE;
+	if (ret == AUL_R_EILLACC)
+		return WIDGET_ERROR_PERMISSION_DENIED;
+
+	if (ret == AUL_R_ENOAPP || cb_data.cnt == 0)
+		return WIDGET_ERROR_NOT_EXIST;
+
+	return cb_data.cnt;
 }
 
 struct lifecycle_s {

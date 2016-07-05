@@ -25,9 +25,9 @@
 extern "C" {
 #endif
 
-#define WIDGET_K_ID		AUL_K_APPID
-#define WIDGET_K_CLASS		"__WIDGET_CLASS__"
-#define WIDGET_K_INSTANCE	"__WIDGET_INSTANCE__"
+#define WIDGET_K_ID		AUL_K_WIDGET_ID
+#define WIDGET_K_CLASS		AUL_K_WIDGET_ID
+#define WIDGET_K_INSTANCE	AUL_K_WIDGET_INSTANCE_ID
 #define WIDGET_K_STATUS		"__WIDGET_STATUS__"
 #define WIDGET_K_ENDPOINT	"__WIDGET_ENDPOINT__"
 
@@ -86,6 +86,8 @@ int widget_instance_listen_event(widget_instance_event_cb cb, void *data);
 int widget_instance_unlisten_event(widget_instance_event_cb cb);
 int widget_instance_listen_status(const char *widget_id, widget_instance_event_cb cb, void *data);
 int widget_instance_unlisten_status(const char *widget_id);
+
+int widget_instance_trigger_update_v2(const char *widget_id, const char *instance_id, const char *content_info, int force);
 
 #ifdef __cplusplus
 }
