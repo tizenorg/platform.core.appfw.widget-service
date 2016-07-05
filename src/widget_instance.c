@@ -31,6 +31,7 @@
 #include <aul_app_com.h>
 #include <widget_service.h>
 #include <app.h>
+#include "widget_errno.h"
 
 #define USER_UID_MIN 5000
 #define MAX_INSTANCE_ID_LEN 256
@@ -291,7 +292,9 @@ static int __launch(const char *widget_id, const char *instance_id, bundle *extr
 	if (b == NULL)
 		b = bundle_create();
 
-	bundle_add_str(b, WIDGET_K_INSTANCE, instance_id);
+	if (instance_id)
+		bundle_add_str(b, WIDGET_K_INSTANCE, instance_id);
+
 	bundle_add_str(b, WIDGET_K_CLASS, classid);
 	bundle_add_str(b, AUL_K_WIDGET_VIEWER, viewer_appid);
 
@@ -842,11 +845,18 @@ EAPI int widget_instance_change_period(widget_instance_h instance, double period
 
 EAPI int widget_instance_trigger_update(widget_instance_h instance, const char *content_info, int force)
 {
-	int ret;
-	bundle *kb;
-
 	if (!instance)
 		return -1;
+
+	return widget_instance_trigger_update_v2(instance->widget_id, instance->id, content_info, force);
+}
+
+EAPI int widget_instance_trigger_update_v2(const char *widget_id,
+		const char *instance_id, const char *content_info, int force)
+{
+	int ret;
+
+	bundle *kb;
 
 	kb = bundle_create();
 	if (!kb) {
@@ -854,15 +864,35 @@ EAPI int widget_instance_trigger_update(widget_instance_h instance, const char *
 		return -1;
 	}
 
+	bundle_add_str(kb, WIDGET_K_OPERATION, "update");
+
 	if (force)
 		bundle_add_str(kb, WIDGET_K_FORCE, "true");
 
 	if (content_info)
 		bundle_add_str(kb, WIDGET_K_CONTENT_INFO, content_info);
 
-	ret = __send_aul_cmd(instance, "update", kb);
+	ret = aul_widget_instance_update(widget_id, instance_id, kb);
 
 	bundle_free(kb);
+
+	if (ret > 0)
+		ret = WIDGET_ERROR_NONE;
+	else {
+		switch (ret) {
+		case AUL_R_ENOAPP:
+			ret = WIDGET_ERROR_NOT_EXIST;
+			break;
+		case AUL_R_EILLACC:
+			ret = WIDGET_ERROR_PERMISSION_DENIED;
+			break;
+		case AUL_R_EINVAL:
+			ret = WIDGET_ERROR_INVALID_PARAMETER;
+			break;
+		default:
+			ret = WIDGET_ERROR_FAULT;
+		}
+	}
 
 	return ret;
 }
