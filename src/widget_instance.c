@@ -276,6 +276,7 @@ EAPI int widget_instance_create(const char *widget_id, char **instance_id)
 static int __launch(const char *widget_id, const char *instance_id, bundle *extra)
 {
 	int ret = 0;
+	int target_pid = 0;
 	const char *appid;
 	const char *classid = widget_id;
 	bundle *b = extra;
@@ -291,9 +292,21 @@ static int __launch(const char *widget_id, const char *instance_id, bundle *extr
 	if (b == NULL)
 		b = bundle_create();
 
-	bundle_add_str(b, WIDGET_K_INSTANCE, instance_id);
+	if (instance_id)
+		bundle_add_str(b, WIDGET_K_INSTANCE, instance_id);
+
 	bundle_add_str(b, WIDGET_K_CLASS, classid);
-	bundle_add_str(b, AUL_K_WIDGET_VIEWER, viewer_appid);
+	if (viewer_appid) {
+		bundle_add_str(b, AUL_K_WIDGET_VIEWER, viewer_appid);
+	} else {
+		_D("no viewer appid detected. use target pid instead");
+		ret = aul_app_data_get_owner(widget_id, instance_id, &target_pid);
+		if (!ret && target_pid) {
+			bundle_add_byte(b, AUL_K_TARGET_PID,
+			(void *)&target_pid, sizeof(int));
+			_D("target pid:%d", target_pid);
+		}
+	}
 
 	aul_svc_set_loader_id(b, 1);
 	aul_svc_set_operation(b, AUL_SVC_OPERATION_LAUNCH_WIDGET);
@@ -842,11 +855,18 @@ EAPI int widget_instance_change_period(widget_instance_h instance, double period
 
 EAPI int widget_instance_trigger_update(widget_instance_h instance, const char *content_info, int force)
 {
-	int ret;
-	bundle *kb;
-
 	if (!instance)
 		return -1;
+
+	return widget_instance_trigger_update_v2(instance->widget_id, instance->id, content_info, force);
+}
+
+EAPI int widget_instance_trigger_update_v2(const char *widget_id,
+		const char *instance_id, const char *content_info, int force)
+{
+	int ret;
+
+	bundle *kb;
 
 	kb = bundle_create();
 	if (!kb) {
@@ -854,13 +874,15 @@ EAPI int widget_instance_trigger_update(widget_instance_h instance, const char *
 		return -1;
 	}
 
+	bundle_add_str(kb, WIDGET_K_OPERATION, "update");
+
 	if (force)
 		bundle_add_str(kb, WIDGET_K_FORCE, "true");
 
 	if (content_info)
 		bundle_add_str(kb, WIDGET_K_CONTENT_INFO, content_info);
 
-	ret = __send_aul_cmd(instance, "update", kb);
+	ret = __launch(widget_id, instance_id, kb);
 
 	bundle_free(kb);
 
