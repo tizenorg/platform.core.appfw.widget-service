@@ -87,6 +87,8 @@ int widget_instance_unlisten_event(widget_instance_event_cb cb);
 int widget_instance_listen_status(const char *widget_id, widget_instance_event_cb cb, void *data);
 int widget_instance_unlisten_status(const char *widget_id);
 
+int widget_instance_trigger_update_v2(const char *widget_id, const char *instance_id, const char *content_info, int force);
+
 #ifdef __cplusplus
 }
 #endif
