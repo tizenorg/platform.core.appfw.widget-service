@@ -716,6 +716,7 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 	return 0;
 }
 
+/* LCOV_EXCL_START */
 static int __fault_handler(int pid, void *data)
 {
 	GList *iter;
@@ -735,6 +736,7 @@ static int __fault_handler(int pid, void *data)
 
 	return 0;
 }
+/* LCOV_EXCL_STOP */
 
 EAPI int widget_instance_init(const char *viewer_id)
 {
