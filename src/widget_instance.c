@@ -876,7 +876,7 @@ EAPI int widget_instance_trigger_update_v2(const char *widget_id,
 
 	bundle_free(kb);
 
-	if (ret > 0)
+	if (ret >= 0)
 		return WIDGET_ERROR_NONE;
 
 	switch (ret) {
