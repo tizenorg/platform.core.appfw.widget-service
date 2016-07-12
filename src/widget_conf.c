@@ -272,6 +272,7 @@ static struct info {
 	.search_input_node = 0,
 };
 
+/* LCOV_EXCL_START */
 static void visibility_change_delay_handler(char *buffer)
 {
 	if (sscanf(buffer, "%lf", &s_conf.visibility_change_delay) != 1) {
@@ -2131,5 +2132,6 @@ EAPI const int const widget_conf_enable_resource_lock(void)
 {
 	return s_conf.flags.field.enable_resource_lock;
 }
+/* LCOV_EXCL_STOP */
 
 /* End of a file */

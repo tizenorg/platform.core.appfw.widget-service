@@ -154,8 +154,10 @@ static sqlite3 *_open_db(uid_t uid)
 
 	ret = sqlite3_open_v2(path, &db, SQLITE_OPEN_READONLY, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("failed to open widget db: %d", ret);
 		return NULL;
+		/* LCOV_EXCL_STOP */
 	}
 
 	return db;
@@ -296,9 +298,11 @@ static int _get_widget_supported_sizes(const char *widget_id, uid_t uid,
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		return WIDGET_ERROR_FAULT;
+		/* LCOV_EXCL_STOP */
 	}
 
 	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
@@ -435,9 +439,11 @@ static int _get_widget_list(const char *pkgid, uid_t uid, GList **list)
 
 	ret = sqlite3_prepare_v2(db, query_buf, strlen(query_buf), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		return WIDGET_ERROR_FAULT;
+		/* LCOV_EXCL_STOP */
 	}
 
 	if (pkgid != NULL)
@@ -446,8 +452,10 @@ static int _get_widget_list(const char *pkgid, uid_t uid, GList **list)
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		item = calloc(1, sizeof(struct widget_list_item));
 		if (item == NULL) {
+			/* LCOV_EXCL_START */
 			_E("out of memory");
 			return WIDGET_ERROR_OUT_OF_MEMORY;
+			/* LCOV_EXCL_STOP */
 		}
 
 		_get_column_str(stmt, 0, &item->classid);
@@ -559,10 +567,12 @@ static char *_get_main_app_id(const char *widget_id, uid_t uid)
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
+		/* LCOV_EXCL_STOP */
 	}
 
 	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
@@ -714,10 +724,12 @@ static char *_get_app_id_of_setup_app(const char *widget_id, uid_t uid)
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
+		/* LCOV_EXCL_STOP */
 	}
 
 	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
@@ -928,10 +940,12 @@ static char *_get_preview_image_path(const char *widget_id, int width,
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
+		/* LCOV_EXCL_STOP */
 	}
 
 	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
@@ -1022,10 +1036,12 @@ static char *_get_icon(const char *widget_id, const char *lang, uid_t uid)
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
+		/* LCOV_EXCL_STOP */
 	}
 
 	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
@@ -1105,10 +1121,12 @@ static char *_get_name(const char *widget_id, const char *lang, uid_t uid)
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("step error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
+		/* LCOV_EXCL_STOP */
 	}
 
 	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
@@ -1217,10 +1235,12 @@ static char *_get_widget_id(const char *appid, uid_t uid)
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
+		/* LCOV_EXCL_STOP */
 	}
 
 	sqlite3_bind_text(stmt, 1, appid, -1, SQLITE_STATIC);
@@ -1291,10 +1311,12 @@ static char *_get_package_id(const char *widget_id, uid_t uid)
 
 	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
 	if (ret != SQLITE_OK) {
+		/* LCOV_EXCL_START */
 		_E("prepare error: %s", sqlite3_errmsg(db));
 		sqlite3_close_v2(db);
 		set_last_result(WIDGET_ERROR_FAULT);
 		return NULL;
+		/* LCOV_EXCL_STOP */
 	}
 
 	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
