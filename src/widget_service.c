@@ -377,7 +377,7 @@ EAPI int widget_service_change_period(const char *pkgname, const char *id, doubl
 EAPI int widget_service_trigger_update(const char *widget_id, const char *id, bundle *b, int force)
 {
 	int ret;
-	bundle_raw *raw= NULL;
+	bundle_raw *raw = NULL;
 	int len;
 
 	if (!_is_widget_feature_enabled()) {
