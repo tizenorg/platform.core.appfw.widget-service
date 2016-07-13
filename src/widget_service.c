@@ -1447,10 +1447,13 @@ struct instance_cb {
 static void __instance_list_cb(const char *instance_id, void *user_data)
 {
 	struct instance_cb *cb_data = (struct instance_cb *)user_data;
+
+	if (cb_data == NULL)
+		return;
 	cb_data->cnt++;
 
 	_D("instance list: %s %s", cb_data->widget_id, instance_id);
-	if (cb_data && cb_data->cb)
+	if (cb_data->cb)
 		cb_data->cb(cb_data->widget_id, instance_id, cb_data->data);
 }
 
