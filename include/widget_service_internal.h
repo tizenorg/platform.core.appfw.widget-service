@@ -62,6 +62,10 @@ extern "C" {
 #define WIDGET_EVENT_WIDGET_EXTRA_BUFFER_DESTROYED 24 /**< WIDGET Extra Buffer destroyed event */
 #define WIDGET_EVENT_GBAR_EXTRA_BUFFER_DESTROYED 25 /**< WIDGET Extra Buffer destroyed event */
 
+#define WIDGET_APP_K_CMD	"__WIDGET_APP_K_TYPE__"
+#define WIDGET_APP_K_PID	"__WIDGET_APP_K_PID__"
+
+
 /**
  * @internal
  * @brief specify the source of input event
