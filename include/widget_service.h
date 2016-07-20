@@ -19,6 +19,7 @@
 
 #include <tizen.h>
 #include <bundle.h>
+#include <aul.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -485,10 +486,11 @@ extern int widget_service_get_widget_instance_list(const char *widget_id, widget
  * @see widget_lifecycle_event_cb
  */
 typedef enum widget_lifecycle_event {
-	WIDGET_LIFE_CYCLE_EVENT_CREATE  = 1,    /**< The widget is created */
-	WIDGET_LIFE_CYCLE_EVENT_DESTROY = 2,    /**< The widget is destroyed */
-	WIDGET_LIFE_CYCLE_EVENT_PAUSE   = 3,    /**< The widget is paused */
-	WIDGET_LIFE_CYCLE_EVENT_RESUME  = 4,    /**< The widget is resumed */
+	WIDGET_LIFE_CYCLE_EVENT_APP_DEAD = AUL_WIDGET_LIFE_CYCLE_EVENT_APP_DEAD,
+	WIDGET_LIFE_CYCLE_EVENT_CREATE  = AUL_WIDGET_LIFE_CYCLE_EVENT_CREATE,    /**< The widget is created */
+	WIDGET_LIFE_CYCLE_EVENT_DESTROY = AUL_WIDGET_LIFE_CYCLE_EVENT_DESTROY,    /**< The widget is destroyed */
+	WIDGET_LIFE_CYCLE_EVENT_PAUSE   = AUL_WIDGET_LIFE_CYCLE_EVENT_PAUSE,    /**< The widget is paused */
+	WIDGET_LIFE_CYCLE_EVENT_RESUME  = AUL_WIDGET_LIFE_CYCLE_EVENT_RESUME,    /**< The widget is resumed */
 	WIDGET_LIFE_CYCLE_EVENT_MAX     = 5
 } widget_lifecycle_event_e;
 
