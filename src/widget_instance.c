@@ -93,6 +93,8 @@ struct event_cb_s {
 	void *data;
 };
 
+static int __fault_handler(char * widget_id);
+
 static struct _widget_instance *__pick_instance(const char *instance_id)
 {
 	GList *instances = _widget_instances;
@@ -293,7 +295,7 @@ static int __launch(const char *widget_id, const char *instance_id, bundle *extr
 		b = bundle_create();
 
 	if (instance_id)
-		bundle_add_str(b, WIDGET_K_INSTANCE, instance_id);
+		bundle_add_str(b, AUL_K_WIDGET_INSTANCE_ID, instance_id);
 
 	bundle_add_str(b, WIDGET_K_CLASS, classid);
 	bundle_add_str(b, AUL_K_WIDGET_VIEWER, viewer_appid);
@@ -596,6 +598,24 @@ static void __notify_event(int event, const char *widget_id, const char *instanc
 	}
 }
 
+static int __check_valid_sender(char *widget_id, int pid)
+{
+	struct widget_app *app = NULL;
+	widget_instance_h instance;
+	GList *head = NULL;
+
+	app = __pick_app(widget_id);
+	if (app) {
+		head = app->instances;
+		if (head) {
+			instance = (widget_instance_h)head->data;
+			if (instance->pid == pid)
+				return 0;
+		}
+	}
+	return -1;
+}
+
 static int __status_handler(const char *endpoint, aul_app_com_result_e e, bundle *envelope, void *user_data)
 {
 	char *widget_id;
@@ -603,17 +623,31 @@ static int __status_handler(const char *endpoint, aul_app_com_result_e e, bundle
 	int *status;
 	size_t status_sz = 0;
 	struct lifecycle_local_s *cb_info;
+	char *sender_pid_str;
+	int sender_pid;
 
-	bundle_get_str(envelope, WIDGET_K_ID, &widget_id);
-	bundle_get_str(envelope, WIDGET_K_INSTANCE, &instance_id);
-	bundle_get_byte(envelope, WIDGET_K_STATUS, (void **)&status, &status_sz);
+	bundle_get_str(envelope, AUL_K_WIDGET_ID, &widget_id);
+	bundle_get_str(envelope, AUL_K_WIDGET_INSTANCE_ID, &instance_id);
+	bundle_get_byte(envelope, AUL_K_WIDGET_STATUS, (void **)&status, &status_sz);
+	bundle_get_str(envelope, AUL_K_COM_SENDER_PID, &sender_pid_str);
 
-	if (widget_id == NULL || instance_id == NULL || status == NULL) {
+	if (widget_id == NULL || status == NULL) {
 		_E("undefined class or instance %s of %s", instance_id, widget_id);
 		if (status != NULL)
 			_E("status: %d", *status);
 
 		return 0;
+	}
+
+	sender_pid = atoi(sender_pid_str);
+	if (__check_valid_sender(widget_id, sender_pid) == -1) {
+		_E("invalid sender, pid %d do not have widget_id %s", sender_pid, widget_id);
+		return 0;
+	}
+
+	if (*status == AUL_WIDGET_LIFE_CYCLE_EVENT_APP_DEAD) {
+		_D("handle dead widget instances");
+		__fault_handler(widget_id);
 	}
 
 	cb_info = (struct lifecycle_local_s *)g_hash_table_lookup(lifecycle_tbl, "NULL");
@@ -642,29 +676,17 @@ static int __connect_status_handler()
 	return 0;
 }
 
-static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundle *envelope, void *user_data)
+static int __widget_instance_handler(int status, char *widget_id, char *instance_id, char *content_info)
 {
-	char *widget_id = NULL;
-	char *instance_id = NULL;
-	int *status = NULL;
-	size_t status_sz = 0;
-	int cmd = 0;
+
 	struct _widget_instance *instance;
-	char *content_info = NULL;
 
-	bundle_get_str(envelope, WIDGET_K_ID, &widget_id);
-	bundle_get_str(envelope, WIDGET_K_INSTANCE, &instance_id);
-	bundle_get_byte(envelope, WIDGET_K_STATUS, (void **)&status, &status_sz);
-
-	if (widget_id == NULL || instance_id == NULL || status == NULL) {
+	if (instance_id == NULL) {
 		_E("undefined class or instance %s of %s", instance_id, widget_id);
-		if (status != NULL)
-			_E("cmd: %d", *status);
-
 		return 0;
 	}
 
-	_D("update status %s on %d", instance_id, *status);
+	_D("update status %s on %d", instance_id, status);
 
 	instance = __pick_instance(instance_id);
 
@@ -673,9 +695,7 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 		return 0;
 	}
 
-	cmd = *status;
-
-	switch (cmd) {
+	switch (status) {
 	case WIDGET_INSTANCE_EVENT_CREATE:
 		instance->status = WIDGET_INSTANCE_RUNNING;
 		break;
@@ -692,7 +712,6 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 	case WIDGET_INSTANCE_EVENT_UPDATE:
 		break;
 	case WIDGET_INSTANCE_EVENT_EXTRA_UPDATED:
-		bundle_get_str(envelope, WIDGET_K_CONTENT_INFO, &content_info);
 		if (content_info) {
 			if (instance->content_info)
 				free(instance->content_info);
@@ -704,11 +723,11 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 
 		break;
 	default:
-		_E("unknown command: %d", cmd);
+		_E("unknown status: %d", status);
 		break;
 	}
 
-	__notify_event(cmd, widget_id, instance_id);
+	__notify_event(status, widget_id, instance_id);
 
 	if (instance->status == WIDGET_INSTANCE_DELETED)
 		widget_instance_unref(instance);
@@ -716,8 +735,43 @@ static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundl
 	return 0;
 }
 
+static int __widget_handler(const char *viewer_id, aul_app_com_result_e e, bundle *envelope, void *user_data)
+{
+	char *widget_id = NULL;
+	char *instance_id = NULL;
+	int *status = NULL;
+	size_t status_sz = 0;
+	char *content_info = NULL;
+	char *sender_pid_str = NULL;
+	int sender_pid;
+	int ret;
+
+	bundle_get_str(envelope, AUL_K_WIDGET_ID, &widget_id);
+	bundle_get_byte(envelope, AUL_K_WIDGET_STATUS, (void **)&status, &status_sz);
+
+	if (widget_id == NULL) {
+		_E("undefined widget_id %s", widget_id);
+		return 0;
+	}
+
+	if (*status == WIDGET_INSTANCE_EVENT_APP_RESTART_REQUEST) {
+		_D("WIDGET_INSTANCE_EVENT_APP_RESTART_REQUEST notify");
+		bundle_get_str(envelope, AUL_K_COM_SENDER_PID, &sender_pid_str);
+		sender_pid = atoi(sender_pid_str);
+		ret = __check_valid_sender(widget_id, sender_pid);
+		if (ret == 0)
+			__notify_event(*status, widget_id, "");
+	} else {
+		bundle_get_str(envelope, AUL_K_WIDGET_INSTANCE_ID, &instance_id);
+		bundle_get_str(envelope, WIDGET_K_CONTENT_INFO, &content_info);
+		__widget_instance_handler(*status, widget_id, instance_id, content_info);
+	}
+
+	return 0;
+}
+
 /* LCOV_EXCL_START */
-static int __fault_handler(int pid, void *data)
+static int __fault_handler(char *widget_id)
 {
 	GList *iter;
 	struct _widget_instance *instance;
@@ -726,7 +780,7 @@ static int __fault_handler(int pid, void *data)
 
 	while (iter) {
 		instance = (struct _widget_instance *)iter->data;
-		if (instance && instance->pid == pid) {
+		if (instance && strcmp(instance->widget_id, widget_id) == 0) {
 			instance->pid = 0;
 			instance->status = WIDGET_INSTANCE_TERMINATED;
 			__notify_event(WIDGET_INSTANCE_EVENT_FAULT, instance->widget_id, instance->id);
@@ -746,8 +800,8 @@ EAPI int widget_instance_init(const char *viewer_id)
 	viewer_appid = strdup(viewer_id);
 
 	__connect_status_handler();
-	aul_listen_app_dead_signal(__fault_handler, NULL);
 
+	_D("widget_instance_init %s", viewer_id);
 	if (aul_app_com_create(viewer_id, NULL, __widget_handler, NULL, &conn_viewer) < 0) {
 		_E("failed to create app com endpoint");
 		return -1;
