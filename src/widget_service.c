@@ -497,6 +497,9 @@ EAPI int widget_service_get_widget_list(widget_list_cb cb, void *data)
 	ret = g_list_length(list);
 	g_list_free_full(list, __free_widget_list);
 
+	if (ret == 0)
+		return WIDGET_ERROR_NOT_EXIST;
+
 	return ret;
 }
 
