@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <widget_service.h>
 #include <string.h>
+#include <aul.h>
 
 typedef int (*test_fn)(int argc, char **argv);
 
@@ -42,9 +43,24 @@ int get_widget_list(int argc, char **argv)
 	return 0;
 }
 
+int get_content(int argc, char **argv)
+{
+	bundle *b;
+	int ret;
+	char *content_info = NULL;
+
+	ret = widget_service_get_content_of_widget_instance(argv[2], argv[3], &b);
+	if (b)
+		bundle_get_str(b, AUL_K_WIDGET_CONTENT_INFO, &content_info);
+
+	printf("ret:%d %s\n", ret, content_info);
+	return 0;
+}
+
 test_func_t test_func[] = {
 	{"get_pkg_id", get_pkg_id, "<widget_id>"},
-	{"get_widget_list", get_widget_list, ""}
+	{"get_widget_list", get_widget_list, ""},
+	{"get_content", get_content, ""},
 };
 
 static void print_usage(char *pname)
