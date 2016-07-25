@@ -1388,8 +1388,8 @@ EAPI int widget_service_get_size_type(int width, int height,
 
 EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, const char *widget_instance_id, bundle **b)
 {
-	widget_instance_h instance;
 	char *raw = NULL;
+	int ret;
 
 	if (!_is_widget_feature_enabled()) {
 		_E("not supported");
@@ -1401,15 +1401,27 @@ EAPI int widget_service_get_content_of_widget_instance(const char *widget_id, co
 		return WIDGET_ERROR_INVALID_PARAMETER;
 	}
 
-	instance = widget_instance_get_instance(widget_id, widget_instance_id);
+	ret = aul_widget_instance_get_content(widget_id, widget_instance_id, &raw);
+	if (raw) {
+		*b = bundle_decode((const bundle_raw *)raw, strlen(raw));
+		return WIDGET_ERROR_NONE;
+	}
 
-	if (instance) {
-		widget_instance_get_content(instance, &raw);
-		if (raw) {
-			*b = bundle_decode((const bundle_raw *)raw, strlen(raw));
-			widget_instance_unref(instance);
-			return WIDGET_ERROR_NONE;
-		}
+	switch (ret) {
+	case AUL_R_EINVAL:
+		ret = WIDGET_ERROR_INVALID_PARAMETER;
+		break;
+	case AUL_R_ECOMM:
+		ret = WIDGET_ERROR_IO_ERROR;
+		break;
+	case AUL_R_ENOAPP:
+		ret = WIDGET_ERROR_NOT_EXIST;
+		break;
+	case AUL_R_EILLACC:
+		ret = WIDGET_ERROR_PERMISSION_DENIED;
+		break;
+	default:
+		ret = WIDGET_ERROR_FAULT;
 	}
 
 	return WIDGET_ERROR_INVALID_PARAMETER;
