@@ -745,6 +745,7 @@ extern int widget_service_destroy_widget_list(widget_list_h handle);
  * @retval #WIDGET_ERROR_IO_ERROR Input/Output error (failed to access database)
  * @retval #WIDGET_ERROR_FAULT Unrecorvarable error occurred
  * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
 extern int widget_service_get_widget_max_count(const char *widget_id);
 
