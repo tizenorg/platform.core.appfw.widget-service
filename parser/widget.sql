@@ -11,6 +11,7 @@ CREATE TABLE widget_class (
   appid         TEXT NOT NULL,
   pkgid         TEXT NOT NULL,
   nodisplay     INTEGER DEFAULT 0,
+  max_instance  INTEGER DEFAULT 0,
   PRIMARY KEY(classid)
 );
 

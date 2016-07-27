@@ -38,6 +38,7 @@
 #include "widget_conf.h"
 #include "widget_instance.h"
 #include "widget_service.h"
+#include "widget_service_internal.h"
 
 #define MAX_BUF_SIZE 4096
 #define SMACK_LABEL_LEN 255
@@ -1595,5 +1596,68 @@ EAPI int widget_service_unset_lifecycle_event_cb(const char *widget_id, void **u
 	}
 
 	return WIDGET_ERROR_NOT_EXIST;
+}
+
+static int __get_max_instance(const char *widget_id, uid_t uid)
+{
+	static const char query[] =
+		"SELECT max_instance FROM widget_class WHERE classid=?";
+	int ret;
+	sqlite3 *db;
+	sqlite3_stmt *stmt;
+	int max_instance = 0;
+
+	db = _open_db(uid);
+	if (db == NULL)
+		return WIDGET_ERROR_IO_ERROR;
+
+	ret = sqlite3_prepare_v2(db, query, strlen(query), &stmt, NULL);
+	if (ret != SQLITE_OK) {
+		_E("prepare error: %s", sqlite3_errmsg(db));
+		sqlite3_close_v2(db);
+		return WIDGET_ERROR_FAULT;
+	}
+
+	sqlite3_bind_text(stmt, 1, widget_id, -1, SQLITE_STATIC);
+
+	ret = sqlite3_step(stmt);
+	if (ret != SQLITE_ROW) {
+		_E("step error: %s", sqlite3_errmsg(db));
+		sqlite3_finalize(stmt);
+		sqlite3_close_v2(db);
+		return WIDGET_ERROR_FAULT;
+	}
+
+	_get_column_int(stmt, 0, &max_instance);
+	_D("widget_id: %s, max-instance: %d", widget_id, max_instance);
+
+	sqlite3_finalize(stmt);
+	sqlite3_close_v2(db);
+
+	return max_instance;
+}
+
+EAPI int widget_service_get_widget_max_count(const char *widget_id)
+{
+	int ret;
+
+	if (!_is_widget_feature_enabled()) {
+		_E("Not supported");
+		return WIDGET_ERROR_NOT_SUPPORTED;
+	}
+
+	if (widget_id == NULL) {
+		_E("Invalid parameter");
+		return WIDGET_ERROR_INVALID_PARAMETER;
+	}
+
+	if (check_privilege("http://tizen.org/privilege/widget.viewer") < 0)
+		return WIDGET_ERROR_PERMISSION_DENIED;
+
+	ret = __get_max_instance(widget_id, getuid());
+	if (ret < 0)
+		return ret;
+
+	return ret;
 }
 
