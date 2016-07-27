@@ -128,10 +128,9 @@ static int _parse_support_size(xmlNode *node, GList **sizes)
 
 	size->preview = _get_attribute(node, "preview");
 	val = _get_attribute(node, "frame");
-	if (val && !strcasecmp(val, "true")) {
+	if (val && !strcasecmp(val, "true"))
 		size->frame = true;
-		free(val);
-	}
+	free(val);
 
 	*sizes = g_list_append(*sizes, size);
 
@@ -204,6 +203,11 @@ static int _parse_widget_class(xmlNode *node, const char *appid, GList **apps)
 
 	wc->setup_appid = _get_attribute(node, "setup-appid");
 
+	val = _get_attribute(node, "max-instance");
+	if (val)
+		wc->max_instance = atoi(val);
+	free(val);
+
 	for (tmp = node->children; tmp; tmp = tmp->next) {
 		switch (_get_tag(tmp)) {
 		case TAG_SUPPORT_SIZE:
@@ -256,14 +260,21 @@ static int _parse_widget_application(xmlNode *node, GList **list)
 	val = _get_attribute(node, "update-period");
 	if (val)
 		wc->update_period = atoi(val);
+	free(val);
 
 	val = _get_attribute(node, "nodisplay");
 	if (val && strncmp(val, "true", strlen("true")) == 0)
 		wc->nodisplay = 1;
 	else
 		wc->nodisplay = 0;
+	free(val);
 
 	wc->setup_appid = _get_attribute(node, "setup-appid");
+
+	val = _get_attribute(node, "max-instance");
+	if (val)
+		wc->max_instance = atoi(val);
+	free(val);
 
 	for (tmp = node->children; tmp; tmp = tmp->next) {
 		switch (_get_tag(tmp)) {
