@@ -205,8 +205,8 @@ static int _insert_widget_class(sqlite3 *db, const char *pkgid, GList *wcs)
 	int ret;
 	static const char query[] =
 		"INSERT INTO widget_class (classid, update_period, "
-		"setup_appid, appid, pkgid, nodisplay) "
-		"VALUES (?, ?, ?, ?, ?, ?)";
+		"setup_appid, appid, pkgid, nodisplay, max_instance) "
+		"VALUES (?, ?, ?, ?, ?, ?, ?)";
 	GList *tmp;
 	struct widget_class *wc;
 	sqlite3_stmt *stmt = NULL;
@@ -227,6 +227,7 @@ static int _insert_widget_class(sqlite3 *db, const char *pkgid, GList *wcs)
 		_bind_text(stmt, idx++, wc->appid);
 		_bind_text(stmt, idx++, pkgid);
 		sqlite3_bind_int(stmt, idx++, wc->nodisplay);
+		sqlite3_bind_int(stmt, idx++, wc->max_instance);
 
 		ret = sqlite3_step(stmt);
 		if (ret != SQLITE_DONE) {
