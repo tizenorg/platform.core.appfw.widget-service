@@ -740,11 +740,12 @@ extern int widget_service_destroy_widget_list(widget_list_h handle);
  * @param[in] widget_id widget application id
  * @privlevel public
  * @privlege %http://tizen.org/privilege/widget.viewer
- * @return count positive value on success, otherwise a negative error value
+ * @return count non-negative value on success, otherwise a negative error value
  * @retval #WIDGET_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #WIDGET_ERROR_IO_ERROR Input/Output error (failed to access database)
  * @retval #WIDGET_ERROR_FAULT Unrecorvarable error occurred
  * @retval #WIDGET_ERROR_NOT_SUPPORTED Widget feature is not supported
+ * @retval #WIDGET_ERROR_PERMISSION_DENIED Permission denied
  */
 extern int widget_service_get_widget_max_count(const char *widget_id);
 
