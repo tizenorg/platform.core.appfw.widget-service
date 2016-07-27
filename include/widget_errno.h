@@ -60,6 +60,7 @@ typedef enum widget_error
 	WIDGET_ERROR_ALREADY_STARTED = TIZEN_ERROR_WIDGET | 0x0004, /**< Operation is already started */
 	WIDGET_ERROR_NOT_EXIST = TIZEN_ERROR_WIDGET | 0x0008, /**< Not exists */
 	WIDGET_ERROR_DISABLED = TIZEN_ERROR_WIDGET | 0x0010,  /**< Disabled */
+	WIDGET_ERROR_MAX_EXCEED = TIZEN_ERROR_WIDGET | 0x0011,  /* *< Max instance exceed */
 } widget_error_e;
 
 /**
