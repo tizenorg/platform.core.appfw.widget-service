@@ -24,8 +24,26 @@
 
 #include <dlog.h>
 #include <tzplatform_config.h>
+#include <pkgmgr_installer_info.h>
 
 #include "widget_plugin_parser_internal.h"
+
+static int target_uid_initialized;
+static uid_t target_uid;
+
+static uid_t __get_target_uid(void)
+{
+	int ret;
+
+	if (target_uid_initialized)
+		return target_uid;
+
+	ret = pkgmgr_installer_info_get_target_uid(&target_uid);
+	if (ret < 0)
+		LOGE("Failed to get target uid - %d", ret);
+
+	return target_uid;
+}
 
 static int _bind_text(sqlite3_stmt *stmt, int idx, const char *text)
 {
@@ -38,7 +56,7 @@ static int _bind_text(sqlite3_stmt *stmt, int idx, const char *text)
 static const char *_get_root_path(const char *pkgid)
 {
 	const char *path;
-	uid_t uid = getuid();
+	uid_t uid = __get_target_uid();
 
 	if (uid == 0) {
 		path = tzplatform_mkpath(TZ_SYS_RO_APP, pkgid);
@@ -257,7 +275,7 @@ int widget_parser_db_insert_widget_class(const char *pkgid, GList *widget_list)
 	int ret;
 	sqlite3 *db;
 
-	db = _open_db(getuid(), false);
+	db = _open_db(__get_target_uid(), false);
 	if (db == NULL)
 		return -1;
 
@@ -317,7 +335,7 @@ int widget_parser_db_remove_widget_class(const char *pkgid)
 	int ret;
 	sqlite3 *db;
 
-	db = _open_db(getuid(), false);
+	db = _open_db(__get_target_uid(), false);
 	if (db == NULL)
 		return -1;
 
